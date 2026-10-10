@@ -1,0 +1,19 @@
+{
+  "type": "grimstorage:infusing",
+  "ingredients": [
+    {
+      "tag": "c:ingots/soulite"
+    },
+    {
+      "tag": "minecraft:soul_fire_base_blocks"
+    },
+    {
+      "tag": "c:gems/quartz"
+    }
+  ],
+  "result": {
+    "id": "grimstorage:infused_soulite",
+    "count": 1
+  },
+  "time": 100
+}

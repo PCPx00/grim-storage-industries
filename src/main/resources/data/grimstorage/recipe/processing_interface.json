@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AHA",
+    "PXP",
+    "AHA"
+  ],
+  "key": {
+    "A": {
+      "item": "grimstorage:echo_soulite_alloy"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "P": {
+      "item": "minecraft:piston"
+    },
+    "X": {
+      "item": "grimstorage:network_interface"
+    }
+  },
+  "result": {
+    "id": "grimstorage:processing_interface",
+    "count": 1
+  }
+}

@@ -1,24 +1,67 @@
 package com.xtri6.grimstorage;
 
+import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.function.Supplier;
 
+import com.xtri6.grimstorage.block.CableBlock;
+import com.xtri6.grimstorage.block.FacingDeviceBlock;
+import com.xtri6.grimstorage.block.NetworkDeviceBlock;
+import com.xtri6.grimstorage.block.SoulGlassBlock;
+import com.xtri6.grimstorage.block.SoulInfuserBlock;
+import com.xtri6.grimstorage.block.entity.AssemblerBlockEntity;
+import com.xtri6.grimstorage.block.entity.ControllerBlockEntity;
+import com.xtri6.grimstorage.block.entity.DriveBlockEntity;
+import com.xtri6.grimstorage.block.entity.InterfaceBlockEntity;
+import com.xtri6.grimstorage.block.entity.ProcessingInterfaceBlockEntity;
+import com.xtri6.grimstorage.block.entity.QuantumLinkBlockEntity;
+import com.xtri6.grimstorage.block.entity.SoulInfuserBlockEntity;
+import com.xtri6.grimstorage.block.entity.StockKeeperBlockEntity;
+import com.xtri6.grimstorage.block.entity.VoidFilterBlockEntity;
+import com.xtri6.grimstorage.item.CardData;
+import com.xtri6.grimstorage.item.ProcessingCardItem;
+import com.xtri6.grimstorage.item.RecipeCardItem;
+import com.xtri6.grimstorage.item.SoulTetherItem;
+import com.xtri6.grimstorage.item.StorageCellItem;
+import com.xtri6.grimstorage.item.WirelessTerminalItem;
+import com.xtri6.grimstorage.menu.BlockMenus;
+import com.xtri6.grimstorage.menu.CardMenus;
+import com.xtri6.grimstorage.menu.ControllerMenu;
+import com.xtri6.grimstorage.menu.Menus;
+import com.xtri6.grimstorage.menu.TerminalMenu;
+import com.xtri6.grimstorage.recipe.InfusingRecipe;
+import com.xtri6.grimstorage.storage.CellTier;
+
+import net.minecraft.core.GlobalPos;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.util.valueproviders.UniformInt;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DropExperienceBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.properties.NoteBlockInstrument;
 import net.minecraft.world.level.material.MapColor;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -97,17 +140,162 @@ public final class Registration {
     public static final DeferredItem<Item> SINGULARITY_CORE = item("singularity_core",
             new Item.Properties().rarity(Rarity.EPIC).fireResistant().stacksTo(16));
 
+    // ======================================================================== storage network
+
+    private static BlockBehaviour.Properties machine() {
+        return BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_BLUE).strength(3.0f, 6.0f)
+                .sound(SoundType.METAL).requiresCorrectToolForDrops();
+    }
+
+    public static final DeferredBlock<NetworkDeviceBlock> CONTROLLER = device("network_controller",
+            () -> new NetworkDeviceBlock(machine().lightLevel(s -> 7), Registration.CONTROLLER_ENTITY, Menus::openController));
+    public static final DeferredBlock<NetworkDeviceBlock> DRIVE = device("soul_drive",
+            () -> new FacingDeviceBlock.Horizontal(machine(), Registration.DRIVE_ENTITY, Menus::openDrive));
+    public static final DeferredBlock<NetworkDeviceBlock> TERMINAL = device("soul_terminal",
+            () -> new FacingDeviceBlock.Horizontal(machine().lightLevel(s -> 4), null, Menus::openTerminal));
+    public static final DeferredBlock<NetworkDeviceBlock> ASSEMBLER = device("soul_assembler",
+            () -> new NetworkDeviceBlock(machine(), Registration.ASSEMBLER_ENTITY, Menus::openAssembler));
+    public static final DeferredBlock<NetworkDeviceBlock> INTERFACE = device("network_interface",
+            () -> new NetworkDeviceBlock(machine(), Registration.INTERFACE_ENTITY, Menus::openFilter));
+    public static final DeferredBlock<NetworkDeviceBlock> PROCESSING_INTERFACE = device("processing_interface",
+            () -> new FacingDeviceBlock.All(machine(), Registration.PROCESSING_INTERFACE_ENTITY, Menus::openProcessing));
+    public static final DeferredBlock<NetworkDeviceBlock> STOCK_KEEPER = device("stock_keeper",
+            () -> new NetworkDeviceBlock(machine(), Registration.STOCK_KEEPER_ENTITY, Menus::openStockKeeper));
+    public static final DeferredBlock<NetworkDeviceBlock> VOID_FILTER = device("void_filter",
+            () -> new NetworkDeviceBlock(machine(), Registration.VOID_FILTER_ENTITY, Menus::openFilter));
+    public static final DeferredBlock<NetworkDeviceBlock> QUANTUM_LINK = device("quantum_link",
+            () -> new NetworkDeviceBlock(machine().lightLevel(s -> 9), Registration.QUANTUM_LINK_ENTITY, null));
+    public static final DeferredBlock<CableBlock> CABLE = device("soul_cable",
+            () -> new CableBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_BLUE).strength(0.5f, 6.0f)
+                    .sound(SoundType.COPPER).noOcclusion().forceSolidOn()));
+    public static final DeferredBlock<SoulGlassBlock> SOUL_GLASS = device("soulite_glass",
+            () -> new SoulGlassBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_BLUE).strength(0.5f)
+                    .sound(SoundType.GLASS).noOcclusion().lightLevel(s -> 3)
+                    .isValidSpawn((s, l, p, e) -> false).isRedstoneConductor((s, l, p) -> false)
+                    .isSuffocating((s, l, p) -> false).isViewBlocking((s, l, p) -> false)));
+    public static final DeferredBlock<SoulInfuserBlock> SOUL_INFUSER = device("soul_infuser",
+            () -> new SoulInfuserBlock(machine().lightLevel(s -> 6)));
+
+    // ---- Block entities ----
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, MODID);
+
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ControllerBlockEntity>> CONTROLLER_ENTITY =
+            be("network_controller", ControllerBlockEntity::new, CONTROLLER);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<DriveBlockEntity>> DRIVE_ENTITY =
+            be("soul_drive", DriveBlockEntity::new, DRIVE);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AssemblerBlockEntity>> ASSEMBLER_ENTITY =
+            be("soul_assembler", AssemblerBlockEntity::new, ASSEMBLER);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<InterfaceBlockEntity>> INTERFACE_ENTITY =
+            be("network_interface", InterfaceBlockEntity::new, INTERFACE);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<ProcessingInterfaceBlockEntity>> PROCESSING_INTERFACE_ENTITY =
+            be("processing_interface", ProcessingInterfaceBlockEntity::new, PROCESSING_INTERFACE);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<StockKeeperBlockEntity>> STOCK_KEEPER_ENTITY =
+            be("stock_keeper", StockKeeperBlockEntity::new, STOCK_KEEPER);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VoidFilterBlockEntity>> VOID_FILTER_ENTITY =
+            be("void_filter", VoidFilterBlockEntity::new, VOID_FILTER);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<QuantumLinkBlockEntity>> QUANTUM_LINK_ENTITY =
+            be("quantum_link", QuantumLinkBlockEntity::new, QUANTUM_LINK);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SoulInfuserBlockEntity>> SOUL_INFUSER_ENTITY =
+            be("soul_infuser", SoulInfuserBlockEntity::new, SOUL_INFUSER);
+
+    // ---- Items ----
+    public static final Map<CellTier, DeferredItem<StorageCellItem>> CELLS = new EnumMap<>(CellTier.class);
+
+    static {
+        for (CellTier tier : CellTier.values()) {
+            Item.Properties props = new Item.Properties();
+            if (tier == CellTier.NETHERITE || tier == CellTier.SINGULARITY) {
+                props.fireResistant();
+            }
+            props.rarity(switch (tier) {
+                case COPPER, GOLD -> Rarity.COMMON;
+                case DIAMOND -> Rarity.UNCOMMON;
+                case NETHERITE -> Rarity.RARE;
+                case SINGULARITY -> Rarity.EPIC;
+            });
+            CELLS.put(tier, ITEMS.register(tier.id(), () -> new StorageCellItem(tier, props)));
+        }
+    }
+
+    public static final DeferredItem<RecipeCardItem> RECIPE_CARD = ITEMS.register("recipe_card",
+            () -> new RecipeCardItem(new Item.Properties().stacksTo(16)));
+    public static final DeferredItem<ProcessingCardItem> PROCESSING_CARD = ITEMS.register("processing_card",
+            () -> new ProcessingCardItem(new Item.Properties().stacksTo(16)));
+    public static final DeferredItem<Item> SPEED_UPGRADE = item("speed_upgrade", new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON));
+    public static final DeferredItem<WirelessTerminalItem> WIRELESS_TERMINAL = ITEMS.register("wireless_terminal",
+            () -> new WirelessTerminalItem(false, new Item.Properties().rarity(Rarity.UNCOMMON)));
+    public static final DeferredItem<WirelessTerminalItem> SINGULARITY_TERMINAL = ITEMS.register("singularity_terminal",
+            () -> new WirelessTerminalItem(true, new Item.Properties().rarity(Rarity.EPIC).fireResistant()));
+    public static final DeferredItem<SoulTetherItem> SOUL_TETHER = ITEMS.register("soul_tether",
+            () -> new SoulTetherItem(new Item.Properties().rarity(Rarity.RARE)));
+
+    // ---- Item components ----
+    public static final DeferredRegister.DataComponents COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, MODID);
+
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<UUID>> CELL_ID = COMPONENTS.registerComponentType("cell_id",
+            b -> b.persistent(UUIDUtil.CODEC).networkSynchronized(UUIDUtil.STREAM_CODEC));
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<CardData.CellStats>> CELL_STATS = COMPONENTS.registerComponentType(
+            "cell_stats", b -> b.persistent(CardData.CellStats.CODEC).networkSynchronized(CardData.CellStats.STREAM_CODEC));
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<CardData.Locked>> CELL_LOCK = COMPONENTS.registerComponentType(
+            "cell_lock", b -> b.persistent(CardData.Locked.CODEC).networkSynchronized(CardData.Locked.STREAM_CODEC));
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<CardData.Recipe>> RECIPE_CARD_DATA = COMPONENTS.registerComponentType(
+            "recipe_card", b -> b.persistent(CardData.Recipe.CODEC).networkSynchronized(CardData.Recipe.STREAM_CODEC));
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<CardData.Processing>> PROCESSING_CARD_DATA =
+            COMPONENTS.registerComponentType("processing_card",
+                    b -> b.persistent(CardData.Processing.CODEC).networkSynchronized(CardData.Processing.STREAM_CODEC));
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> BOUND_POS = COMPONENTS.registerComponentType(
+            "bound_pos", b -> b.persistent(GlobalPos.CODEC).networkSynchronized(GlobalPos.STREAM_CODEC));
+
+    // ---- Menus ----
+    public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(Registries.MENU, MODID);
+
+    public static final DeferredHolder<MenuType<?>, MenuType<TerminalMenu>> TERMINAL_MENU = MENUS.register("terminal",
+            () -> IMenuTypeExtension.create(TerminalMenu::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<ControllerMenu>> CONTROLLER_MENU = MENUS.register("controller",
+            () -> IMenuTypeExtension.create(ControllerMenu::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Drive>> DRIVE_MENU = MENUS.register("drive",
+            () -> IMenuTypeExtension.create(BlockMenus.Drive::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Assembler>> ASSEMBLER_MENU = MENUS.register("assembler",
+            () -> IMenuTypeExtension.create(BlockMenus.Assembler::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Processing>> PROCESSING_MENU = MENUS.register("processing_interface",
+            () -> IMenuTypeExtension.create(BlockMenus.Processing::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Filter>> FILTER_MENU = MENUS.register("filter",
+            () -> IMenuTypeExtension.create(BlockMenus.Filter::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.StockKeeper>> STOCK_KEEPER_MENU = MENUS.register("stock_keeper",
+            () -> IMenuTypeExtension.create(BlockMenus.StockKeeper::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Infuser>> INFUSER_MENU = MENUS.register("soul_infuser",
+            () -> IMenuTypeExtension.create(BlockMenus.Infuser::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<CardMenus.Recipe>> RECIPE_CARD_MENU = MENUS.register("recipe_card",
+            () -> IMenuTypeExtension.create(CardMenus.Recipe::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<CardMenus.Processing>> PROCESSING_CARD_MENU = MENUS.register("processing_card",
+            () -> IMenuTypeExtension.create(CardMenus.Processing::client));
+
+    // ---- Recipes ----
+    public static final DeferredRegister<RecipeType<?>> RECIPE_TYPES = DeferredRegister.create(Registries.RECIPE_TYPE, MODID);
+    public static final DeferredRegister<RecipeSerializer<?>> RECIPE_SERIALIZERS = DeferredRegister.create(Registries.RECIPE_SERIALIZER, MODID);
+
+    public static final DeferredHolder<RecipeType<?>, RecipeType<InfusingRecipe>> INFUSING_TYPE = RECIPE_TYPES.register("infusing",
+            () -> RecipeType.simple(ResourceLocation.fromNamespaceAndPath(MODID, "infusing")));
+    public static final DeferredHolder<RecipeSerializer<?>, InfusingRecipe.Serializer> INFUSING_SERIALIZER = RECIPE_SERIALIZERS.register(
+            "infusing", InfusingRecipe.Serializer::new);
+
     // ---- Creative tab ----
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> TAB = TABS.register("main",
             () -> CreativeModeTab.builder()
                     .title(Component.translatable("itemGroup." + MODID))
-                    .icon(() -> SOULITE_INGOT.get().getDefaultInstance())
+                    .icon(() -> Registration.CONTROLLER.get().asItem().getDefaultInstance())
                     .displayItems((params, output) -> {
-                        List<Supplier<? extends net.minecraft.world.level.ItemLike>> order = List.of(
+                        List<Supplier<? extends ItemLike>> order = new ArrayList<>(List.of(
                                 SOULITE_ORE, DEEPSLATE_SOULITE_ORE, SOUL_SAND_SOULITE_ORE, ECHO_SOULITE_ORE,
                                 RAW_SOULITE_BLOCK, SOULITE_BLOCK,
                                 RAW_SOULITE, SOULITE_DUST, SOULITE_NUGGET, SOULITE_INGOT,
-                                INFUSED_SOULITE, ECHO_SOULITE_SHARD, ECHO_SOULITE_ALLOY, SINGULARITY_CORE);
+                                INFUSED_SOULITE, ECHO_SOULITE_SHARD, ECHO_SOULITE_ALLOY, SINGULARITY_CORE,
+                                SOUL_INFUSER, CONTROLLER, DRIVE, TERMINAL, CABLE, SOUL_GLASS, INTERFACE,
+                                ASSEMBLER, STOCK_KEEPER, VOID_FILTER, PROCESSING_INTERFACE, QUANTUM_LINK));
+                        for (CellTier t : CellTier.values()) {
+                            order.add(CELLS.get(t));
+                        }
+                        order.addAll(List.of(RECIPE_CARD, PROCESSING_CARD, SPEED_UPGRADE, WIRELESS_TERMINAL, SINGULARITY_TERMINAL, SOUL_TETHER));
                         order.forEach(entry -> output.accept(entry.get()));
                     })
                     .build());
@@ -117,7 +305,24 @@ public final class Registration {
     public static void register(IEventBus modBus) {
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
+        BLOCK_ENTITIES.register(modBus);
+        COMPONENTS.register(modBus);
+        MENUS.register(modBus);
+        RECIPE_TYPES.register(modBus);
+        RECIPE_SERIALIZERS.register(modBus);
         TABS.register(modBus);
+    }
+
+    private static <B extends Block> DeferredBlock<B> device(String name, Supplier<B> factory) {
+        DeferredBlock<B> block = BLOCKS.register(name, factory);
+        ITEMS.registerSimpleBlockItem(block);
+        return block;
+    }
+
+    @SuppressWarnings("DataFlowIssue")
+    private static <T extends BlockEntity> DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> be(
+            String name, BlockEntityType.BlockEntitySupplier<T> factory, DeferredBlock<? extends Block> block) {
+        return BLOCK_ENTITIES.register(name, () -> BlockEntityType.Builder.of(factory, block.get()).build(null));
     }
 
     private static DeferredBlock<DropExperienceBlock> ore(String name, BlockBehaviour.Properties props,

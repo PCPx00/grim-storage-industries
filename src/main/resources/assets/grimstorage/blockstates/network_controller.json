@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "grimstorage:block/network_controller"
+    }
+  }
+}

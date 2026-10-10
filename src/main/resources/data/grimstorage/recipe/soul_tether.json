@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "grimstorage:echo_soulite_shard"
+    },
+    {
+      "tag": "c:strings"
+    },
+    {
+      "tag": "c:ender_pearls"
+    }
+  ],
+  "result": {
+    "id": "grimstorage:soul_tether",
+    "count": 1
+  }
+}

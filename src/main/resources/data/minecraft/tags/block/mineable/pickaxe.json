@@ -6,6 +6,18 @@
     "grimstorage:soul_sand_soulite_ore",
     "grimstorage:echo_soulite_ore",
     "grimstorage:raw_soulite_block",
-    "grimstorage:soulite_block"
+    "grimstorage:soulite_block",
+    "grimstorage:network_controller",
+    "grimstorage:soul_drive",
+    "grimstorage:soul_terminal",
+    "grimstorage:soul_assembler",
+    "grimstorage:network_interface",
+    "grimstorage:processing_interface",
+    "grimstorage:stock_keeper",
+    "grimstorage:void_filter",
+    "grimstorage:quantum_link",
+    "grimstorage:soul_cable",
+    "grimstorage:soulite_glass",
+    "grimstorage:soul_infuser"
   ]
 }

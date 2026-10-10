@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GRG",
+    "RBR",
+    "GGG"
+  ],
+  "key": {
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "B": {
+      "tag": "c:storage_blocks/soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:storage_cell_64k",
+    "count": 1
+  }
+}

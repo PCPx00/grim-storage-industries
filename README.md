@@ -1,47 +1,107 @@
 # Grim Storage Industries
 
-Dead-simple storage for NeoForge 1.21.1 that still scales to end game. No channels, no byte/type limits,
-no cable rules. Part of the Grim Industries family with **Grim Soul Industries** and **Grim Pipe Industries**.
+Dead-simple storage for NeoForge 1.21.1 that still scales to end game, with autocrafting built in.
+No channels, no byte/type limits, no cable rules: anything touching the network joins it.
+Part of the Grim Industries family with **Grim Soul Industries** and **Grim Pipe Industries**.
 
 Made by **xTri6** for the Nine Craft modpack.
 
-## Status: 0.1.0 (in development)
+## Getting started
 
-Phase 1 is done: the **Soulite** material line that every tier of the mod is built from.
+1. Mine **Soulite** (Overworld Y -48 to 16) and smelt it into ingots.
+2. Craft a **Network Controller**, a **Soul Drive** and a **Copper Storage Cell**. Put the cell in the drive.
+3. Place a **Soul Terminal** touching the network. Open it and start storing.
+4. Use **Soul Cable** or **Soulite Glass** to reach blocks that are not touching.
 
-| Block / item | Source |
+## Blocks
+
+| Block | What it does |
 |---|---|
-| Soulite Ore, Deepslate Soulite Ore | Overworld, Y -48 to 16 (most common near Y -16). Iron pickaxe. |
-| Soul Sand Soulite Ore | Soul Sand Valleys, inside soul sand and soul soil. Drops 2-3 Raw Soulite. Iron pickaxe. |
-| Echo Soulite Ore | Deep Dark only, Y -60 to -10. Drops Echo Soulite Shards. Diamond pickaxe. |
-| Raw Soulite, Soulite Ingot, Nugget, Dust, blocks | Smelt or blast raw ore; standard 9x compression. |
-| Infused Soulite | Soul Infuser (coming next). |
-| Echo Soulite Alloy | Infused Soulite + 2 Echo Soulite Shards + Netherite Scrap (shapeless). |
-| Singularity Core | 8 Echo Soulite Alloy around a Nether Star. |
+| Network Controller | The heart of a network. Exactly one per network. Open it to see storage use and crafting jobs (and cancel them). |
+| Soul Drive | Holds 8 storage cells. Cells keep their contents when moved. |
+| Soul Terminal | Browse, search (`@mod` searches by mod), take, store and order crafts. |
+| Soul Cable / Soulite Glass | Connect network blocks. The glass is decorative and see-through. |
+| Soul Assembler | Holds 9 Recipe Cards and runs them. Up to 4 Speed Upgrades, each doubling its speed. |
+| Processing Interface | Faces any machine (any mod). Sends Processing Card inputs in and pulls the outputs back. |
+| Stock Keeper | "Always keep N of this": up to 9 items it keeps crafted. |
+| Network Interface | Lets pipes, hoppers and other mods use the network. Anything can be pushed in; only the 9 items you pick can be pulled out. |
+| Void Filter | When storage is full, the items you pick are destroyed instead of backing up. |
+| Quantum Link | Joins two networks across any distance or dimension. Pair two links with a Soul Tether. Both sides must be loaded. |
+| Soul Infuser | The mod's machine: Soulite Ingot + Soul Sand + Quartz makes Infused Soulite. Pipes insert from any side and pull the output. |
 
-All ores support Fortune and Silk Touch, glow faintly, and break with a crystal chime.
+## Items
 
-### For pack makers
+| Item | What it does |
+|---|---|
+| Storage Cells | Copper 4k, Gold 64k, Diamond 1M, Netherite 64M items. Any mix of item types. |
+| Singularity Cell | Unlimited amount of one item. Use it with that item in your off hand to lock it. |
+| Recipe Card | Use it, click items into the 3x3 grid, and it saves the crafting recipe. Sneak-use to clear. |
+| Processing Card | Same, for machines: what goes in, what comes back. Right-click a slot to add one more. |
+| Wireless Terminal | Sneak-use on a controller to bind. 128 block range, same dimension. |
+| Singularity Terminal | Wireless terminal with unlimited range, any dimension. |
+| Speed Upgrade | Doubles a Soul Assembler's speed. |
 
-Everything uses the common `c:` tags (`c:ores/soulite`, `c:ingots/soulite`, `c:raw_materials/soulite`,
-`c:dusts/soulite`, `c:gems/echo_soulite`, `c:storage_blocks/soulite`, ...), and every recipe, loot table and
-ore feature is plain datapack JSON. To change or disable ore generation, override the files in
-`data/grimstorage/worldgen/placed_feature/` or `data/grimstorage/neoforge/biome_modifier/` from a datapack or KubeJS.
+**Dump key (G by default):** while carrying a bound wireless terminal, press it to send your main inventory
+(not hotbar or armor) into the network.
 
-## Roadmap
+## Autocrafting
 
-1. Soulite material line and worldgen (done)
-2. Soul Infuser
-3. Network Controller, storage cells (4k to Singularity), terminal
-4. Recipe Cards, Assembler, keep-in-stock autocrafting
-5. Wireless terminal, Processing Interface, Quantum Link
+Put Recipe Cards in a Soul Assembler on the network. Craftable items show in the terminal with a "Craft" label.
+Click one (or ctrl-click / middle-click any craftable item), type an amount, and the network works out the
+whole tree: it uses what is stored, crafts what is missing (including sub-recipes), and tells you exactly
+what it is missing if it cannot. Machine steps use Processing Cards in a Processing Interface.
+
+## Progression
+
+| Tier | Gate | Unlocks |
+|---|---|---|
+| 1 | Soulite Ingot | Controller, Drive, Terminal, Cable, Glass, Interface, Copper Cell, Soul Infuser |
+| 2 | Soulite + Gold | Gold Cell, Recipe Cards, Soul Assembler, Void Filter |
+| 3 | Infused Soulite | Diamond Cell, Speed Upgrade, Stock Keeper, Wireless Terminal, Processing Card |
+| 4 | Echo Soulite Alloy | Netherite Cell, Processing Interface, Quantum Link, Soul Tether |
+| 5 | Singularity Core | Singularity Cell, Singularity Terminal |
+
+## Ores
+
+| Block | Where |
+|---|---|
+| Soulite Ore, Deepslate Soulite Ore | Overworld, Y -48 to 16. Iron pickaxe. |
+| Soul Sand Soulite Ore | Soul Sand Valleys. Drops 2-3 Raw Soulite. |
+| Echo Soulite Ore | Deep Dark only. Drops Echo Soulite Shards. Diamond pickaxe. |
+
+## For pack makers
+
+- Common `c:` tags throughout (`c:ores/soulite`, `c:ingots/soulite`, `c:gems/echo_soulite`, ...).
+- Every recipe, loot table and ore feature is datapack JSON. Override files in
+  `data/grimstorage/worldgen/placed_feature/` or `data/grimstorage/neoforge/biome_modifier/` to change ore generation.
+- Soul Infuser recipes use the `grimstorage:infusing` type, so you can add your own:
+
+```json
+{
+  "type": "grimstorage:infusing",
+  "ingredients": [{"tag": "c:ingots/soulite"}, {"item": "minecraft:soul_sand"}, {"tag": "c:gems/quartz"}],
+  "result": {"id": "grimstorage:infused_soulite", "count": 1},
+  "time": 100
+}
+```
+
+## Known limits
+
+- Crafting jobs in progress are not saved when the world closes; restart the craft after loading.
+  Stored items are always saved.
+- Quantum Links do not keep chunks loaded; the far side must be loaded (or chunk-loaded) to connect.
+- No JEI integration yet, so recipe cards are filled by clicking items in.
 
 ## Building
 
 Install JDK 21, then double-click `BUILD.bat` (Windows) or run `./gradlew build`. The jar lands in `build/libs/`.
 
-Dev check: `./gradlew runOreCheck` boots a server, generates terrain in all three Soulite locations and logs
-PASS/FAIL with the ore counts. It never ships in the release jar.
+Dev checks (never shipped in the release jar):
+- `./gradlew runOreCheck` generates terrain and counts ore in every Soulite location.
+- `./gradlew runSystemCheck` builds a network in a test world and checks storage, autocrafting, machine processing,
+  stock keeping, voiding, pipe access, terminal clicks, card editing and a Nether Quantum Link. Run it twice to
+  also check that everything survives a restart.
+- `./gradlew runShots` opens every screen in a real client on that world and saves screenshots.
 
 ## License
 

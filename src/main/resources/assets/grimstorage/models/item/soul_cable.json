@@ -1,0 +1,195 @@
+{
+  "parent": "minecraft:block/block",
+  "textures": {
+    "cable": "grimstorage:block/soul_cable",
+    "particle": "grimstorage:block/soul_cable"
+  },
+  "elements": [
+    {
+      "from": [
+        5,
+        5,
+        5
+      ],
+      "to": [
+        11,
+        11,
+        11
+      ],
+      "faces": {
+        "north": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "south": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "east": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        },
+        "down": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        5,
+        0
+      ],
+      "to": [
+        11,
+        11,
+        5
+      ],
+      "faces": {
+        "east": {
+          "texture": "#cable",
+          "uv": [
+            0,
+            5,
+            5,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#cable",
+          "uv": [
+            0,
+            5,
+            5,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            0,
+            11,
+            5
+          ]
+        },
+        "down": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            0,
+            11,
+            5
+          ]
+        },
+        "north": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        5,
+        5,
+        11
+      ],
+      "to": [
+        11,
+        11,
+        16
+      ],
+      "faces": {
+        "east": {
+          "texture": "#cable",
+          "uv": [
+            11,
+            5,
+            16,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#cable",
+          "uv": [
+            11,
+            5,
+            16,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            11,
+            11,
+            16
+          ]
+        },
+        "down": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            11,
+            11,
+            16
+          ]
+        },
+        "south": {
+          "texture": "#cable",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        }
+      }
+    }
+  ]
+}

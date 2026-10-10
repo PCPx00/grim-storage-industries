@@ -9,7 +9,7 @@ displayName="${mod_name}"
 authors="xTri6"
 credits="Made by xTri6 for the Nine Craft modpack. Part of the Grim Industries family with Grim Soul Industries and Grim Pipe Industries."
 description='''
-Dead-simple storage that scales all the way to end game. No channels, no byte/type limits, no cable rules.
+Dead-simple storage with built-in autocrafting that scales to end game. No channels, no byte/type limits, no cable rules.
 Built on Soulite, a soul-touched ore found deep underground, in Soul Sand Valleys, and beside the sculk of the Deep Dark.
 '''
 

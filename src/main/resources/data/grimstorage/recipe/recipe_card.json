@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NPN",
+    "PRP",
+    "NPN"
+  ],
+  "key": {
+    "N": {
+      "tag": "c:nuggets/soulite"
+    },
+    "P": {
+      "item": "minecraft:paper"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
+  },
+  "result": {
+    "id": "grimstorage:recipe_card",
+    "count": 4
+  }
+}

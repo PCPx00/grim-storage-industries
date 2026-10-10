@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "NRN",
+    "RAR",
+    "DDD"
+  ],
+  "key": {
+    "N": {
+      "item": "minecraft:netherite_scrap"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "A": {
+      "item": "grimstorage:echo_soulite_alloy"
+    },
+    "D": {
+      "tag": "c:gems/diamond"
+    }
+  },
+  "result": {
+    "id": "grimstorage:storage_cell_64m",
+    "count": 1
+  }
+}

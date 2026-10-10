@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "CRC",
+    "RIR",
+    "CCC"
+  ],
+  "key": {
+    "C": {
+      "tag": "c:ingots/copper"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "I": {
+      "tag": "c:ingots/soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:storage_cell_4k",
+    "count": 1
+  }
+}

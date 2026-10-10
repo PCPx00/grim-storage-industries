@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "grimstorage:wireless_terminal"
+    },
+    {
+      "item": "grimstorage:singularity_core"
+    }
+  ],
+  "result": {
+    "id": "grimstorage:singularity_terminal",
+    "count": 1
+  }
+}
