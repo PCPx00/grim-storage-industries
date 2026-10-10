@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IOI",
+    "OEO",
+    "IOI"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/soulite"
+    },
+    "O": {
+      "tag": "c:obsidians"
+    },
+    "E": {
+      "tag": "c:ender_pearls"
+    }
+  },
+  "result": {
+    "id": "grimstorage:void_filter",
+    "count": 1
+  }
+}

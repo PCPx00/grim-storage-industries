@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "DRD",
+    "RXR",
+    "DDD"
+  ],
+  "key": {
+    "D": {
+      "tag": "c:gems/diamond"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "X": {
+      "item": "grimstorage:infused_soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:storage_cell_1m",
+    "count": 1
+  }
+}

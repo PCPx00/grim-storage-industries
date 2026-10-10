@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "AEA",
+    "ESE",
+    "AEA"
+  ],
+  "key": {
+    "A": {
+      "item": "grimstorage:echo_soulite_alloy"
+    },
+    "E": {
+      "item": "minecraft:ender_eye"
+    },
+    "S": {
+      "item": "grimstorage:echo_soulite_shard"
+    }
+  },
+  "result": {
+    "id": "grimstorage:quantum_link",
+    "count": 2
+  }
+}

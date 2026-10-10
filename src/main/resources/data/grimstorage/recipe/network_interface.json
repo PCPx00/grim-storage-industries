@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IHI",
+    "R R",
+    "IHI"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/soulite"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
+  },
+  "result": {
+    "id": "grimstorage:network_interface",
+    "count": 1
+  }
+}

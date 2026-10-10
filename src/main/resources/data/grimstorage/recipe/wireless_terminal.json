@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IEI",
+    "ITI",
+    "IXI"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/soulite"
+    },
+    "E": {
+      "tag": "c:ender_pearls"
+    },
+    "T": {
+      "item": "grimstorage:soul_terminal"
+    },
+    "X": {
+      "item": "grimstorage:infused_soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:wireless_terminal",
+    "count": 1
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GCG",
+    "IBI",
+    "GRG"
+  ],
+  "key": {
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "C": {
+      "item": "minecraft:crafting_table"
+    },
+    "I": {
+      "tag": "c:ingots/soulite"
+    },
+    "B": {
+      "tag": "c:storage_blocks/soulite"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
+  },
+  "result": {
+    "id": "grimstorage:soul_assembler",
+    "count": 1
+  }
+}

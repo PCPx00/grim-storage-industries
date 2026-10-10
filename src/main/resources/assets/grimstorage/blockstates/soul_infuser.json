@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=north": {
+      "model": "grimstorage:block/soul_infuser"
+    },
+    "facing=east": {
+      "model": "grimstorage:block/soul_infuser",
+      "y": 90
+    },
+    "facing=south": {
+      "model": "grimstorage:block/soul_infuser",
+      "y": 180
+    },
+    "facing=west": {
+      "model": "grimstorage:block/soul_infuser",
+      "y": 270
+    }
+  }
+}

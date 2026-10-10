@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SIS"
+  ],
+  "key": {
+    "S": {
+      "tag": "c:strings"
+    },
+    "I": {
+      "tag": "c:ingots/soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:soul_cable",
+    "count": 8
+  }
+}

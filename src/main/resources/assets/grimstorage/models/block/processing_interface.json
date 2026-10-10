@@ -1,0 +1,12 @@
+{
+  "parent": "minecraft:block/cube",
+  "textures": {
+    "particle": "grimstorage:block/machine_side",
+    "north": "grimstorage:block/processing_interface_front",
+    "south": "grimstorage:block/machine_top",
+    "east": "grimstorage:block/machine_side",
+    "west": "grimstorage:block/machine_side",
+    "up": "grimstorage:block/machine_side",
+    "down": "grimstorage:block/machine_side"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "SES",
+    "ECE",
+    "SES"
+  ],
+  "key": {
+    "S": {
+      "tag": "c:storage_blocks/soulite"
+    },
+    "E": {
+      "item": "grimstorage:echo_soulite_shard"
+    },
+    "C": {
+      "item": "grimstorage:singularity_core"
+    }
+  },
+  "result": {
+    "id": "grimstorage:singularity_cell",
+    "count": 1
+  }
+}

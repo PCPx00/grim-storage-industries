@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "IKI",
+    "RXR",
+    "III"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/soulite"
+    },
+    "K": {
+      "item": "minecraft:comparator"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "X": {
+      "item": "grimstorage:infused_soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:stock_keeper",
+    "count": 1
+  }
+}

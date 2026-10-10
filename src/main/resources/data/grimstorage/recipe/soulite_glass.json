@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "GGG",
+    "GIG",
+    "GGG"
+  ],
+  "key": {
+    "G": {
+      "tag": "c:glass_blocks/colorless"
+    },
+    "I": {
+      "tag": "c:ingots/soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:soulite_glass",
+    "count": 8
+  }
+}

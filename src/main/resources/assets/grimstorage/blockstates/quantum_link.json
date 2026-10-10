@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "grimstorage:block/quantum_link"
+    }
+  }
+}

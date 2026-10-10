@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "RGR",
+    "GXG",
+    "RGR"
+  ],
+  "key": {
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "G": {
+      "tag": "c:dusts/glowstone"
+    },
+    "X": {
+      "item": "grimstorage:infused_soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:speed_upgrade",
+    "count": 1
+  }
+}

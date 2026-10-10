@@ -71,6 +71,22 @@ neoForge {
             systemProperty 'grimstorage.orecheck', 'true'
         }
 
+        // Dev-only: builds a network in a test world and checks storage, crafting and machines end to end.
+        systemCheck {
+            server()
+            gameDirectory = project.file('run-systemcheck')
+            programArgument '--nogui'
+            systemProperty 'grimstorage.systemcheck', 'true'
+        }
+
+        // Dev-only: opens every screen in a real client on the system-check world and saves screenshots.
+        shots {
+            client()
+            gameDirectory = project.file('run-shots')
+            programArguments.addAll '--quickPlaySingleplayer', 'syscheck', '--width', '1280', '--height', '720'
+            systemProperty 'grimstorage.shots', 'true'
+        }
+
         gameTestServer {
             type = "gameTestServer"
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id

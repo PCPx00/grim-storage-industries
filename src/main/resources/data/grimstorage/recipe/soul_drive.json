@@ -1,0 +1,24 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "III",
+    "C C",
+    "IRI"
+  ],
+  "key": {
+    "I": {
+      "tag": "c:ingots/soulite"
+    },
+    "C": {
+      "tag": "c:chests"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    }
+  },
+  "result": {
+    "id": "grimstorage:soul_drive",
+    "count": 1
+  }
+}
