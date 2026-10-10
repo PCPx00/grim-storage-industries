@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "group": "soulite_ingot",
+  "ingredient": {
+    "tag": "c:ores/soulite"
+  },
+  "result": {
+    "id": "grimstorage:soulite_ingot"
+  },
+  "experience": 0.7,
+  "cookingtime": 100
+}

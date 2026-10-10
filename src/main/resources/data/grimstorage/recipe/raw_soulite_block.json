@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "item": "grimstorage:raw_soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:raw_soulite_block",
+    "count": 1
+  }
+}

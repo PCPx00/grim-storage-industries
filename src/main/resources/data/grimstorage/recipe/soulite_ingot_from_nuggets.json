@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "###",
+    "###",
+    "###"
+  ],
+  "key": {
+    "#": {
+      "tag": "c:nuggets/soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:soulite_ingot",
+    "count": 1
+  }
+}

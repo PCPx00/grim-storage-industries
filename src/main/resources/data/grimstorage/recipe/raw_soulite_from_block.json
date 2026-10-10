@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "grimstorage:raw_soulite_block"
+    }
+  ],
+  "result": {
+    "id": "grimstorage:raw_soulite",
+    "count": 9
+  }
+}

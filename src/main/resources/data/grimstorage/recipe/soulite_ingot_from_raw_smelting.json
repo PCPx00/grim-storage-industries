@@ -1,0 +1,13 @@
+{
+  "type": "minecraft:smelting",
+  "category": "misc",
+  "group": "soulite_ingot",
+  "ingredient": {
+    "item": "grimstorage:raw_soulite"
+  },
+  "result": {
+    "id": "grimstorage:soulite_ingot"
+  },
+  "experience": 0.7,
+  "cookingtime": 200
+}

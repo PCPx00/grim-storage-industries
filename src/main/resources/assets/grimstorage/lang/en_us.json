@@ -1,0 +1,17 @@
+{
+  "itemGroup.grimstorage": "Grim Storage Industries",
+  "block.grimstorage.soulite_ore": "Soulite Ore",
+  "block.grimstorage.deepslate_soulite_ore": "Deepslate Soulite Ore",
+  "block.grimstorage.soul_sand_soulite_ore": "Soul Sand Soulite Ore",
+  "block.grimstorage.echo_soulite_ore": "Echo Soulite Ore",
+  "block.grimstorage.raw_soulite_block": "Block of Raw Soulite",
+  "block.grimstorage.soulite_block": "Block of Soulite",
+  "item.grimstorage.raw_soulite": "Raw Soulite",
+  "item.grimstorage.soulite_dust": "Soulite Dust",
+  "item.grimstorage.soulite_nugget": "Soulite Nugget",
+  "item.grimstorage.soulite_ingot": "Soulite Ingot",
+  "item.grimstorage.infused_soulite": "Infused Soulite",
+  "item.grimstorage.echo_soulite_shard": "Echo Soulite Shard",
+  "item.grimstorage.echo_soulite_alloy": "Echo Soulite Alloy",
+  "item.grimstorage.singularity_core": "Singularity Core"
+}
