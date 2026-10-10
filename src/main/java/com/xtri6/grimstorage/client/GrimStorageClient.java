@@ -7,6 +7,9 @@ import com.xtri6.grimstorage.net.Payloads;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.neoforge.client.gui.ConfigurationScreen;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
@@ -23,7 +26,8 @@ public final class GrimStorageClient {
 
     private GrimStorageClient() {}
 
-    public static void init(IEventBus modBus) {
+    public static void init(IEventBus modBus, ModContainer container) {
+        container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         modBus.addListener(GrimStorageClient::screens);
         modBus.addListener((RegisterKeyMappingsEvent e) -> e.register(DUMP_KEY));
         NeoForge.EVENT_BUS.addListener(GrimStorageClient::tick);

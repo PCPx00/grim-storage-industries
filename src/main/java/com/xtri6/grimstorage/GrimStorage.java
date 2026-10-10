@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -22,12 +23,13 @@ public final class GrimStorage {
 
     public GrimStorage(IEventBus modBus, ModContainer container) {
         Registration.register(modBus);
+        container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
         modBus.addListener(Payloads::register);
         modBus.addListener(GrimStorage::registerCapabilities);
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent e) -> NetworkManager.clearAll());
 
         if (FMLEnvironment.dist.isClient()) {
-            com.xtri6.grimstorage.client.GrimStorageClient.init(modBus);
+            com.xtri6.grimstorage.client.GrimStorageClient.init(modBus, container);
         }
 
         // Dev-only checks; the gametest package is stripped from the release jar.

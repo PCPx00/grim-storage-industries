@@ -1,12 +1,14 @@
 package com.xtri6.grimstorage.client;
 
 import com.xtri6.grimstorage.block.entity.StockKeeperBlockEntity;
+import com.xtri6.grimstorage.client.ui.GrimButton;
+import com.xtri6.grimstorage.client.ui.Theme;
+import com.xtri6.grimstorage.client.ui.Ui;
 import com.xtri6.grimstorage.menu.BlockMenus;
 import com.xtri6.grimstorage.net.Payloads;
 import com.xtri6.grimstorage.util.Fmt;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
@@ -18,8 +20,8 @@ import org.lwjgl.glfw.GLFW;
 public class StockKeeperScreen extends GrimScreen<BlockMenus.StockKeeper> {
     private static final int NUM_Y = 40;
     private EditBox amount;
-    private Button set;
     private int selected = 0;
+    private int shownTarget = -1;
 
     public StockKeeperScreen(BlockMenus.StockKeeper menu, Inventory inv, Component title) {
         super(menu, inv, title, 176, 166);
@@ -28,22 +30,18 @@ public class StockKeeperScreen extends GrimScreen<BlockMenus.StockKeeper> {
     @Override
     protected void init() {
         super.init();
-        amount = new EditBox(font, leftPos + 8, topPos + 55, 90, 12, Component.translatable("gui.grimstorage.stock.amount"));
+        amount = new EditBox(font, leftPos + 12, topPos + 58, 82, 9, Component.translatable("gui.grimstorage.stock.amount"));
         amount.setMaxLength(10);
+        amount.setBordered(false);
         amount.setFilter(s -> s.isEmpty() || s.matches("\\d{0,10}"));
         addRenderableWidget(amount);
-        set = Button.builder(Component.translatable("gui.grimstorage.stock.set"), b -> apply())
-                .bounds(leftPos + 102, topPos + 54, 30, 14).build();
-        addRenderableWidget(set);
-        Button clear = Button.builder(Component.translatable("gui.grimstorage.stock.clear"), b -> {
+        addRenderableWidget(new GrimButton(leftPos + 102, topPos + 55, 30, 14, Component.translatable("gui.grimstorage.stock.set"), b -> apply(), true));
+        addRenderableWidget(new GrimButton(leftPos + 135, topPos + 55, 33, 14, Component.translatable("gui.grimstorage.stock.clear"), b -> {
             amount.setValue("0");
             apply();
-        }).bounds(leftPos + 136, topPos + 54, 32, 14).build();
-        addRenderableWidget(clear);
+        }));
         select(0);
     }
-
-    private int shownTarget = -1;
 
     private void select(int rule) {
         selected = rule;
@@ -51,12 +49,11 @@ public class StockKeeperScreen extends GrimScreen<BlockMenus.StockKeeper> {
         amount.setValue(Integer.toString(shownTarget));
     }
 
-    /** Keep the box in step with the server (the saved value arrives a tick after the screen opens). */
     @Override
     protected void containerTick() {
         super.containerTick();
-        int now = menu.target(selected);
-        if (now != shownTarget && !amount.isFocused()) {
+        amount.setTextColor(t().text() & 0xFFFFFF);
+        if (menu.target(selected) != shownTarget && !amount.isFocused()) {
             select(selected);
         }
     }
@@ -68,34 +65,37 @@ public class StockKeeperScreen extends GrimScreen<BlockMenus.StockKeeper> {
         } catch (NumberFormatException e) {
             v = 0;
         }
-        int target = (int) Math.min(StockKeeperBlockEntity.MAX_TARGET, v);
-        PacketDistributor.sendToServer(new Payloads.SetStockTarget(menu.containerId, selected, target));
+        PacketDistributor.sendToServer(new Payloads.SetStockTarget(menu.containerId, selected, (int) Math.min(StockKeeperBlockEntity.MAX_TARGET, v)));
+        amount.setFocused(false);
     }
 
     @Override
     protected void drawExtraBg(GuiGraphics g, int mouseX, int mouseY) {
+        Theme t = t();
         for (int i = 0; i < StockKeeperBlockEntity.RULES; i++) {
             int x = leftPos + 8 + i * 18;
             int y = topPos + NUM_Y;
-            int bg = i == selected ? ACCENT_DIM : 0xFF8B8B8B;
-            g.fill(x - 1, y - 1, x + 17, y + 9, bg);
+            boolean hover = mouseX >= x - 1 && mouseX < x + 17 && mouseY >= y - 1 && mouseY < y + 9;
+            g.fill(x - 1, y - 1, x + 17, y + 9, i == selected ? t.accentDim() : hover ? t.buttonHover() : t.button());
             int state = menu.ruleState(i);
-            int dot = state == 1 ? ACCENT : state == 2 ? 0xFFE04040 : 0xFF40C040;
             if (menu.getSlot(i).hasItem() && menu.target(i) > 0) {
+                int dot = state == 1 ? t.accent() : state == 2 ? t.danger() : t.ok();
                 g.fill(x + 13, y - 4, x + 16, y - 1, dot);
             }
         }
+        Ui.field(g, t, leftPos + 8, topPos + 55, 90, 14, amount.isFocused());
     }
 
     @Override
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
         super.renderLabels(g, mouseX, mouseY);
+        Theme t = t();
         for (int i = 0; i < StockKeeperBlockEntity.RULES; i++) {
             String n = Fmt.compact(menu.target(i));
             g.pose().pushPose();
             g.pose().translate(8 + i * 18 + 8, NUM_Y + 1, 0);
             g.pose().scale(0.75f, 0.75f, 1f);
-            g.drawString(font, n, -font.width(n) / 2, 0, i == selected ? 0xFFFFFFFF : 0xFF202020, false);
+            g.drawString(font, n, -font.width(n) / 2, 0, i == selected ? 0xFFFFFFFF : t.textDim(), false);
             g.pose().popPose();
         }
     }
@@ -121,7 +121,8 @@ public class StockKeeperScreen extends GrimScreen<BlockMenus.StockKeeper> {
                 return true;
             }
             if (key != GLFW.GLFW_KEY_ESCAPE) {
-                return amount.keyPressed(key, scan, mods) || true;
+                amount.keyPressed(key, scan, mods);
+                return true;
             }
         }
         return super.keyPressed(key, scan, mods);

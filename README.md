@@ -19,7 +19,7 @@ Made by **xTri6** for the Nine Craft modpack.
 |---|---|
 | Network Controller | The heart of a network. Exactly one per network. Open it to see storage use and crafting jobs (and cancel them). |
 | Soul Drive | Holds 8 storage cells. Cells keep their contents when moved. |
-| Soul Terminal | Browse, search (`@mod` searches by mod), filter with the side tabs (ores, ingots, tools, armor, food, mob drops, farming, building, misc), take, store and order crafts. |
+| Soul Terminal | Browse, search (`@mod` searches by mod), filter with the side tabs (ores, ingots, tools, armor, food, mob drops, farming, building, misc), take, store, order crafts, and craft by hand in the built-in 3x3 grid that refills itself from storage. |
 | Soul Cable / Soulite Glass | Connect network blocks. The glass is decorative and see-through. |
 | Soul Assembler | Holds 9 Recipe Cards and runs them. Up to 4 Speed Upgrades, each doubling its speed. |
 | Processing Interface | Faces any machine (any mod). Sends Processing Card inputs in and pulls the outputs back. |
@@ -40,6 +40,9 @@ Made by **xTri6** for the Nine Craft modpack.
 | Wireless Terminal | Sneak-use on a controller to bind. 128 block range, same dimension. |
 | Singularity Terminal | Wireless terminal with unlimited range, any dimension. |
 | Speed Upgrade | Doubles a Soul Assembler's speed. |
+
+**Look and feel:** every screen uses a translucent dark theme by default. Click the sun/moon button in a screen's
+corner to switch to light mode; panel opacity is in the mod's Config screen (mod list) or `config/grimstorage-client.toml`.
 
 **Dump key (G by default):** while carrying a bound wireless terminal, press it to send your main inventory
 (not hotbar or armor) into the network.
