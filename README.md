@@ -19,7 +19,7 @@ Made by **xTri6** for the Nine Craft modpack.
 |---|---|
 | Network Controller | The heart of a network. Exactly one per network. Open it to see storage use and crafting jobs (and cancel them). |
 | Soul Drive | Holds 8 storage cells. Cells keep their contents when moved. |
-| Soul Terminal | Browse, search (`@mod` searches by mod), take, store and order crafts. |
+| Soul Terminal | Browse, search (`@mod` searches by mod), filter with the side tabs (ores, ingots, tools, armor, food, mob drops, farming, building, misc), take, store and order crafts. |
 | Soul Cable / Soulite Glass | Connect network blocks. The glass is decorative and see-through. |
 | Soul Assembler | Holds 9 Recipe Cards and runs them. Up to 4 Speed Upgrades, each doubling its speed. |
 | Processing Interface | Faces any machine (any mod). Sends Processing Card inputs in and pulls the outputs back. |
@@ -101,7 +101,7 @@ Dev checks (never shipped in the release jar):
 - `./gradlew runSystemCheck` builds a network in a test world and checks storage, autocrafting, machine processing,
   stock keeping, voiding, pipe access, terminal clicks, card editing and a Nether Quantum Link. Run it twice to
   also check that everything survives a restart.
-- `./gradlew runShots` opens every screen in a real client on that world and saves screenshots.
+- `./gradlew runShots` opens the terminal on every filter tab in a real client on that world and saves screenshots.
 
 ## License
 
