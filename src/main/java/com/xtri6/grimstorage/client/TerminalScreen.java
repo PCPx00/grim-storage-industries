@@ -37,6 +37,14 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     private static final int BAR_X = 174;
     private static final String[] SORTS = {"gui.grimstorage.sort.count", "gui.grimstorage.sort.name", "gui.grimstorage.sort.mod"};
 
+    private static final int TAB_W = 22;
+    private static final int TAB_H = 20;
+    private static final int TAB_GAP = 1;
+    /** Remembered between openings so the terminal reopens on the same tab. */
+    private static ItemCategories.Category lastCategory = ItemCategories.Category.ALL;
+
+    private ItemCategories.Category category = lastCategory;
+    private final int[] categoryCounts = new int[ItemCategories.Category.values().length];
     private EditBox search;
     private Button sortButton;
     private int sort;
@@ -61,6 +69,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     @Override
     protected void init() {
         super.init();
+        ItemCategories.reset();
         search = new EditBox(font, leftPos + 80, topPos + 5, 72, 10, Component.translatable("gui.grimstorage.search"));
         search.setMaxLength(50);
         search.setBordered(false);
@@ -91,7 +100,16 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         boolean byMod = q.startsWith("@");
         String needle = byMod ? q.substring(1) : q;
         List<TerminalMenu.Entry> out = new ArrayList<>();
+        java.util.Arrays.fill(categoryCounts, 0);
         for (TerminalMenu.Entry e : menu.clientEntries) {
+            for (ItemCategories.Category c : ItemCategories.Category.values()) {
+                if (ItemCategories.matches(c, e.key().stack())) {
+                    categoryCounts[c.ordinal()]++;
+                }
+            }
+            if (!ItemCategories.matches(category, e.key().stack())) {
+                continue;
+            }
             if (!needle.isEmpty()) {
                 ItemStack s = e.key().stack();
                 String hay = byMod ? BuiltInRegistries.ITEM.getKey(s.getItem()).getNamespace() : s.getHoverName().getString().toLowerCase(Locale.ROOT);
@@ -144,6 +162,69 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
 
     // ------------------------------------------------------------------ drawing
 
+    private int tabX() {
+        return leftPos - TAB_W + 3;
+    }
+
+    private int tabY(int i) {
+        return topPos + 4 + i * (TAB_H + TAB_GAP);
+    }
+
+    @Nullable
+    private ItemCategories.Category tabAt(double mx, double my) {
+        if (mx < tabX() || mx >= leftPos) {
+            return null;
+        }
+        for (ItemCategories.Category c : ItemCategories.Category.values()) {
+            int y = tabY(c.ordinal());
+            if (my >= y && my < y + TAB_H) {
+                return c;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
+        for (ItemCategories.Category c : ItemCategories.Category.values()) {
+            if (c != category) {
+                drawTab(g, c, mouseX, mouseY);
+            }
+        }
+        super.renderBg(g, partialTick, mouseX, mouseY);
+        drawTab(g, category, mouseX, mouseY);
+    }
+
+    private void drawTab(GuiGraphics g, ItemCategories.Category c, int mouseX, int mouseY) {
+        boolean selected = c == category;
+        int x = tabX() - (selected ? 2 : 0);
+        int y = tabY(c.ordinal());
+        int right = leftPos + (selected ? 2 : 0);
+        boolean hover = !selected && tabAt(mouseX, mouseY) == c;
+        g.fill(x + 1, y, right, y + TAB_H, EDGE);
+        g.fill(x, y + 1, right, y + TAB_H - 1, EDGE);
+        g.fill(x + 1, y + 1, right, y + TAB_H - 1, selected ? BODY : hover ? 0xFFB4BCC4 : 0xFF9AA2AA);
+        g.fill(x + 1, y + 1, right, y + 2, selected ? LIGHT : 0xFFC8D0D8);
+        g.fill(x + 1, y + 1, x + 2, y + TAB_H - 1, selected ? LIGHT : 0xFFC8D0D8);
+        if (selected) {
+            g.fill(x + 1, y + TAB_H - 2, x + 3, y + TAB_H - 1, ACCENT);
+            g.fill(x + 1, y + 2, x + 2, y + TAB_H - 2, ACCENT);
+        }
+        boolean empty = c != ItemCategories.Category.ALL && categoryCounts[c.ordinal()] == 0;
+        g.renderItem(c.icon(), x + 4, y + 2);
+        if (empty && !selected) {
+            g.pose().pushPose();
+            g.pose().translate(0, 0, 250);
+            g.fill(x + 4, y + 2, x + 20, y + 18, 0x889AA2AA);
+            g.pose().popPose();
+        }
+    }
+
+    @Override
+    protected boolean hasClickedOutside(double mx, double my, int guiLeft, int guiTop, int button) {
+        return tabAt(mx, my) == null && super.hasClickedOutside(mx, my, guiLeft, guiTop, button);
+    }
+
     @Override
     protected void drawExtraBg(GuiGraphics g, int mouseX, int mouseY) {
         for (int r = 0; r < ROWS; r++) {
@@ -182,7 +263,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                 if (e.count() > 0) {
                     smallText(g, font, Fmt.compact(e.count()), x + 17, y + 16, 0xFFFFFF);
                 } else {
-                    smallText(g, font, Component.translatable("gui.grimstorage.craft.short").getString(), x + 17, y + 16, 0x6FF2FF);
+                    smallText(g, font, Component.translatable("gui.grimstorage.craft.short").getString(), x + 17, y + 16, 0x6FF2FF, 0.5f);
                 }
                 if (crafting == null && mouseX >= x && mouseX < x + 16 && mouseY >= y && mouseY < y + 16) {
                     hovered = e;
@@ -197,8 +278,14 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             g.drawString(font, off, leftPos + GX + (COLS * 18 - font.width(off)) / 2, topPos + GY + 46, 0xFFE04040, true);
             g.pose().popPose();
         }
+        ItemCategories.Category tab = crafting == null ? tabAt(mouseX, mouseY) : null;
         if (crafting != null) {
             renderCraftPopup(g, mouseX, mouseY, partialTick);
+        } else if (tab != null) {
+            List<Component> lines = new ArrayList<>();
+            lines.add(Component.translatable(tab.langKey()));
+            lines.add(Component.translatable("gui.grimstorage.tab.count", categoryCounts[tab.ordinal()]).withStyle(ChatFormatting.GRAY));
+            g.renderComponentTooltip(font, lines, mouseX, mouseY);
         } else if (hovered != null && menu.getCarried().isEmpty()) {
             List<Component> lines = new ArrayList<>(Screen.getTooltipFromItem(minecraft, hovered.key().stack()));
             lines.add(Component.translatable("gui.grimstorage.terminal.stored", Fmt.big(hovered.count())).withStyle(ChatFormatting.GRAY));
@@ -278,6 +365,18 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             }
             if (craftGo.mouseClicked(mx, my, button) || craftCancel.mouseClicked(mx, my, button)) {
                 return true;
+            }
+            return true;
+        }
+        ItemCategories.Category tab = tabAt(mx, my);
+        if (tab != null) {
+            if (tab != category) {
+                category = tab;
+                lastCategory = tab;
+                scroll = 0;
+                refresh();
+                minecraft.getSoundManager().play(net.minecraft.client.resources.sounds.SimpleSoundInstance.forUI(
+                        net.minecraft.sounds.SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 0.6f));
             }
             return true;
         }

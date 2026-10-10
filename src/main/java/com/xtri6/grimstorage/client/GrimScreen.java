@@ -76,9 +76,12 @@ public abstract class GrimScreen<T extends AbstractContainerMenu> extends Abstra
     }
 
     public static void smallText(GuiGraphics g, Font font, String text, int rightX, int bottomY, int color) {
+        smallText(g, font, text, rightX, bottomY, color, 2f / 3f);
+    }
+
+    public static void smallText(GuiGraphics g, Font font, String text, int rightX, int bottomY, int color, float s) {
         g.pose().pushPose();
         g.pose().translate(0, 0, 300);
-        float s = 2f / 3f;
         g.pose().scale(s, s, 1f);
         g.drawString(font, text, Math.round(rightX / s) - font.width(text), Math.round(bottomY / s) - 8, color, true);
         g.pose().popPose();

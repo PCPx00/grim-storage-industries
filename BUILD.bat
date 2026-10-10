@@ -32,6 +32,6 @@ if errorlevel 1 (
   exit /b 1
 )
 echo.
-echo BUILD SUCCESSFUL. Opening the folder with your jar: grimstorage-1.0.0.jar
+echo BUILD SUCCESSFUL. Opening the folder with your jar: grimstorage-1.1.0.jar
 explorer "%~dp0build\libs"
 pause

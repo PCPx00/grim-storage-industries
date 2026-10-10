@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0
+- Terminal filter tabs down the left side: Everything, Ores & Raw Materials, Ingots & Gems, Weapons & Tools, Armor, Food,
+  Mob Drops, Farming, Building Blocks and Misc. Hover a tab to see how many item types it holds. The terminal remembers
+  your last tab. Tabs use the shared c: tags, so modded items sort themselves.
+- Infused Soulite and Echo Soulite Alloy are now tagged as ingots.
+
 ## 1.0.0
 - Storage network: Network Controller, Soul Drive, Soul Terminal, Soul Cable, Soulite Glass.
 - Storage cells: Copper 4k, Gold 64k, Diamond 1M, Netherite 64M, plus the single-item unlimited Singularity Cell.

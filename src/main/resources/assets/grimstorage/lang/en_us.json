@@ -119,5 +119,16 @@
   "gui.grimstorage.controller.singular": "+ %s in Singularity Cells",
   "gui.grimstorage.stock.clear": "Clear",
   "gui.grimstorage.processing.hint3": "Point the front",
-  "gui.grimstorage.processing.hint4": "at a machine."
+  "gui.grimstorage.processing.hint4": "at a machine.",
+  "gui.grimstorage.tab.all": "Everything",
+  "gui.grimstorage.tab.ores": "Ores & Raw Materials",
+  "gui.grimstorage.tab.ingots": "Ingots & Gems",
+  "gui.grimstorage.tab.tools": "Weapons & Tools",
+  "gui.grimstorage.tab.armor": "Armor",
+  "gui.grimstorage.tab.food": "Food",
+  "gui.grimstorage.tab.mob_drops": "Mob Drops",
+  "gui.grimstorage.tab.farming": "Farming",
+  "gui.grimstorage.tab.building": "Building Blocks",
+  "gui.grimstorage.tab.misc": "Misc",
+  "gui.grimstorage.tab.count": "%s item types"
 }
