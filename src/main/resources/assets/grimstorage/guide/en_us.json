@@ -1,0 +1,406 @@
+{
+  "chapters": [
+    {
+      "id": "welcome", "title": "Welcome", "icon": "grimstorage:guide_book",
+      "pages": [
+        {
+          "title": "Grim Storage Industries",
+          "text": [
+            "Simple storage that grows all the way to the end game. Everything you store lives in one network, and the network can craft for you.",
+            "There are **no channels, no byte limits and no cable rules**. Any network block that touches another network block joins it.",
+            "Use the **arrows** at the bottom, the arrow keys, or your mouse wheel to turn pages. Pick a chapter on the left to jump around."
+          ]
+        },
+        {
+          "title": "Your first hour",
+          "text": [
+            "- Find **Soulite Ore** underground and smelt it into ingots.",
+            "- Craft a **Network Controller**, a **Soul Drive**, a **Copper Storage Cell** and a **Soul Terminal**.",
+            "- Put the cell in the drive, place everything touching, and open the terminal.",
+            "That is a working storage system. The rest of this book shows how to grow it."
+          ],
+          "items": ["grimstorage:soulite_ore", "grimstorage:soulite_ingot", "grimstorage:network_controller", "grimstorage:soul_drive", "grimstorage:storage_cell_4k", "grimstorage:soul_terminal"]
+        },
+        {
+          "title": "Lost this book?",
+          "text": "Craft a new one from any book and a Soulite Ingot.",
+          "recipe": "grimstorage:guide_book"
+        }
+      ]
+    },
+    {
+      "id": "soulite", "title": "Soulite", "icon": "grimstorage:soulite_ingot",
+      "pages": [
+        {
+          "title": "Finding Soulite",
+          "text": [
+            "Soulite is a pale blue ore that glows faintly and chimes when broken. Mine it with an **iron pickaxe** or better.",
+            "- **Overworld:** Y -48 to 16, most common around Y -16. Stone and deepslate versions.",
+            "- **Nether:** inside the soul sand and soul soil of **Soul Sand Valleys**. These drop 2 to 3 Raw Soulite.",
+            "- **Deep Dark:** rare **Echo Soulite Ore** near the sculk. Needs a diamond pickaxe. You will need it for late tiers.",
+            "Fortune works on all of them."
+          ],
+          "items": ["grimstorage:soulite_ore", "grimstorage:deepslate_soulite_ore", "grimstorage:soul_sand_soulite_ore", "grimstorage:echo_soulite_ore"]
+        },
+        {
+          "title": "Smelting",
+          "text": "Smelt or blast Raw Soulite into ingots. Nine ingots make a Block of Soulite, and nine nuggets make an ingot.",
+          "recipe": "grimstorage:soulite_ingot_from_raw_smelting"
+        },
+        {
+          "title": "The Soul Infuser",
+          "text": [
+            "Your first machine. Put in a **Soulite Ingot**, **Soul Sand** (or soul soil) and **Nether Quartz**, in any slots, to make **Infused Soulite**. No fuel needed.",
+            "Pipes and hoppers can feed it from any side and pull the result out."
+          ],
+          "recipe": "grimstorage:soul_infuser"
+        },
+        {
+          "title": "Infused Soulite",
+          "text": "Made in the Soul Infuser. It unlocks the third tier: Diamond cells, Speed Upgrades, the Stock Keeper and wireless terminals.",
+          "recipe": "grimstorage:infused_soulite"
+        },
+        {
+          "title": "Echo Soulite Alloy",
+          "text": "One Infused Soulite, two Echo Soulite Shards from the Deep Dark, and a Netherite Scrap. This is the fourth tier.",
+          "recipe": "grimstorage:echo_soulite_alloy"
+        },
+        {
+          "title": "Singularity Core",
+          "text": "Eight Echo Soulite Alloys around a Nether Star. The end-game trophy, used for Singularity Cells and the Singularity Terminal.",
+          "recipe": "grimstorage:singularity_core"
+        }
+      ]
+    },
+    {
+      "id": "network", "title": "First Network", "icon": "grimstorage:network_controller",
+      "pages": [
+        {
+          "title": "Network Controller",
+          "text": [
+            "The heart of a network. Every network needs **exactly one**. With two connected, the network stops and the controller tells you why.",
+            "Open it to see how full your storage is, how many cells and drives you have, and every crafting job (with a button to cancel each)."
+          ],
+          "recipe": "grimstorage:network_controller"
+        },
+        {
+          "title": "Soul Drive",
+          "text": "Holds 8 storage cells of any kind. Cells keep everything inside them, even when you take them out or move them to another drive.",
+          "recipe": "grimstorage:soul_drive"
+        },
+        {
+          "title": "Soul Terminal",
+          "text": "Where you see, take and store everything. The next chapter explains it in full.",
+          "recipe": "grimstorage:soul_terminal"
+        },
+        {
+          "title": "Connecting things",
+          "text": [
+            "Network blocks join just by touching. To reach further, use **Soul Cable**, or **Soulite Glass** if you want it to look nice. Both carry the network.",
+            "There is no limit on how many blocks a network can have."
+          ],
+          "recipe": "grimstorage:soul_cable",
+          "items": ["grimstorage:soul_cable", "grimstorage:soulite_glass"]
+        }
+      ]
+    },
+    {
+      "id": "terminal", "title": "The Terminal", "icon": "grimstorage:soul_terminal",
+      "pages": [
+        {
+          "title": "Taking and storing",
+          "text": [
+            "- **Click** an item to take a stack.",
+            "- **Right-click** to take half a stack.",
+            "- **Shift-click** to send a stack straight to your inventory.",
+            "- **Click with an item held** to store it (right-click stores one).",
+            "- **Shift-click** anything in your own inventory to store it."
+          ]
+        },
+        {
+          "title": "Finding things",
+          "text": [
+            "Type in the search box to filter. Start with `@` to search by mod, for example `@mekanism`. Right-click the box to clear it.",
+            "The button next to it changes the sort: by amount, by name or by mod.",
+            "The **tabs on the left** filter by type: ores, ingots, weapons and tools, armor, food, mob drops, farming, building blocks and misc."
+          ]
+        },
+        {
+          "title": "Crafting grid",
+          "text": [
+            "The terminal has its own 3x3 crafting grid on the right. Put ingredients in and take the result.",
+            "When a slot runs out, it **refills itself from storage**, so you can keep crafting. **Shift-click** the result to craft a full stack at once.",
+            "The small **x** puts everything in the grid back into storage. Closing the terminal does the same."
+          ]
+        },
+        {
+          "title": "Resource tabs",
+          "text": [
+            "The tabs **along the top** switch between Items, Fluids, Chemicals, Energy and Source. See the chapter on fluids, energy and more.",
+            "The panel on the right shows how full that kind of storage is."
+          ]
+        },
+        {
+          "title": "Dark or light",
+          "text": [
+            "Every screen in this mod has a small **moon or sun** in its top-right corner. Click it to switch between dark and light. It remembers your choice.",
+            "You can also change how see-through the screens are from the mod's **Config** button in the mod list."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cells", "title": "Storage Cells", "icon": "grimstorage:storage_cell_64k",
+      "pages": [
+        {
+          "title": "Item cells",
+          "text": [
+            "Cells count items, not types. Any mix of items is fine.",
+            "- **Copper:** 4,096 items",
+            "- **Gold:** 65,536 items",
+            "- **Diamond:** about 1 million items",
+            "- **Netherite:** about 67 million items",
+            "Hover over a cell to see how full it is."
+          ],
+          "items": ["grimstorage:storage_cell_4k", "grimstorage:storage_cell_64k", "grimstorage:storage_cell_1m", "grimstorage:storage_cell_64m"],
+          "recipe": "grimstorage:storage_cell_4k"
+        },
+        {
+          "title": "Bigger cells",
+          "text": "Gold cells use Gold and a Block of Soulite. Diamond cells need Infused Soulite, and Netherite cells need Echo Soulite Alloy.",
+          "recipe": "grimstorage:storage_cell_64k"
+        },
+        {
+          "title": "Singularity Cell",
+          "text": [
+            "Holds **one item type with no limit**. Great for cobblestone, dirt or anything you farm in huge amounts.",
+            "To choose its item, hold that item in your **off hand** and use the cell. Sneak and use an empty cell to unlock it.",
+            "Items always go to a matching Singularity Cell first."
+          ],
+          "recipe": "grimstorage:singularity_cell"
+        }
+      ]
+    },
+    {
+      "id": "resources", "title": "Fluids & More", "icon": "grimstorage:fluid_cell_copper",
+      "pages": [
+        {
+          "title": "More than items",
+          "text": [
+            "The network can also store **fluids**, **energy (FE)**, Mekanism **chemicals** and Ars Nouveau **Source**. Each has its own cells, and they all go in the same Soul Drive.",
+            "Chemical cells need Mekanism and Source cells need Ars Nouveau. Without those mods, those cells simply do not appear."
+          ],
+          "items": ["grimstorage:fluid_cell_copper", "grimstorage:chemical_cell_copper", "grimstorage:energy_cell_copper", "grimstorage:source_cell_copper"]
+        },
+        {
+          "title": "Sizes",
+          "text": [
+            "- **Fluid and chemical cells:** 256, 4,096, 65,536 and about a million buckets.",
+            "- **Energy cells:** 16M, 256M, 4B and 64B FE.",
+            "- **Source cells:** 10k, 100k, 1M and 10M Source.",
+            "They use the same Copper, Gold, Diamond and Netherite tiers as item cells."
+          ],
+          "recipe": "grimstorage:fluid_cell_copper"
+        },
+        {
+          "title": "In the terminal",
+          "text": [
+            "Use the tabs along the top of the terminal.",
+            "- **Fill a bucket or tank:** hold it empty and click a fluid.",
+            "- **Store a fluid:** hold a full bucket or tank and click anywhere in the list.",
+            "Chemicals work the same way with Mekanism tanks. Energy and Source show as one big gauge."
+          ]
+        },
+        {
+          "title": "Pipes and machines",
+          "text": [
+            "Pipes and machines put fluids, energy, chemicals and Source in through a **Network Interface**. Anything can be pushed in from any side.",
+            "To let things be **pulled back out**, open the interface and turn on that resource's **Pull** switch. They start off so nothing drains by accident.",
+            "For example, turn on **FE** and pipe power from the interface to your machines."
+          ],
+          "recipe": "grimstorage:energy_cell_copper"
+        }
+      ]
+    },
+    {
+      "id": "crafting", "title": "Autocrafting", "icon": "grimstorage:soul_assembler",
+      "pages": [
+        {
+          "title": "How it works",
+          "text": [
+            "Teach the network a recipe with a **Recipe Card**, then put the card in a **Soul Assembler** on the network.",
+            "Now that item shows in the terminal with a **Craft** label. Click it, type how many, and the network does the rest. It uses what it has, crafts any ingredients it can, and tells you exactly what is missing if it cannot."
+          ],
+          "items": ["grimstorage:recipe_card", "grimstorage:soul_assembler"]
+        },
+        {
+          "title": "Recipe Cards",
+          "text": [
+            "Use a blank card to open its grid. **Click items into the grid** to set the recipe. They are only pictures; nothing is used up. The result appears on the right.",
+            "Sneak and use a card to wipe it. Hold just one card at a time to edit it."
+          ],
+          "recipe": "grimstorage:recipe_card"
+        },
+        {
+          "title": "Soul Assembler",
+          "text": [
+            "Holds 9 Recipe Cards. Add more assemblers for more recipes.",
+            "Each **Speed Upgrade** doubles its speed, up to 4 for 16x."
+          ],
+          "recipe": "grimstorage:soul_assembler"
+        },
+        {
+          "title": "Speed Upgrade",
+          "text": "Made with Infused Soulite, glowstone and redstone.",
+          "recipe": "grimstorage:speed_upgrade"
+        },
+        {
+          "title": "Ordering crafts",
+          "text": [
+            "- Items with **0 stored** show **Craft**. Just click them.",
+            "- To craft more of something you already have, **ctrl-click** or **middle-click** it.",
+            "- Watch or cancel jobs in the **Network Controller**.",
+            "If storage is full, the job pauses and says so."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "machines", "title": "Machines", "icon": "grimstorage:processing_interface",
+      "pages": [
+        {
+          "title": "Using any machine",
+          "text": [
+            "Autocrafting can also use **furnaces and machines from any mod**.",
+            "Write the machine's recipe on a **Processing Card**: what goes in on the left, what comes back on the right. Click with a stack to set an amount; right-click adds one."
+          ],
+          "recipe": "grimstorage:processing_card"
+        },
+        {
+          "title": "Processing Interface",
+          "text": [
+            "Place it against the machine. Its front faces whatever block you clicked when placing it.",
+            "Put Processing Cards in it. The network sends the inputs into the machine and pulls the results back out by itself."
+          ],
+          "recipe": "grimstorage:processing_interface"
+        },
+        {
+          "title": "Example",
+          "text": [
+            "To autocraft Infused Soulite:",
+            "- Place a Processing Interface touching a **Soul Infuser**.",
+            "- Make a card with Soulite Ingot, Soul Sand and Quartz in, and Infused Soulite out.",
+            "- Put the card in the interface.",
+            "Infused Soulite now shows as craftable in the terminal."
+          ],
+          "items": ["grimstorage:soul_infuser", "grimstorage:processing_interface", "grimstorage:infused_soulite"]
+        }
+      ]
+    },
+    {
+      "id": "automation", "title": "Automation", "icon": "grimstorage:stock_keeper",
+      "pages": [
+        {
+          "title": "Stock Keeper",
+          "text": [
+            "Keeps an amount of something crafted, for example **always 500 iron gears**.",
+            "Click an item into one of its 9 slots, click the number under it, type how many to keep and press **Set**. When stock drops below that, it crafts more.",
+            "The dot over each item is green when stocked, blue while crafting, and red when something is missing."
+          ],
+          "recipe": "grimstorage:stock_keeper"
+        },
+        {
+          "title": "Void Filter",
+          "text": [
+            "Pick up to 9 items. When storage is **full**, those items are destroyed instead of backing up your farms.",
+            "Only the extra is destroyed. Nothing is deleted while there is still room."
+          ],
+          "recipe": "grimstorage:void_filter"
+        },
+        {
+          "title": "Network Interface",
+          "text": [
+            "Lets pipes, hoppers and other mods use the network. Anything pushed in is stored.",
+            "Things can only be pulled **out** if you allow it: put items in its 9 slots, or turn on the **Pull** switches for fluids, energy, chemicals and Source.",
+            "Works with Grim Pipe Industries and other pipe mods."
+          ],
+          "recipe": "grimstorage:network_interface"
+        }
+      ]
+    },
+    {
+      "id": "wireless", "title": "Wireless & Far", "icon": "grimstorage:wireless_terminal",
+      "pages": [
+        {
+          "title": "Wireless Terminal",
+          "text": [
+            "A terminal in your pocket. **Sneak and use it on a Network Controller** to link it, then use it anywhere within 128 blocks in the same dimension.",
+            "It has the same tabs and crafting grid as the block."
+          ],
+          "recipe": "grimstorage:wireless_terminal"
+        },
+        {
+          "title": "Singularity Terminal",
+          "text": "Works at any distance, in any dimension.",
+          "recipe": "grimstorage:singularity_terminal"
+        },
+        {
+          "title": "Quick dump",
+          "text": [
+            "Carrying a linked wireless terminal? Press **G** to send your whole main inventory into storage. Your hotbar and armor stay put.",
+            "Change the key in Controls, under Grim Storage Industries."
+          ]
+        },
+        {
+          "title": "Quantum Link",
+          "text": [
+            "Joins two places into one network, at any distance or across dimensions. Crafting makes a pair.",
+            "Use a **Soul Tether** on the first link, then on the second. Sneak and use the tether on a link to unpair it.",
+            "Both ends must be loaded to connect, so use a chunk loader for far-away bases."
+          ],
+          "recipe": "grimstorage:quantum_link",
+          "items": ["grimstorage:quantum_link", "grimstorage:soul_tether"]
+        }
+      ]
+    },
+    {
+      "id": "tiers", "title": "Progression", "icon": "grimstorage:singularity_core",
+      "pages": [
+        {
+          "title": "The five tiers",
+          "text": [
+            "- **1. Soulite Ingot:** controller, drive, terminal, cable, glass, interface, Copper cells, Soul Infuser.",
+            "- **2. Soulite and Gold:** Gold cells, Recipe Cards, Soul Assembler, Void Filter.",
+            "- **3. Infused Soulite:** Diamond cells, Speed Upgrade, Stock Keeper, Wireless Terminal, Processing Card.",
+            "- **4. Echo Soulite Alloy:** Netherite cells, Processing Interface, Quantum Link.",
+            "- **5. Singularity Core:** Singularity Cell, Singularity Terminal."
+          ],
+          "items": ["grimstorage:soulite_ingot", "grimstorage:infused_soulite", "grimstorage:echo_soulite_alloy", "grimstorage:singularity_core"]
+        }
+      ]
+    },
+    {
+      "id": "help", "title": "Help", "icon": "minecraft:compass",
+      "pages": [
+        {
+          "title": "Something is wrong",
+          "text": [
+            "- **Terminal says no working network:** check the controller is connected and there is only one.",
+            "- **Items will not go in:** storage is full. Add cells, or a Void Filter for junk.",
+            "- **A craft never finishes:** open the controller to see what it is waiting for, and cancel it if needed.",
+            "- **Wireless terminal will not open:** link it again, and stay in range."
+          ]
+        },
+        {
+          "title": "Good to know",
+          "text": [
+            "- Crafting jobs in progress stop if the world closes. Stored items are always saved.",
+            "- Quantum Links need both ends loaded.",
+            "- Autocrafting works with items. Fluids, energy, chemicals and Source are stored and moved, not crafted.",
+            "Made by xTri6 for Nine Craft."
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -59,14 +59,29 @@ public final class ScreenshotCheck {
     public static void register(IEventBus modBus) {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> onTick());
         Runnable none = () -> {};
-        SHOTS.add(new Shot("01_terminal_items", true, sp -> { setMode(null); terminalWithGrid(sp); }, none));
-        SHOTS.add(new Shot("02_terminal_fluids", true, sp -> { setMode(BulkKind.FLUID); Menus.openTerminal(sp, BASE.offset(5, 0, 0)); }, none));
-        SHOTS.add(new Shot("03_terminal_chemicals", true, sp -> { setMode(BulkKind.CHEMICAL); Menus.openTerminal(sp, BASE.offset(5, 0, 0)); }, none));
-        SHOTS.add(new Shot("04_terminal_energy", true, sp -> { setMode(BulkKind.ENERGY); Menus.openTerminal(sp, BASE.offset(5, 0, 0)); }, none));
-        SHOTS.add(new Shot("05_interface", true, sp -> Menus.openFilter(sp, BASE.offset(-1, 0, 0)), none));
-        SHOTS.add(new Shot("06_controller", true, sp -> Menus.openController(sp, BASE), none));
-        SHOTS.add(new Shot("07_drive", true, sp -> Menus.openDrive(sp, BASE.offset(1, 0, 0)), none));
-        SHOTS.add(new Shot("08_terminal_fluids_light", false, sp -> { setMode(BulkKind.FLUID); Menus.openTerminal(sp, BASE.offset(5, 0, 0)); }, none));
+        SHOTS.add(new Shot("g01_welcome", true, sp -> {}, () -> book(0, 0)));
+        SHOTS.add(new Shot("g02_first_hour", true, sp -> {}, () -> book(0, 1)));
+        SHOTS.add(new Shot("g03_soulite_ores", true, sp -> {}, () -> book(1, 0)));
+        SHOTS.add(new Shot("g04_infuser_recipe", true, sp -> {}, () -> book(1, 3)));
+        SHOTS.add(new Shot("g05_controller", true, sp -> {}, () -> book(2, 0)));
+        SHOTS.add(new Shot("g06_terminal_controls", true, sp -> {}, () -> book(3, 0)));
+        SHOTS.add(new Shot("g07_smelting", true, sp -> {}, () -> book(1, 2)));
+        SHOTS.add(new Shot("g08_autocrafting_light", false, sp -> {}, () -> book(6, 0)));
+    }
+
+    private static void book(int chapter, int page) {
+        try {
+            Class<?> c = com.xtri6.grimstorage.client.guide.GuideScreen.class;
+            java.lang.reflect.Field fc = c.getDeclaredField("lastChapter");
+            java.lang.reflect.Field fp = c.getDeclaredField("lastPage");
+            fc.setAccessible(true);
+            fp.setAccessible(true);
+            fc.set(null, chapter);
+            fp.set(null, page);
+        } catch (ReflectiveOperationException ex) {
+            GrimStorage.LOGGER.error("[Shots] could not set page", ex);
+        }
+        com.xtri6.grimstorage.client.guide.GuideScreen.open();
     }
 
     private static void setMode(BulkKind mode) {
@@ -134,6 +149,7 @@ public final class ScreenshotCheck {
             Shot shot = SHOTS.get(index);
             ClientConfig.setDark(shot.dark());
             if (mc.screen != null) {
+                mc.setScreen(null);
                 mc.player.closeContainer();
             }
             server.execute(() -> shot.open().accept(server.getPlayerList().getPlayers().get(0)));

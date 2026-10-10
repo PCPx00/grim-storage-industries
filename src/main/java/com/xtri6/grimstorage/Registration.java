@@ -23,6 +23,7 @@ import com.xtri6.grimstorage.block.entity.StockKeeperBlockEntity;
 import com.xtri6.grimstorage.block.entity.VoidFilterBlockEntity;
 import com.xtri6.grimstorage.item.BulkCellItem;
 import com.xtri6.grimstorage.item.CardData;
+import com.xtri6.grimstorage.item.GuideBookItem;
 import com.xtri6.grimstorage.item.ProcessingCardItem;
 import com.xtri6.grimstorage.item.RecipeCardItem;
 import com.xtri6.grimstorage.item.SoulTetherItem;
@@ -246,6 +247,8 @@ public final class Registration {
             () -> new WirelessTerminalItem(false, new Item.Properties().rarity(Rarity.UNCOMMON)));
     public static final DeferredItem<WirelessTerminalItem> SINGULARITY_TERMINAL = ITEMS.register("singularity_terminal",
             () -> new WirelessTerminalItem(true, new Item.Properties().rarity(Rarity.EPIC).fireResistant()));
+    public static final DeferredItem<GuideBookItem> GUIDE_BOOK = ITEMS.register("guide_book",
+            () -> new GuideBookItem(new Item.Properties().rarity(Rarity.UNCOMMON)));
     public static final DeferredItem<SoulTetherItem> SOUL_TETHER = ITEMS.register("soul_tether",
             () -> new SoulTetherItem(new Item.Properties().rarity(Rarity.RARE)));
 
@@ -305,7 +308,7 @@ public final class Registration {
                     .title(Component.translatable("itemGroup." + MODID))
                     .icon(() -> Registration.CONTROLLER.get().asItem().getDefaultInstance())
                     .displayItems((params, output) -> {
-                        List<Supplier<? extends ItemLike>> order = new ArrayList<>(List.of(
+                        List<Supplier<? extends ItemLike>> order = new ArrayList<>(List.of(GUIDE_BOOK,
                                 SOULITE_ORE, DEEPSLATE_SOULITE_ORE, SOUL_SAND_SOULITE_ORE, ECHO_SOULITE_ORE,
                                 RAW_SOULITE_BLOCK, SOULITE_BLOCK,
                                 RAW_SOULITE, SOULITE_DUST, SOULITE_NUGGET, SOULITE_INGOT,

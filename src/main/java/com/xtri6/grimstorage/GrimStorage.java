@@ -2,6 +2,7 @@ package com.xtri6.grimstorage;
 
 import com.mojang.logging.LogUtils;
 import com.xtri6.grimstorage.compat.Compat;
+import com.xtri6.grimstorage.item.GuideBookItem;
 import com.xtri6.grimstorage.net.Payloads;
 import com.xtri6.grimstorage.storage.NetworkManager;
 
@@ -15,6 +16,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 
 @Mod(GrimStorage.MODID)
@@ -25,6 +27,8 @@ public final class GrimStorage {
     public GrimStorage(IEventBus modBus, ModContainer container) {
         Registration.register(modBus);
         container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
+        container.registerConfig(ModConfig.Type.COMMON, ServerConfig.SPEC);
+        NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent e) -> GuideBookItem.giveIfFirstJoin(e.getEntity()));
         modBus.addListener(Payloads::register);
         modBus.addListener(GrimStorage::registerCapabilities);
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent e) -> NetworkManager.clearAll());

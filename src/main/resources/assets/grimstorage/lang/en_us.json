@@ -187,5 +187,15 @@
   "gui.grimstorage.chip.fluid": "FLUID",
   "gui.grimstorage.chip.chemical": "CHEM",
   "gui.grimstorage.chip.energy": "ENERGY",
-  "gui.grimstorage.chip.source": "SOURCE"
+  "gui.grimstorage.chip.source": "SOURCE",
+  "item.grimstorage.guide_book": "Grim Storage Guide",
+  "tooltip.grimstorage.guide": "Everything about Grim Storage Industries. Use to read.",
+  "gui.grimstorage.guide.contents": "Contents",
+  "gui.grimstorage.guide.missing": "The guide text could not be loaded.",
+  "gui.grimstorage.guide.page": "%s / %s",
+  "gui.grimstorage.guide.recipe.crafting": "Crafting",
+  "gui.grimstorage.guide.recipe.smelting": "Smelting",
+  "gui.grimstorage.guide.recipe.infusing": "Soul Infuser",
+  "grimstorage.configuration.giveGuideOnFirstJoin": "Give the guide on first join",
+  "grimstorage.configuration.giveGuideOnFirstJoin.tooltip": "Give each player a Grim Storage Guide the first time they join a world."
 }
