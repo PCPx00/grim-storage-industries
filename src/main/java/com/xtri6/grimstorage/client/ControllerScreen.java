@@ -6,6 +6,7 @@ import com.xtri6.grimstorage.client.ui.Theme;
 import com.xtri6.grimstorage.client.ui.Ui;
 import com.xtri6.grimstorage.menu.ControllerMenu;
 import com.xtri6.grimstorage.net.Payloads;
+import com.xtri6.grimstorage.storage.BulkKind;
 import com.xtri6.grimstorage.util.Fmt;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -15,13 +16,13 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /** Network overview: status, a storage gauge, stat chips and the crafting job list with cancel buttons. */
 public class ControllerScreen extends GrimScreen<ControllerMenu> {
-    private static final int JOB_Y = 100;
+    private static final int JOB_Y = 140;
     private static final int JOB_H = 22;
     private static final int JOBS_SHOWN = 4;
     private int scroll;
 
     public ControllerScreen(ControllerMenu menu, Inventory inv, Component title) {
-        super(menu, inv, title, 210, 198);
+        super(menu, inv, title, 210, 238);
         this.inventoryLabelY = 10_000;
     }
 
@@ -55,6 +56,34 @@ public class ControllerScreen extends GrimScreen<ControllerMenu> {
             chip(g, t, x + (cw + 3), topPos + 56, cw, Integer.toString(s.cells()), Component.translatable("gui.grimstorage.chip.cells"));
             chip(g, t, x + 2 * (cw + 3), topPos + 56, cw, Integer.toString(s.drives()), Component.translatable("gui.grimstorage.chip.drives"));
             chip(g, t, x + 3 * (cw + 3), topPos + 56, cw, Integer.toString(s.members()), Component.translatable("gui.grimstorage.chip.blocks"));
+        }
+        // fluids / chemicals / energy / Source
+        if (s != null) {
+            int kinds = 0;
+            for (BulkKind k : BulkKind.values()) {
+                kinds += k.available() ? 1 : 0;
+            }
+            int cw = (w - 3 * (kinds - 1)) / Math.max(1, kinds);
+            int i = 0;
+            for (BulkKind k : BulkKind.values()) {
+                if (!k.available()) {
+                    continue;
+                }
+                int cx = x + i * (cw + 3);
+                int cy = topPos + 86;
+                long used = s.bulkStats().length > k.ordinal() * 2 + 1 ? s.bulkStats()[k.ordinal() * 2] : 0;
+                long cap = s.bulkStats().length > k.ordinal() * 2 + 1 ? s.bulkStats()[k.ordinal() * 2 + 1] : 0;
+                g.fill(cx, cy, cx + cw, cy + 36, t.slot());
+                g.renderItem(BulkRender.icon(k), cx + 3, cy + 3);
+                int kc = switch (k) {
+                    case FLUID -> 0xFF3F8FFF;
+                    case CHEMICAL -> 0xFF8FE04A;
+                    case ENERGY -> 0xFFFF5A4A;
+                    case SOURCE -> t.purple();
+                };
+                Ui.bar(g, t, cx + 3, cy + 28, cw - 6, 5, cap <= 0 ? 0 : (float) used / cap, kc);
+                i++;
+            }
         }
         g.fill(x, topPos + JOB_Y - 1, x + w, topPos + JOB_Y + JOB_H * JOBS_SHOWN + 1, t.slot());
         if (s == null) {
@@ -92,6 +121,27 @@ public class ControllerScreen extends GrimScreen<ControllerMenu> {
         if (s.singular() > 0) {
             String sing = "+" + Fmt.compact(s.singular());
             g.drawString(font, sing, imageWidth - 8 - font.width(sing), 43, t.purple(), false);
+        }
+        int kinds = 0;
+        for (BulkKind k : BulkKind.values()) {
+            kinds += k.available() ? 1 : 0;
+        }
+        int cw = (imageWidth - 16 - 3 * (kinds - 1)) / Math.max(1, kinds);
+        int chip = 0;
+        for (BulkKind k : BulkKind.values()) {
+            if (!k.available()) {
+                continue;
+            }
+            int cx = 8 + chip * (cw + 3);
+            long kUsed = s.bulkStats().length > k.ordinal() * 2 + 1 ? s.bulkStats()[k.ordinal() * 2] : 0;
+            long kCap = s.bulkStats().length > k.ordinal() * 2 + 1 ? s.bulkStats()[k.ordinal() * 2 + 1] : 0;
+            g.pose().pushPose();
+            g.pose().translate(cx + 21, 86 + 5, 0);
+            g.pose().scale(0.7f, 0.7f, 1f);
+            g.drawString(font, kCap <= 0 ? "-" : Fmt.shortAmount(k, kUsed), 0, 0, t.text(), false);
+            g.drawString(font, Component.translatable("gui.grimstorage.chip." + k.id()), 0, 10, t.textFaint(), false);
+            g.pose().popPose();
+            chip++;
         }
         g.drawString(font, Component.translatable("gui.grimstorage.controller.jobs", s.jobs().size()), 8, JOB_Y - 11, t.textDim(), false);
         List<Payloads.JobInfo> jobs = s.jobs();

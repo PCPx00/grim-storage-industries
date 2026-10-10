@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MKM",
+    "RTR",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "tag": "c:ingots/gold"
+    },
+    "K": {
+      "item": "minecraft:bucket"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "T": {
+      "tag": "c:storage_blocks/soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:fluid_cell_gold",
+    "count": 1
+  }
+}

@@ -12,7 +12,11 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 import com.xtri6.grimstorage.Registration;
+import com.xtri6.grimstorage.compat.Compat;
 import com.xtri6.grimstorage.net.Payloads;
+import com.xtri6.grimstorage.storage.BulkKey;
+import com.xtri6.grimstorage.storage.BulkKind;
+import com.xtri6.grimstorage.storage.NetworkFluidHandler;
 import com.xtri6.grimstorage.storage.CellStorage;
 import com.xtri6.grimstorage.storage.CraftingPlanner;
 import com.xtri6.grimstorage.storage.ItemKey;
@@ -39,6 +43,10 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.neoforge.fluids.FluidActionResult;
+import net.neoforged.neoforge.fluids.FluidUtil;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.wrapper.PlayerMainInvWrapper;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /** The terminal: browse, take, store and order crafts. Block and wireless terminals share this menu. */
@@ -51,6 +59,9 @@ public class TerminalMenu extends GrimMenu {
     public static final int EXTRACT_ONE = 5;
 
     public record Entry(ItemKey key, long count, boolean craftable) {}
+
+    /** A stored fluid / chemical / energy / Source amount, for the terminal's resource tabs. */
+    public record BulkEntry(BulkKey key, long amount) {}
 
     /** Where the built-in crafting grid sits in the screen. */
     public static final int GRID_X = 196;
@@ -72,6 +83,9 @@ public class TerminalMenu extends GrimMenu {
     public int clientRevision;
     public long clientUsed;
     public long clientCapacity;
+    public List<BulkEntry> clientBulk = List.of();
+    /** used, capacity for each {@link BulkKind}, in order. */
+    public long[] clientBulkStats = new long[BulkKind.values().length * 2];
 
     private final TransientCraftingContainer craftGrid = new TransientCraftingContainer(this, 3, 3);
     private final ResultContainer craftResult = new ResultContainer();
@@ -227,7 +241,18 @@ public class TerminalMenu extends GrimMenu {
             sentEpoch = epoch;
             sinceSend = 0;
             long[] stats = net == null ? new long[] {0, 0} : net.stats();
-            PacketDistributor.sendToPlayer(sp, new Payloads.TerminalContents(containerId, net != null, stats[0], stats[1], snapshot(net)));
+            List<BulkEntry> bulk = new ArrayList<>();
+            long[] bulkStats = new long[BulkKind.values().length * 2];
+            if (net != null) {
+                for (BulkKind kind : BulkKind.values()) {
+                    net.bulkContents(kind).forEach((k, v) -> bulk.add(new BulkEntry(k, v)));
+                    long[] st = net.bulkStats(kind);
+                    bulkStats[kind.ordinal() * 2] = st[0];
+                    bulkStats[kind.ordinal() * 2 + 1] = st[1];
+                }
+            }
+            PacketDistributor.sendToPlayer(sp, new Payloads.TerminalContents(containerId, net != null, stats[0], stats[1], snapshot(net),
+                    bulk, bulkStats));
         }
     }
 
@@ -303,6 +328,37 @@ public class TerminalMenu extends GrimMenu {
             }
             default -> {
             }
+        }
+        broadcastChanges();
+    }
+
+    /**
+     * Server: a click in the fluid/chemical view. A full bucket or tank on the cursor is emptied into the network;
+     * an empty one is filled with the clicked fluid or chemical.
+     */
+    public void handleBulkClick(ServerPlayer sp, BulkKind kind, @Nullable BulkKey key) {
+        StorageNetwork net = net();
+        ItemStack carried = getCarried();
+        if (net == null || carried.isEmpty()) {
+            return;
+        }
+        if (kind == BulkKind.FLUID) {
+            IItemHandler inv = new PlayerMainInvWrapper(sp.getInventory());
+            FluidActionResult result;
+            if (FluidUtil.getFluidContained(carried).isPresent()) {
+                result = FluidUtil.tryEmptyContainerAndStow(carried, new NetworkFluidHandler(() -> net, () -> true, null), inv,
+                        Integer.MAX_VALUE, sp, true);
+            } else if (key != null && key.kind() == BulkKind.FLUID) {
+                result = FluidUtil.tryFillContainerAndStow(carried, new NetworkFluidHandler(() -> net, () -> true, key), inv,
+                        Integer.MAX_VALUE, sp, true);
+            } else {
+                return;
+            }
+            if (result.isSuccess()) {
+                setCarried(result.getResult());
+            }
+        } else if (kind == BulkKind.CHEMICAL && Compat.chemicals() != null) {
+            setCarried(Compat.chemicals().click(sp, net, carried, key).copy());
         }
         broadcastChanges();
     }

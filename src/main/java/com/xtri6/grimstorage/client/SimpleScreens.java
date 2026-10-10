@@ -1,15 +1,20 @@
 package com.xtri6.grimstorage.client;
 
 import com.xtri6.grimstorage.Registration;
+import com.xtri6.grimstorage.client.ui.GrimButton;
 import com.xtri6.grimstorage.client.ui.Theme;
 import com.xtri6.grimstorage.client.ui.Ui;
 import com.xtri6.grimstorage.menu.BlockMenus;
 import com.xtri6.grimstorage.menu.CardMenus;
+import com.xtri6.grimstorage.net.Payloads;
+import com.xtri6.grimstorage.storage.BulkKind;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 /** The screens that are mostly slots plus a hint. */
 public final class SimpleScreens {
@@ -67,18 +72,53 @@ public final class SimpleScreens {
     }
 
     public static class Filter extends GrimScreen<BlockMenus.Filter> {
+        private boolean voids;
+
         public Filter(BlockMenus.Filter menu, Inventory inv, Component title) {
             super(menu, inv, title, 176, 166);
         }
 
         @Override
+        protected void init() {
+            super.init();
+            voids = Minecraft.getInstance().level != null && menu.pos != null
+                    && Minecraft.getInstance().level.getBlockState(menu.pos).is(Registration.VOID_FILTER.get());
+            if (voids) {
+                return;
+            }
+            // Export switches: may pipes pull fluids / chemicals / energy / Source out of this interface?
+            int x = leftPos + 34;
+            for (BulkKind kind : BulkKind.values()) {
+                if (!kind.available()) {
+                    continue;
+                }
+                GrimButton b = new GrimButton(x, topPos + 55, 33, 13, Component.translatable("gui.grimstorage.export." + kind.id()),
+                        btn -> PacketDistributor.sendToServer(new Payloads.ToggleExport(menu.containerId, kind.ordinal()))) {
+                    @Override
+                    protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+                        super.renderWidget(g, mouseX, mouseY, partialTick);
+                        Theme t = t();
+                        g.fill(getX() + 2, getY() + getHeight() - 3, getX() + getWidth() - 2, getY() + getHeight() - 2,
+                                menu.exports(kind) ? t.ok() : Theme.withAlpha(t.textFaint(), 0x80));
+                    }
+                };
+                b.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.export.tooltip",
+                        Component.translatable("gui.grimstorage.kind." + kind.id()))));
+                addRenderableWidget(b);
+                x += 35;
+            }
+        }
+
+        @Override
         protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
             super.renderLabels(g, mouseX, mouseY);
-            boolean voids = Minecraft.getInstance().level != null && menu.pos != null
-                    && Minecraft.getInstance().level.getBlockState(menu.pos).is(Registration.VOID_FILTER.get());
             String key = voids ? "gui.grimstorage.void.hint" : "gui.grimstorage.interface.hint";
             g.drawString(font, Component.translatable(key + "1"), 8, 22, voids ? t().purple() : t().textDim(), false);
-            hint(g, Component.translatable(key + "2"), 8, 58);
+            if (voids) {
+                hint(g, Component.translatable(key + "2"), 8, 58);
+            } else {
+                hint(g, Component.translatable("gui.grimstorage.export.label"), 8, 58);
+            }
         }
     }
 

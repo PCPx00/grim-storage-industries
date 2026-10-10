@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MKM",
+    "RTR",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "tag": "c:ingots/gold"
+    },
+    "K": {
+      "tag": "c:storage_blocks/redstone"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "T": {
+      "tag": "c:storage_blocks/soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:energy_cell_gold",
+    "count": 1
+  }
+}

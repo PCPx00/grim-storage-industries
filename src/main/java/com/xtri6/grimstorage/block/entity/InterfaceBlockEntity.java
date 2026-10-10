@@ -1,7 +1,10 @@
 package com.xtri6.grimstorage.block.entity;
 
 import com.xtri6.grimstorage.Registration;
+import com.xtri6.grimstorage.storage.BulkKind;
 import com.xtri6.grimstorage.storage.ItemKey;
+import com.xtri6.grimstorage.storage.NetworkEnergyStorage;
+import com.xtri6.grimstorage.storage.NetworkFluidHandler;
 import com.xtri6.grimstorage.storage.StorageNetwork;
 
 import net.minecraft.core.BlockPos;
@@ -15,6 +18,10 @@ import net.neoforged.neoforge.items.IItemHandler;
  */
 public class InterfaceBlockEntity extends FilterBlockEntity {
     private final IItemHandler handler = new NetworkHandler();
+    /** Per {@link BulkKind}: may pipes pull this resource out? Off by default so nothing drains by accident. */
+    private final boolean[] exports = new boolean[BulkKind.values().length];
+    private final NetworkFluidHandler fluids = new NetworkFluidHandler(this::network, () -> exports(BulkKind.FLUID), null);
+    private final NetworkEnergyStorage energy = new NetworkEnergyStorage(this::network, () -> exports(BulkKind.ENERGY));
 
     public InterfaceBlockEntity(BlockPos pos, BlockState state) {
         super(Registration.INTERFACE_ENTITY.get(), pos, state);
@@ -22,6 +29,42 @@ public class InterfaceBlockEntity extends FilterBlockEntity {
 
     public IItemHandler itemHandler() {
         return handler;
+    }
+
+    public NetworkFluidHandler fluidHandler() {
+        return fluids;
+    }
+
+    public NetworkEnergyStorage energyStorage() {
+        return energy;
+    }
+
+    public boolean exports(BulkKind kind) {
+        return exports[kind.ordinal()];
+    }
+
+    public void toggleExport(BulkKind kind) {
+        exports[kind.ordinal()] = !exports[kind.ordinal()];
+        setChanged();
+    }
+
+    @Override
+    protected void saveAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        byte[] b = new byte[exports.length];
+        for (int i = 0; i < b.length; i++) {
+            b[i] = (byte) (exports[i] ? 1 : 0);
+        }
+        tag.putByteArray("exports", b);
+    }
+
+    @Override
+    protected void loadAdditional(net.minecraft.nbt.CompoundTag tag, net.minecraft.core.HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        byte[] b = tag.getByteArray("exports");
+        for (int i = 0; i < exports.length; i++) {
+            exports[i] = i < b.length && b[i] != 0;
+        }
     }
 
     private final class NetworkHandler implements IItemHandler {

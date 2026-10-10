@@ -8,6 +8,7 @@ import javax.annotation.Nullable;
 import com.xtri6.grimstorage.Registration;
 import com.xtri6.grimstorage.block.entity.ControllerBlockEntity;
 import com.xtri6.grimstorage.net.Payloads;
+import com.xtri6.grimstorage.storage.BulkKind;
 import com.xtri6.grimstorage.storage.CraftingJob;
 import com.xtri6.grimstorage.storage.StorageNetwork;
 
@@ -69,8 +70,16 @@ public class ControllerMenu extends BlockMenus.AtBlock {
                 }
             }
         }
+        long[] bulk = new long[BulkKind.values().length * 2];
+        if (net != null && active) {
+            for (BulkKind kind : BulkKind.values()) {
+                long[] st = net.bulkStats(kind);
+                bulk[kind.ordinal() * 2] = st[0];
+                bulk[kind.ordinal() * 2 + 1] = st[1];
+            }
+        }
         Payloads.ControllerStatus status = new Payloads.ControllerStatus(containerId, active, problem, stats[0], stats[1], stats[3],
-                types, (int) stats[2], drives, members, jobs);
+                types, (int) stats[2], drives, members, jobs, bulk);
         PacketDistributor.sendToPlayer(sp, status);
     }
 

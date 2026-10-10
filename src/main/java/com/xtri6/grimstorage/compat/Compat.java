@@ -1,0 +1,72 @@
+package com.xtri6.grimstorage.compat;
+
+import javax.annotation.Nullable;
+
+import com.xtri6.grimstorage.GrimStorage;
+import com.xtri6.grimstorage.block.entity.InterfaceBlockEntity;
+import com.xtri6.grimstorage.storage.BulkKey;
+import com.xtri6.grimstorage.storage.StorageNetwork;
+
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.neoforged.fml.ModList;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+
+/**
+ * Optional integrations. Mekanism and Ars Nouveau classes are only touched inside their own classes, which are
+ * only loaded when that mod is installed, so the mod runs fine without either.
+ */
+public final class Compat {
+    private Compat() {}
+
+    public interface Chemicals {
+        void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<InterfaceBlockEntity> type);
+
+        /** Terminal click with a chemical tank on the cursor: empties it into the network, or fills it with {@code key}. */
+        ItemStack click(ServerPlayer player, StorageNetwork network, ItemStack carried, @Nullable BulkKey key);
+    }
+
+    public interface Source {
+        void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<InterfaceBlockEntity> type);
+    }
+
+    private static Chemicals chemicals;
+    private static Source source;
+    private static boolean resolved;
+
+    private static void resolve() {
+        if (resolved) {
+            return;
+        }
+        resolved = true;
+        if (ModList.get().isLoaded("mekanism")) {
+            try {
+                chemicals = new MekanismCompat();
+                GrimStorage.LOGGER.info("Mekanism found: chemical storage enabled");
+            } catch (Throwable t) {
+                GrimStorage.LOGGER.error("Mekanism found but its chemical API could not be loaded; chemical storage disabled", t);
+            }
+        }
+        if (ModList.get().isLoaded("ars_nouveau")) {
+            try {
+                source = new ArsCompat();
+                GrimStorage.LOGGER.info("Ars Nouveau found: Source storage enabled");
+            } catch (Throwable t) {
+                GrimStorage.LOGGER.error("Ars Nouveau found but its Source API could not be loaded; Source storage disabled", t);
+            }
+        }
+    }
+
+    @Nullable
+    public static Chemicals chemicals() {
+        resolve();
+        return chemicals;
+    }
+
+    @Nullable
+    public static Source source() {
+        resolve();
+        return source;
+    }
+}

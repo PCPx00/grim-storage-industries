@@ -21,7 +21,11 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 /** Holds up to 8 storage cells. Cells keep their contents when moved between drives. */
 public class DriveBlockEntity extends NetworkBlockEntity implements DropsContents {
     public static final int SLOTS = 8;
-    private final ItemStackHandler cells = handler(SLOTS, 1, true, s -> s.getItem() instanceof StorageCellItem);
+    private final ItemStackHandler cells = handler(SLOTS, 1, true, DriveBlockEntity::isCell);
+
+    public static boolean isCell(ItemStack s) {
+        return s.getItem() instanceof StorageCellItem || s.getItem() instanceof com.xtri6.grimstorage.item.BulkCellItem;
+    }
 
     public DriveBlockEntity(BlockPos pos, BlockState state) {
         super(Registration.DRIVE_ENTITY.get(), pos, state);
@@ -42,7 +46,7 @@ public class DriveBlockEntity extends NetworkBlockEntity implements DropsContent
     @Override
     protected void onSlotChanged(int slot) {
         ItemStack stack = cells.getStackInSlot(slot);
-        if (level != null && !level.isClientSide && stack.getItem() instanceof StorageCellItem && !stack.has(Registration.CELL_ID.get())) {
+        if (level != null && !level.isClientSide && isCell(stack) && !stack.has(Registration.CELL_ID.get())) {
             stack.set(Registration.CELL_ID.get(), UUID.randomUUID());
         }
     }
@@ -56,7 +60,7 @@ public class DriveBlockEntity extends NetworkBlockEntity implements DropsContent
             if (id == null) {
                 continue;
             }
-            CellContents c = storage.contents(id);
+            CellContents<?> c = stack.getItem() instanceof com.xtri6.grimstorage.item.BulkCellItem ? storage.bulk(id) : storage.contents(id);
             CardData.CellStats stats = new CardData.CellStats(c.total(), c.types());
             if (!stats.equals(stack.get(Registration.CELL_STATS.get()))) {
                 stack.set(Registration.CELL_STATS.get(), stats);

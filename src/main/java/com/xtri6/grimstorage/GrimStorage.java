@@ -1,6 +1,7 @@
 package com.xtri6.grimstorage;
 
 import com.mojang.logging.LogUtils;
+import com.xtri6.grimstorage.compat.Compat;
 import com.xtri6.grimstorage.net.Payloads;
 import com.xtri6.grimstorage.storage.NetworkManager;
 
@@ -48,5 +49,13 @@ public final class GrimStorage {
     private static void registerCapabilities(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registration.INTERFACE_ENTITY.get(), (be, side) -> be.itemHandler());
         event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, Registration.SOUL_INFUSER_ENTITY.get(), (be, side) -> be.automation());
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registration.INTERFACE_ENTITY.get(), (be, side) -> be.fluidHandler());
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registration.INTERFACE_ENTITY.get(), (be, side) -> be.energyStorage());
+        if (Compat.chemicals() != null) {
+            Compat.chemicals().registerCapabilities(event, Registration.INTERFACE_ENTITY.get());
+        }
+        if (Compat.source() != null) {
+            Compat.source().registerCapabilities(event, Registration.INTERFACE_ENTITY.get());
+        }
     }
 }
