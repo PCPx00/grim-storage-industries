@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:book"
+    },
+    {
+      "tag": "c:ingots/soulite"
+    }
+  ],
+  "result": {
+    "id": "grimstorage:guide_book",
+    "count": 1
+  }
+}

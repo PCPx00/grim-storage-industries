@@ -189,6 +189,47 @@ public final class SystemCheck {
             info("members={} drives={}", n.memberCount(), n.driveCount());
             return n.driveCount() == 2 && n.memberCount() >= 12;
         }));
+        STEPS.add(new Step("guide book: every item and recipe it mentions exists", 0, () -> {
+            List<String> broken = new ArrayList<>();
+            int pages = 0, recipes = 0, items = 0;
+            try (var in = GrimStorage.class.getResourceAsStream("/assets/grimstorage/guide/en_us.json")) {
+                var chapters = com.xtri6.grimstorage.guide.GuideData.parse(
+                        com.google.gson.JsonParser.parseReader(new java.io.InputStreamReader(in)).getAsJsonObject());
+                for (var c : chapters) {
+                    if (!BuiltInRegistries.ITEM.containsKey(c.icon())) {
+                        broken.add("icon " + c.icon());
+                    }
+                    for (var page : c.pages()) {
+                        pages++;
+                        for (var id : page.items()) {
+                            items++;
+                            if (!BuiltInRegistries.ITEM.containsKey(id)) {
+                                broken.add("item " + id);
+                            }
+                        }
+                        if (page.recipe() != null) {
+                            recipes++;
+                            if (server.getRecipeManager().byKey(page.recipe()).isEmpty()) {
+                                broken.add("recipe " + page.recipe());
+                            }
+                        }
+                    }
+                }
+                info("guide: {} chapters, {} pages, {} item icons, {} recipes, broken={}", chapters.size(), pages, items, recipes, broken);
+                return chapters.size() == 12 && broken.isEmpty();
+            } catch (Exception ex) {
+                GrimStorage.LOGGER.error("[SystemCheck] guide parse failed", ex);
+                return false;
+            }
+        }));
+        STEPS.add(new Step("guide book is given once on first join", 0, () -> {
+            FakePlayer fp = FakePlayerFactory.get(level, new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "guide_tester"));
+            boolean first = com.xtri6.grimstorage.item.GuideBookItem.giveIfFirstJoin(fp);
+            boolean second = com.xtri6.grimstorage.item.GuideBookItem.giveIfFirstJoin(fp);
+            int books = fp.getInventory().countItem(Registration.GUIDE_BOOK.get());
+            info("first join gave={} second gave={} books={}", first, second, books);
+            return first && !second && books == 1;
+        }));
         STEPS.add(new Step("insert and extract", 1, () -> {
             StorageNetwork n = net();
             long a = n.insert(key(Items.OAK_LOG), 64, false);

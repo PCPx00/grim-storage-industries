@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0
+- New: the Grim Storage Guide. Every player gets one the first time they join (turn this off in the common config).
+  It can also be crafted from a book and a Soulite Ingot.
+- 12 chapters covering everything: Soulite, your first network, the terminal, cells, fluids/energy/chemicals/Source,
+  autocrafting, machines, automation, wireless and Quantum Links, progression and troubleshooting.
+- Pages show live recipes (crafting, smelting and Soul Infuser) read from the game, so pack changes show up automatically.
+- Matches the dark/light theme. Text lives in assets/grimstorage/guide/en_us.json, so packs can edit or translate it.
+
 ## 1.3.0
 - Store fluids, Mekanism chemicals, energy (FE) and Ars Nouveau Source as well as items.
 - 16 new cells: Fluid, Chemical, Energy and Source cells in Copper, Gold, Diamond and Netherite tiers. They go in the same

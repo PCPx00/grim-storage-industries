@@ -8,6 +8,9 @@ Made by **xTri6** for the Nine Craft modpack.
 
 ## Getting started
 
+Every player gets a **Grim Storage Guide** the first time they join. It explains everything below, with live recipes.
+Lost it? Craft one from a book and a Soulite Ingot.
+
 1. Mine **Soulite** (Overworld Y -48 to 16) and smelt it into ingots.
 2. Craft a **Network Controller**, a **Soul Drive** and a **Copper Storage Cell**. Put the cell in the drive.
 3. Place a **Soul Terminal** touching the network. Open it and start storing.
@@ -77,6 +80,11 @@ what it is missing if it cannot. Machine steps use Processing Cards in a Process
 | Echo Soulite Ore | Deep Dark only. Drops Echo Soulite Shards. Diamond pickaxe. |
 
 ## For pack makers
+
+- The guide's text is in `assets/grimstorage/guide/en_us.json`. Override it with a resource pack to change or translate it
+  (add `guide/<language>.json` for other languages). Pages support `**bold**`, `` `highlight` `` and `- ` bullet lists, plus
+  `items` and `recipe` fields that are drawn live.
+- Turn off the first-join book with `giveGuideOnFirstJoin` in `config/grimstorage-common.toml`.
 
 - Common `c:` tags throughout (`c:ores/soulite`, `c:ingots/soulite`, `c:gems/echo_soulite`, ...).
 - Every recipe, loot table and ore feature is datapack JSON. Override files in
