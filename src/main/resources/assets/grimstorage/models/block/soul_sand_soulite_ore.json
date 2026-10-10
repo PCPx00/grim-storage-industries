@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "grimstorage:block/soul_sand_soulite_ore"
+  }
+}

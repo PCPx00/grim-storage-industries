@@ -1,0 +1,32 @@
+# Gradle / build output
+.gradle/
+build/
+out/
+bin/
+*.class
+
+# IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+
+# Minecraft run folders
+run/
+runs/
+run-data/
+logs/
+
+# OS junk
+.DS_Store
+Thumbs.db
+
+# Dev-only showcase runs
+run-shots/
+run-shots-server/
+run-mekcheck/
+run-orecheck/

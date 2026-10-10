@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "grimstorage:infused_soulite"
+    },
+    {
+      "item": "grimstorage:echo_soulite_shard"
+    },
+    {
+      "item": "grimstorage:echo_soulite_shard"
+    },
+    {
+      "item": "minecraft:netherite_scrap"
+    }
+  ],
+  "result": {
+    "id": "grimstorage:echo_soulite_alloy",
+    "count": 1
+  }
+}

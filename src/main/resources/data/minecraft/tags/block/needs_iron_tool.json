@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "grimstorage:soulite_ore",
+    "grimstorage:deepslate_soulite_ore",
+    "grimstorage:soul_sand_soulite_ore",
+    "grimstorage:raw_soulite_block",
+    "grimstorage:soulite_block"
+  ]
+}
