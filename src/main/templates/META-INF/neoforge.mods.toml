@@ -21,6 +21,20 @@ Built on Soulite, a soul-touched ore found deep underground, in Soul Sand Valley
     side="BOTH"
 
 [[dependencies.${mod_id}]]
+    modId="mekanism"
+    type="optional"
+    versionRange="[10.7,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
+    modId="ars_nouveau"
+    type="optional"
+    versionRange="[5.0,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.${mod_id}]]
     modId="minecraft"
     type="required"
     versionRange="${minecraft_version_range}"

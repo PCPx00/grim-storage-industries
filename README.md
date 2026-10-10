@@ -24,7 +24,7 @@ Made by **xTri6** for the Nine Craft modpack.
 | Soul Assembler | Holds 9 Recipe Cards and runs them. Up to 4 Speed Upgrades, each doubling its speed. |
 | Processing Interface | Faces any machine (any mod). Sends Processing Card inputs in and pulls the outputs back. |
 | Stock Keeper | "Always keep N of this": up to 9 items it keeps crafted. |
-| Network Interface | Lets pipes, hoppers and other mods use the network. Anything can be pushed in; only the 9 items you pick can be pulled out. |
+| Network Interface | Lets pipes, hoppers and other mods use the network. Items, fluids, energy, chemicals and Source can all be pushed in. Items can only be pulled out if you pick them in its 9 slots; fluids, chemicals, energy and Source each have a Pull switch (off by default). |
 | Void Filter | When storage is full, the items you pick are destroyed instead of backing up. |
 | Quantum Link | Joins two networks across any distance or dimension. Pair two links with a Soul Tether. Both sides must be loaded. |
 | Soul Infuser | The mod's machine: Soulite Ingot + Soul Sand + Quartz makes Infused Soulite. Pipes insert from any side and pull the output. |
@@ -34,6 +34,10 @@ Made by **xTri6** for the Nine Craft modpack.
 | Item | What it does |
 |---|---|
 | Storage Cells | Copper 4k, Gold 64k, Diamond 1M, Netherite 64M items. Any mix of item types. |
+| Fluid Cells | 256 / 4,096 / 65,536 / 1M buckets. Any mix of fluids. |
+| Chemical Cells | Same sizes, for Mekanism gases, infuse types, pigments and slurries (needs Mekanism). |
+| Energy Cells | 16M / 256M / 4B / 64B FE. |
+| Source Cells | 10k / 100k / 1M / 10M Source (needs Ars Nouveau). |
 | Singularity Cell | Unlimited amount of one item. Use it with that item in your off hand to lock it. |
 | Recipe Card | Use it, click items into the 3x3 grid, and it saves the crafting recipe. Sneak-use to clear. |
 | Processing Card | Same, for machines: what goes in, what comes back. Right-click a slot to add one more. |
@@ -88,12 +92,20 @@ what it is missing if it cannot. Machine steps use Processing Cards in a Process
 }
 ```
 
+## Fluids, chemicals, energy and Source
+
+Put the matching cell in any Soul Drive. In the terminal, the tabs along the top switch between Items, Fluids, Chemicals,
+Energy and Source. Click a fluid with an empty bucket (or any tank) to fill it, or click anywhere with a full one to store it;
+chemicals work the same way with Mekanism tanks. To move these resources with pipes, use a Network Interface: push in from any
+side, and flip its Pull switch for a resource to let pipes take it back out (for example, to power machines from stored FE).
+
 ## Known limits
 
 - Crafting jobs in progress are not saved when the world closes; restart the craft after loading.
   Stored items are always saved.
 - Quantum Links do not keep chunks loaded; the far side must be loaded (or chunk-loaded) to connect.
 - No JEI integration yet, so recipe cards are filled by clicking items in.
+- Autocrafting and Processing Cards work with items only; fluids, chemicals, energy and Source are stored and moved, not crafted.
 
 ## Building
 

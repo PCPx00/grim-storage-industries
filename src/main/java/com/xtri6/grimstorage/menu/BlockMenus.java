@@ -5,12 +5,13 @@ import com.xtri6.grimstorage.block.entity.AssemblerBlockEntity;
 import com.xtri6.grimstorage.block.entity.DriveBlockEntity;
 import com.xtri6.grimstorage.block.entity.FilterBlockEntity;
 import com.xtri6.grimstorage.block.entity.GhostContainer;
+import com.xtri6.grimstorage.block.entity.InterfaceBlockEntity;
 import com.xtri6.grimstorage.block.entity.ProcessingInterfaceBlockEntity;
 import com.xtri6.grimstorage.block.entity.SoulInfuserBlockEntity;
 import com.xtri6.grimstorage.block.entity.StockKeeperBlockEntity;
 import com.xtri6.grimstorage.item.ProcessingCardItem;
 import com.xtri6.grimstorage.item.RecipeCardItem;
-import com.xtri6.grimstorage.item.StorageCellItem;
+import com.xtri6.grimstorage.storage.BulkKind;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -75,7 +76,7 @@ public final class BlockMenus {
         }
 
         public static Drive client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
-            return new Drive(id, inv, dummy(DriveBlockEntity.SLOTS, s -> s.getItem() instanceof StorageCellItem), ContainerLevelAccess.NULL, null);
+            return new Drive(id, inv, dummy(DriveBlockEntity.SLOTS, DriveBlockEntity::isCell), ContainerLevelAccess.NULL, null);
         }
     }
 
@@ -127,24 +128,57 @@ public final class BlockMenus {
     public static class Filter extends AtBlock {
         /** Which block this is, so the screen can show the right hint (void filter or interface). */
         public final BlockPos pos;
+        private final ContainerData exports;
+        @javax.annotation.Nullable
+        private final InterfaceBlockEntity iface;
 
-        public Filter(int id, Inventory inv, GhostContainer filters, ContainerLevelAccess access, Block block, BlockPos pos) {
+        public Filter(int id, Inventory inv, GhostContainer filters, ContainerLevelAccess access, Block block, BlockPos pos,
+                      ContainerData exports, @javax.annotation.Nullable InterfaceBlockEntity iface) {
             super(Registration.FILTER_MENU.get(), id, access, block);
             this.pos = pos;
+            this.exports = exports;
+            this.iface = iface;
             for (int i = 0; i < FilterBlockEntity.SLOTS; i++) {
                 addSlot(new GhostSlot(filters, i, 8 + i * 18, 35, false));
             }
+            addDataSlots(exports);
             addPlayerInventory(inv, 8, 84);
         }
 
         public static Filter server(int id, Inventory inv, FilterBlockEntity be) {
+            InterfaceBlockEntity iface = be instanceof InterfaceBlockEntity i ? i : null;
+            ContainerData data = new ContainerData() {
+                @Override
+                public int get(int index) {
+                    return iface != null && iface.exports(BulkKind.values()[index]) ? 1 : 0;
+                }
+
+                @Override
+                public void set(int index, int value) {}
+
+                @Override
+                public int getCount() {
+                    return BulkKind.values().length;
+                }
+            };
             return new Filter(id, inv, be.filters(), ContainerLevelAccess.create(be.getLevel(), be.getBlockPos()), be.getBlockState().getBlock(),
-                    be.getBlockPos());
+                    be.getBlockPos(), data, iface);
         }
 
         public static Filter client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
             return new Filter(id, inv, new GhostContainer(FilterBlockEntity.SLOTS, false, () -> {}), ContainerLevelAccess.NULL, null,
-                    buf.readBlockPos());
+                    buf.readBlockPos(), new SimpleContainerData(BulkKind.values().length), null);
+        }
+
+        public boolean exports(BulkKind kind) {
+            return exports.get(kind.ordinal()) != 0;
+        }
+
+        /** Server: the player flipped an export switch. */
+        public void toggleExport(BulkKind kind) {
+            if (iface != null) {
+                iface.toggleExport(kind);
+            }
         }
     }
 

@@ -28,9 +28,18 @@ public abstract class GrimScreen<T extends AbstractContainerMenu> extends Abstra
         return Theme.get();
     }
 
+    /** Space needed above the panel (for tabs along the top edge). */
+    protected int topExtra() {
+        return 0;
+    }
+
     @Override
     protected void init() {
         super.init();
+        int extra = topExtra();
+        if (extra > 0) {
+            topPos = Math.max(extra, (height - imageHeight - extra) / 2 + extra);
+        }
         addRenderableWidget(new ThemeToggle(leftPos + imageWidth - 16, topPos + 5));
     }
 

@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MKM",
+    "RTR",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "tag": "c:ingots/gold"
+    },
+    "K": {
+      "item": "mekanism:basic_chemical_tank"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "T": {
+      "tag": "c:storage_blocks/soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:chemical_cell_gold",
+    "count": 1
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "mekanism"
+    }
+  ]
+}

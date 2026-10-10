@@ -11,6 +11,7 @@ import com.xtri6.grimstorage.block.entity.AssemblerBlockEntity;
 import com.xtri6.grimstorage.client.TerminalScreen;
 import com.xtri6.grimstorage.menu.Menus;
 import com.xtri6.grimstorage.menu.TerminalMenu;
+import com.xtri6.grimstorage.storage.BulkKind;
 import com.xtri6.grimstorage.storage.ItemKey;
 import com.xtri6.grimstorage.storage.NetworkManager;
 import com.xtri6.grimstorage.storage.StorageNetwork;
@@ -58,11 +59,24 @@ public final class ScreenshotCheck {
     public static void register(IEventBus modBus) {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> onTick());
         Runnable none = () -> {};
-        SHOTS.add(new Shot("01_terminal_dark", true, ScreenshotCheck::terminalWithGrid, none));
-        SHOTS.add(new Shot("02_terminal_craft_dark", true, ScreenshotCheck::terminalWithGrid, ScreenshotCheck::openCraftDialog));
-        SHOTS.add(new Shot("03_terminal_light", false, ScreenshotCheck::terminalWithGrid, none));
-        SHOTS.add(new Shot("04_controller_dark", true, sp -> Menus.openController(sp, BASE), none));
-        SHOTS.add(new Shot("05_stock_keeper_dark", true, sp -> Menus.openStockKeeper(sp, BASE.offset(0, 1, 0)), none));
+        SHOTS.add(new Shot("01_terminal_items", true, sp -> { setMode(null); terminalWithGrid(sp); }, none));
+        SHOTS.add(new Shot("02_terminal_fluids", true, sp -> { setMode(BulkKind.FLUID); Menus.openTerminal(sp, BASE.offset(5, 0, 0)); }, none));
+        SHOTS.add(new Shot("03_terminal_chemicals", true, sp -> { setMode(BulkKind.CHEMICAL); Menus.openTerminal(sp, BASE.offset(5, 0, 0)); }, none));
+        SHOTS.add(new Shot("04_terminal_energy", true, sp -> { setMode(BulkKind.ENERGY); Menus.openTerminal(sp, BASE.offset(5, 0, 0)); }, none));
+        SHOTS.add(new Shot("05_interface", true, sp -> Menus.openFilter(sp, BASE.offset(-1, 0, 0)), none));
+        SHOTS.add(new Shot("06_controller", true, sp -> Menus.openController(sp, BASE), none));
+        SHOTS.add(new Shot("07_drive", true, sp -> Menus.openDrive(sp, BASE.offset(1, 0, 0)), none));
+        SHOTS.add(new Shot("08_terminal_fluids_light", false, sp -> { setMode(BulkKind.FLUID); Menus.openTerminal(sp, BASE.offset(5, 0, 0)); }, none));
+    }
+
+    private static void setMode(BulkKind mode) {
+        try {
+            java.lang.reflect.Field f = TerminalScreen.class.getDeclaredField("lastMode");
+            f.setAccessible(true);
+            f.set(null, mode);
+        } catch (ReflectiveOperationException ex) {
+            GrimStorage.LOGGER.error("[Shots] could not set mode", ex);
+        }
     }
 
     private static void openCraftDialog() {

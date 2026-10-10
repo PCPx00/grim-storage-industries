@@ -9,6 +9,8 @@ import com.xtri6.grimstorage.item.WirelessTerminalItem;
 import com.xtri6.grimstorage.menu.BlockMenus;
 import com.xtri6.grimstorage.menu.ControllerMenu;
 import com.xtri6.grimstorage.menu.TerminalMenu;
+import com.xtri6.grimstorage.storage.BulkKey;
+import com.xtri6.grimstorage.storage.BulkKind;
 import com.xtri6.grimstorage.storage.ItemKey;
 import com.xtri6.grimstorage.storage.StorageNetwork;
 
@@ -48,20 +50,47 @@ public final class Payloads {
         r.playToServer(SetStockTarget.TYPE, SetStockTarget.CODEC, Payloads::onSetStockTarget);
         r.playToServer(DumpInventory.TYPE, DumpInventory.CODEC, Payloads::onDumpInventory);
         r.playToServer(ClearGrid.TYPE, ClearGrid.CODEC, Payloads::onClearGrid);
+        r.playToServer(ToggleExport.TYPE, ToggleExport.CODEC, Payloads::onToggleExport);
+        r.playToServer(TerminalBulkClick.TYPE, TerminalBulkClick.CODEC, Payloads::onTerminalBulkClick);
     }
 
     // ------------------------------------------------------------------ server -> client
 
-    public record TerminalContents(int containerId, boolean online, long used, long capacity, List<TerminalMenu.Entry> entries)
-            implements CustomPacketPayload {
+    public record TerminalContents(int containerId, boolean online, long used, long capacity, List<TerminalMenu.Entry> entries,
+                                   List<TerminalMenu.BulkEntry> bulk, long[] bulkStats) implements CustomPacketPayload {
         public static final Type<TerminalContents> TYPE = id("terminal_contents");
         private static final StreamCodec<RegistryFriendlyByteBuf, TerminalMenu.Entry> ENTRY = StreamCodec.composite(
                 ItemKey.STREAM_CODEC, TerminalMenu.Entry::key, ByteBufCodecs.VAR_LONG, TerminalMenu.Entry::count,
                 ByteBufCodecs.BOOL, TerminalMenu.Entry::craftable, TerminalMenu.Entry::new);
-        public static final StreamCodec<RegistryFriendlyByteBuf, TerminalContents> CODEC = StreamCodec.composite(
-                ByteBufCodecs.VAR_INT, TerminalContents::containerId, ByteBufCodecs.BOOL, TerminalContents::online,
-                ByteBufCodecs.VAR_LONG, TerminalContents::used, ByteBufCodecs.VAR_LONG, TerminalContents::capacity,
-                ENTRY.apply(ByteBufCodecs.list()), TerminalContents::entries, TerminalContents::new);
+        private static final StreamCodec<RegistryFriendlyByteBuf, TerminalMenu.BulkEntry> BULK = StreamCodec.composite(
+                BulkKey.STREAM_CODEC, TerminalMenu.BulkEntry::key, ByteBufCodecs.VAR_LONG, TerminalMenu.BulkEntry::amount,
+                TerminalMenu.BulkEntry::new);
+        public static final StreamCodec<RegistryFriendlyByteBuf, TerminalContents> CODEC = StreamCodec.of(
+                (buf, p) -> {
+                    buf.writeVarInt(p.containerId);
+                    buf.writeBoolean(p.online);
+                    buf.writeVarLong(p.used);
+                    buf.writeVarLong(p.capacity);
+                    ENTRY.apply(ByteBufCodecs.list()).encode(buf, p.entries);
+                    BULK.apply(ByteBufCodecs.list()).encode(buf, p.bulk);
+                    buf.writeVarInt(p.bulkStats.length);
+                    for (long l : p.bulkStats) {
+                        buf.writeVarLong(l);
+                    }
+                },
+                buf -> {
+                    int id = buf.readVarInt();
+                    boolean online = buf.readBoolean();
+                    long used = buf.readVarLong();
+                    long cap = buf.readVarLong();
+                    List<TerminalMenu.Entry> entries = ENTRY.apply(ByteBufCodecs.list()).decode(buf);
+                    List<TerminalMenu.BulkEntry> bulk = BULK.apply(ByteBufCodecs.list()).decode(buf);
+                    long[] stats = new long[buf.readVarInt()];
+                    for (int i = 0; i < stats.length; i++) {
+                        stats[i] = buf.readVarLong();
+                    }
+                    return new TerminalContents(id, online, used, cap, entries, bulk, stats);
+                });
 
         @Override
         public Type<? extends CustomPacketPayload> type() {
@@ -77,7 +106,7 @@ public final class Payloads {
     }
 
     public record ControllerStatus(int containerId, boolean active, Component problem, long used, long capacity, long singular, int types,
-                                   int cells, int drives, int members, List<JobInfo> jobs) implements CustomPacketPayload {
+                                   int cells, int drives, int members, List<JobInfo> jobs, long[] bulkStats) implements CustomPacketPayload {
         public static final Type<ControllerStatus> TYPE = id("controller_status");
         public static final StreamCodec<RegistryFriendlyByteBuf, ControllerStatus> CODEC = StreamCodec.of(
                 (buf, s) -> {
@@ -94,6 +123,10 @@ public final class Payloads {
                     buf.writeVarInt(s.jobs.size());
                     for (JobInfo j : s.jobs) {
                         JobInfo.CODEC.encode(buf, j);
+                    }
+                    buf.writeVarInt(s.bulkStats.length);
+                    for (long l : s.bulkStats) {
+                        buf.writeVarLong(l);
                     }
                 },
                 buf -> {
@@ -112,7 +145,11 @@ public final class Payloads {
                     for (int i = 0; i < n; i++) {
                         jobs.add(JobInfo.CODEC.decode(buf));
                     }
-                    return new ControllerStatus(id, active, problem, used, cap, singular, types, cells, drives, members, jobs);
+                    long[] bulk = new long[buf.readVarInt()];
+                    for (int i = 0; i < bulk.length; i++) {
+                        bulk[i] = buf.readVarLong();
+                    }
+                    return new ControllerStatus(id, active, problem, used, cap, singular, types, cells, drives, members, jobs, bulk);
                 });
 
         @Override
@@ -127,6 +164,10 @@ public final class Payloads {
             m.clientOnline = p.online();
             m.clientUsed = p.used();
             m.clientCapacity = p.capacity();
+            m.clientBulk = p.bulk();
+            if (p.bulkStats().length == m.clientBulkStats.length) {
+                m.clientBulkStats = p.bulkStats();
+            }
             m.clientRevision++;
         }
     }
@@ -193,6 +234,44 @@ public final class Payloads {
         @Override
         public Type<? extends CustomPacketPayload> type() {
             return TYPE;
+        }
+    }
+
+    public record ToggleExport(int containerId, int kind) implements CustomPacketPayload {
+        public static final Type<ToggleExport> TYPE = id("toggle_export");
+        public static final StreamCodec<RegistryFriendlyByteBuf, ToggleExport> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, ToggleExport::containerId, ByteBufCodecs.VAR_INT, ToggleExport::kind, ToggleExport::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    private static void onToggleExport(ToggleExport p, IPayloadContext ctx) {
+        if (ctx.player().containerMenu instanceof BlockMenus.Filter m && m.containerId == p.containerId()
+                && p.kind() >= 0 && p.kind() < BulkKind.values().length) {
+            m.toggleExport(BulkKind.values()[p.kind()]);
+        }
+    }
+
+    /** A click in the terminal's fluid/chemical view, with whatever container is on the cursor. */
+    public record TerminalBulkClick(int containerId, int kind, java.util.Optional<BulkKey> key) implements CustomPacketPayload {
+        public static final Type<TerminalBulkClick> TYPE = id("terminal_bulk_click");
+        public static final StreamCodec<RegistryFriendlyByteBuf, TerminalBulkClick> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, TerminalBulkClick::containerId, ByteBufCodecs.VAR_INT, TerminalBulkClick::kind,
+                ByteBufCodecs.optional(BulkKey.STREAM_CODEC), TerminalBulkClick::key, TerminalBulkClick::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    private static void onTerminalBulkClick(TerminalBulkClick p, IPayloadContext ctx) {
+        if (ctx.player() instanceof ServerPlayer sp && sp.containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()
+                && p.kind() >= 0 && p.kind() < BulkKind.values().length) {
+            m.handleBulkClick(sp, BulkKind.values()[p.kind()], p.key().orElse(null));
         }
     }
 

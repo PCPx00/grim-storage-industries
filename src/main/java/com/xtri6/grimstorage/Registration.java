@@ -21,6 +21,7 @@ import com.xtri6.grimstorage.block.entity.QuantumLinkBlockEntity;
 import com.xtri6.grimstorage.block.entity.SoulInfuserBlockEntity;
 import com.xtri6.grimstorage.block.entity.StockKeeperBlockEntity;
 import com.xtri6.grimstorage.block.entity.VoidFilterBlockEntity;
+import com.xtri6.grimstorage.item.BulkCellItem;
 import com.xtri6.grimstorage.item.CardData;
 import com.xtri6.grimstorage.item.ProcessingCardItem;
 import com.xtri6.grimstorage.item.RecipeCardItem;
@@ -33,6 +34,7 @@ import com.xtri6.grimstorage.menu.ControllerMenu;
 import com.xtri6.grimstorage.menu.Menus;
 import com.xtri6.grimstorage.menu.TerminalMenu;
 import com.xtri6.grimstorage.recipe.InfusingRecipe;
+import com.xtri6.grimstorage.storage.BulkKind;
 import com.xtri6.grimstorage.storage.CellTier;
 
 import net.minecraft.core.GlobalPos;
@@ -217,6 +219,24 @@ public final class Registration {
         }
     }
 
+    /** Fluid, chemical, energy and Source cells, one per tier. */
+    public static final Map<BulkKind, Map<CellTier, DeferredItem<BulkCellItem>>> BULK_CELLS = new EnumMap<>(BulkKind.class);
+
+    static {
+        for (BulkKind kind : BulkKind.values()) {
+            Map<CellTier, DeferredItem<BulkCellItem>> tiers = new EnumMap<>(CellTier.class);
+            for (CellTier tier : BulkKind.TIERS) {
+                Item.Properties props = new Item.Properties().rarity(tier == CellTier.DIAMOND ? Rarity.UNCOMMON
+                        : tier == CellTier.NETHERITE ? Rarity.RARE : Rarity.COMMON);
+                if (tier == CellTier.NETHERITE) {
+                    props.fireResistant();
+                }
+                tiers.put(tier, ITEMS.register(BulkCellItem.id(kind, tier), () -> new BulkCellItem(kind, tier, props)));
+            }
+            BULK_CELLS.put(kind, tiers);
+        }
+    }
+
     public static final DeferredItem<RecipeCardItem> RECIPE_CARD = ITEMS.register("recipe_card",
             () -> new RecipeCardItem(new Item.Properties().stacksTo(16)));
     public static final DeferredItem<ProcessingCardItem> PROCESSING_CARD = ITEMS.register("processing_card",
@@ -294,6 +314,13 @@ public final class Registration {
                                 ASSEMBLER, STOCK_KEEPER, VOID_FILTER, PROCESSING_INTERFACE, QUANTUM_LINK));
                         for (CellTier t : CellTier.values()) {
                             order.add(CELLS.get(t));
+                        }
+                        for (BulkKind kind : BulkKind.values()) {
+                            if (kind.available()) {
+                                for (CellTier t : BulkKind.TIERS) {
+                                    order.add(BULK_CELLS.get(kind).get(t));
+                                }
+                            }
                         }
                         order.addAll(List.of(RECIPE_CARD, PROCESSING_CARD, SPEED_UPGRADE, WIRELESS_TERMINAL, SINGULARITY_TERMINAL, SOUL_TETHER));
                         order.forEach(entry -> output.accept(entry.get()));

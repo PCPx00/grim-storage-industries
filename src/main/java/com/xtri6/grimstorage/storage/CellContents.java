@@ -4,10 +4,13 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** The items inside one storage cell. Lives in {@link CellStorage} so big cells never bloat item NBT. */
-public final class CellContents {
+/**
+ * What one storage cell holds: items (keyed by {@link ItemKey}) or fluids, chemicals, energy or Source (keyed by
+ * {@link BulkKey}). Lives in {@link CellStorage} so big cells never bloat item NBT.
+ */
+public final class CellContents<K> {
     private final CellStorage owner;
-    private final LinkedHashMap<ItemKey, Long> items = new LinkedHashMap<>();
+    private final LinkedHashMap<K, Long> items = new LinkedHashMap<>();
     private long total;
 
     CellContents(CellStorage owner) {
@@ -22,15 +25,15 @@ public final class CellContents {
         return items.size();
     }
 
-    public long count(ItemKey key) {
+    public long count(K key) {
         return items.getOrDefault(key, 0L);
     }
 
-    public Map<ItemKey, Long> view() {
+    public Map<K, Long> view() {
         return Collections.unmodifiableMap(items);
     }
 
-    public long insert(ItemKey key, long amount, long capacity, boolean simulate) {
+    public long insert(K key, long amount, long capacity, boolean simulate) {
         long space = capacity - total;
         if (space <= 0 || amount <= 0) {
             return 0;
@@ -44,7 +47,7 @@ public final class CellContents {
         return accepted;
     }
 
-    public long extract(ItemKey key, long amount, boolean simulate) {
+    public long extract(K key, long amount, boolean simulate) {
         long have = items.getOrDefault(key, 0L);
         long taken = Math.min(have, amount);
         if (taken <= 0) {
@@ -62,7 +65,7 @@ public final class CellContents {
         return taken;
     }
 
-    void load(ItemKey key, long amount) {
+    void load(K key, long amount) {
         items.merge(key, amount, Long::sum);
         total += amount;
     }

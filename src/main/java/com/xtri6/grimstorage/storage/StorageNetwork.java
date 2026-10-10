@@ -23,6 +23,7 @@ import com.xtri6.grimstorage.block.entity.ProcessingInterfaceBlockEntity;
 import com.xtri6.grimstorage.block.entity.QuantumLinkBlockEntity;
 import com.xtri6.grimstorage.block.entity.StockKeeperBlockEntity;
 import com.xtri6.grimstorage.block.entity.VoidFilterBlockEntity;
+import com.xtri6.grimstorage.item.BulkCellItem;
 import com.xtri6.grimstorage.item.CardData;
 import com.xtri6.grimstorage.item.StorageCellItem;
 
@@ -47,7 +48,7 @@ public final class StorageNetwork {
     private static final int MAX_JOBS = 32;
     private static final int CRAFT_COST = 10;
 
-    private record CellRef(CellTier tier, CellContents contents, @Nullable ItemKey lock) {}
+    private record CellRef(CellTier tier, CellContents<ItemKey> contents, @Nullable ItemKey lock) {}
 
     private final ControllerBlockEntity controller;
     private MinecraftServer server;
@@ -342,6 +343,100 @@ public final class StorageNetwork {
 
     public boolean hasOverflow() {
         return !overflow.isEmpty();
+    }
+
+    // ------------------------------------------------------------------ fluids, chemicals, energy, Source
+
+    private record BulkRef(long capacity, CellContents<BulkKey> contents) {}
+
+    private List<BulkRef> bulkCells(BulkKind kind) {
+        List<BulkRef> out = new ArrayList<>();
+        if (server == null) {
+            return out;
+        }
+        CellStorage storage = CellStorage.get(server);
+        for (DriveBlockEntity drive : drives) {
+            if (drive.isRemoved()) {
+                continue;
+            }
+            for (ItemStack stack : drive.cellStacks()) {
+                if (stack.getItem() instanceof BulkCellItem cell && cell.kind() == kind) {
+                    UUID id = stack.get(Registration.CELL_ID.get());
+                    if (id != null) {
+                        out.add(new BulkRef(cell.capacity(), storage.bulk(id, kind)));
+                    }
+                }
+            }
+        }
+        return out;
+    }
+
+    /** Puts a fluid/chemical/energy/Source amount in. Returns how much was accepted. */
+    public long insertBulk(@Nullable BulkKey key, long amount, boolean simulate) {
+        if (!isActive() || key == null || amount <= 0) {
+            return 0;
+        }
+        long left = amount;
+        List<BulkRef> cells = bulkCells(key.kind());
+        for (BulkRef c : cells) {
+            if (left > 0 && c.contents().count(key) > 0) {
+                left -= c.contents().insert(key, left, c.capacity(), simulate);
+            }
+        }
+        for (BulkRef c : cells) {
+            if (left > 0) {
+                left -= c.contents().insert(key, left, c.capacity(), simulate);
+            }
+        }
+        return amount - left;
+    }
+
+    /** Takes a fluid/chemical/energy/Source amount out. Returns how much was taken. */
+    public long extractBulk(@Nullable BulkKey key, long amount, boolean simulate) {
+        if (!isActive() || key == null || amount <= 0) {
+            return 0;
+        }
+        long left = amount;
+        for (BulkRef c : bulkCells(key.kind())) {
+            if (left > 0) {
+                left -= c.contents().extract(key, left, simulate);
+            }
+        }
+        return amount - left;
+    }
+
+    public long countBulk(@Nullable BulkKey key) {
+        if (key == null || !isActive()) {
+            return 0;
+        }
+        long n = 0;
+        for (BulkRef c : bulkCells(key.kind())) {
+            n += c.contents().count(key);
+        }
+        return n;
+    }
+
+    /** Everything of one kind, merged across cells. */
+    public Map<BulkKey, Long> bulkContents(BulkKind kind) {
+        Map<BulkKey, Long> map = new java.util.LinkedHashMap<>();
+        if (isActive()) {
+            for (BulkRef c : bulkCells(kind)) {
+                c.contents().view().forEach((k, v) -> map.merge(k, v, Long::sum));
+            }
+        }
+        return map;
+    }
+
+    /** {used, capacity} for one kind. */
+    public long[] bulkStats(BulkKind kind) {
+        long used = 0, cap = 0;
+        if (isActive()) {
+            for (BulkRef c : bulkCells(kind)) {
+                used += c.contents().total();
+                cap += c.capacity();
+            }
+        }
+        return new long[] {used, cap};
     }
 
     // ------------------------------------------------------------------ crafting

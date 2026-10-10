@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.3.0
+- Store fluids, Mekanism chemicals, energy (FE) and Ars Nouveau Source as well as items.
+- 16 new cells: Fluid, Chemical, Energy and Source cells in Copper, Gold, Diamond and Netherite tiers. They go in the same
+  Soul Drive as item cells. Chemical cells need Mekanism and Source cells need Ars Nouveau; without those mods they are hidden
+  and uncraftable, and nothing else changes.
+- Terminal resource tabs along the top: Items, Fluids, Chemicals, Energy (and Source with Ars Nouveau). Fluids and chemicals
+  show with their real textures; click with a bucket or Mekanism tank to fill it, or with a full one to store it.
+- Network Interface now accepts fluids, energy, chemicals and Source from pipes and machines. New Pull switches decide, per
+  resource, whether anything may be pulled back out (off by default).
+- Controller shows a gauge for each resource.
+
 ## 1.2.0
 - New look for every screen: translucent rounded panels, inset slots, flat themed buttons and fields, accent highlights.
 - Dark mode is the default. Switch with the sun/moon button in the corner of any screen, or from the mod list's Config

@@ -19,6 +19,20 @@ import com.xtri6.grimstorage.block.entity.VoidFilterBlockEntity;
 import com.xtri6.grimstorage.item.CardData;
 import com.xtri6.grimstorage.menu.CardMenus;
 import com.xtri6.grimstorage.menu.TerminalMenu;
+import com.xtri6.grimstorage.storage.BulkKey;
+import com.xtri6.grimstorage.storage.BulkKind;
+import mekanism.api.Action;
+import mekanism.api.MekanismAPI;
+import mekanism.api.chemical.Chemical;
+import mekanism.api.chemical.ChemicalStack;
+import mekanism.api.chemical.IChemicalHandler;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.capabilities.BlockCapability;
+import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.fluids.FluidStack;
+import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import com.xtri6.grimstorage.storage.CellTier;
 import com.xtri6.grimstorage.storage.CraftingPlanner;
 import com.xtri6.grimstorage.storage.ItemKey;
@@ -286,6 +300,80 @@ public final class SystemCheck {
             return preview.is(Items.STICK) && preview.getCount() == 4 && sticks == 4 * ((int) (planksBefore + 12) / 2)
                     && planksLeft == (planksBefore + 12) % 2 && gridEmpty;
         }));
+        STEPS.add(new Step("fluid, chemical, energy and Source cells go in the drive", 0, () -> {
+            DriveBlockEntity drive = (DriveBlockEntity) level.getBlockEntity(at(1, 0, 0));
+            int slot = 2;
+            for (BulkKind kind : BulkKind.values()) {
+                drive.cells().setStackInSlot(slot++, new ItemStack(Registration.BULK_CELLS.get(kind).get(CellTier.COPPER).get()));
+            }
+            return true;
+        }));
+        STEPS.add(new Step("interface: fluids in, pull only when switched on", 2, () -> {
+            IFluidHandler h = level.getCapability(Capabilities.FluidHandler.BLOCK, at(-1, 0, 0), Direction.WEST);
+            int in = h.fill(new FluidStack(Fluids.WATER, 5000), IFluidHandler.FluidAction.EXECUTE);
+            int lavaIn = h.fill(new FluidStack(Fluids.LAVA, 3000), IFluidHandler.FluidAction.EXECUTE);
+            FluidStack blocked = h.drain(1000, IFluidHandler.FluidAction.EXECUTE);
+            ((InterfaceBlockEntity) level.getBlockEntity(at(-1, 0, 0))).toggleExport(BulkKind.FLUID);
+            FluidStack got = h.drain(new FluidStack(Fluids.WATER, 1000), IFluidHandler.FluidAction.EXECUTE);
+            long water = net().countBulk(BulkKey.fluid(new FluidStack(Fluids.WATER, 1)));
+            info("water in={} lava in={} drain while off={} drain while on={} water stored={} tanks={}", in, lavaIn, blocked.getAmount(),
+                    got.getAmount(), water, h.getTanks());
+            return in == 5000 && lavaIn == 3000 && blocked.isEmpty() && got.getAmount() == 1000 && water == 4000 && h.getTanks() == 3;
+        }));
+        STEPS.add(new Step("interface: energy in, pull only when switched on", 0, () -> {
+            IEnergyStorage e = level.getCapability(Capabilities.EnergyStorage.BLOCK, at(-1, 0, 0), Direction.WEST);
+            int in = e.receiveEnergy(100_000, false);
+            int blocked = e.extractEnergy(500, false);
+            ((InterfaceBlockEntity) level.getBlockEntity(at(-1, 0, 0))).toggleExport(BulkKind.ENERGY);
+            int got = e.extractEnergy(500, false);
+            info("energy in={} pulled while off={} on={} stored={} max={}", in, blocked, got, e.getEnergyStored(), e.getMaxEnergyStored());
+            return in == 100_000 && blocked == 0 && got == 500 && e.getEnergyStored() == 99_500 && e.getMaxEnergyStored() == 16_000_000;
+        }));
+        STEPS.add(new Step("Mekanism chemicals through the interface", 0, () -> {
+            BlockCapability<IChemicalHandler, Direction> cap = BlockCapability.createSided(
+                    ResourceLocation.fromNamespaceAndPath("mekanism", "chemical_handler"), IChemicalHandler.class);
+            IChemicalHandler h = level.getCapability(cap, at(-1, 0, 0), Direction.WEST);
+            if (h == null) {
+                info("no chemical handler (Mekanism missing?)");
+                return false;
+            }
+            Chemical hydrogen = MekanismAPI.CHEMICAL_REGISTRY.get(ResourceLocation.fromNamespaceAndPath("mekanism", "hydrogen"));
+            ChemicalStack left = h.insertChemical(new ChemicalStack(hydrogen, 2000), Action.EXECUTE);
+            ChemicalStack blocked = h.extractChemical(500, Action.EXECUTE);
+            long stored = net().countBulk(BulkKey.chemical(ResourceLocation.fromNamespaceAndPath("mekanism", "hydrogen")));
+            info("hydrogen leftover={} pulled while off={} stored={} in tank 0={}", left.getAmount(), blocked.getAmount(), stored,
+                    h.getChemicalInTank(0).getAmount());
+            return left.isEmpty() && blocked.isEmpty() && stored == 2000 && h.getChemicalInTank(0).getAmount() == 2000;
+        }));
+        STEPS.add(new Step("Source pool", 0, () -> {
+            BulkKey src = BulkKey.flat(BulkKind.SOURCE);
+            long in = net().insertBulk(src, 15_000, false);
+            info("source accepted={} (cell holds 10k) stored={}", in, net().countBulk(src));
+            return in == 10_000 && net().countBulk(src) == 10_000;
+        }));
+        STEPS.add(new Step("terminal: fill and empty a bucket and a Mekanism tank", 0, () -> {
+            FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+            fp.getInventory().clearContent();
+            TerminalMenu menu = new TerminalMenu(996, fp.getInventory(), () -> NetworkManager.get(level, at(5, 0, 0)), p -> true);
+            BulkKey water = BulkKey.fluid(new FluidStack(Fluids.WATER, 1));
+            menu.setCarried(new ItemStack(Items.BUCKET));
+            menu.handleBulkClick(fp, BulkKind.FLUID, water);
+            boolean filled = menu.getCarried().is(Items.WATER_BUCKET);
+            long afterFill = net().countBulk(water);
+            menu.handleBulkClick(fp, BulkKind.FLUID, null);
+            boolean emptied = menu.getCarried().is(Items.BUCKET);
+            long afterEmpty = net().countBulk(water);
+            BulkKey h2 = BulkKey.chemical(ResourceLocation.fromNamespaceAndPath("mekanism", "hydrogen"));
+            menu.setCarried(new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("mekanism", "basic_chemical_tank"))));
+            menu.handleBulkClick(fp, BulkKind.CHEMICAL, h2);
+            long h2After = net().countBulk(h2);
+            menu.handleBulkClick(fp, BulkKind.CHEMICAL, null);
+            long h2Back = net().countBulk(h2);
+            menu.setCarried(ItemStack.EMPTY);
+            info("bucket filled={} water {}->{} emptied={} water back={} hydrogen into tank: {} left, after emptying tank: {}",
+                    filled, 4000, afterFill, emptied, afterEmpty, h2After, h2Back);
+            return filled && afterFill == 3000 && emptied && afterEmpty == 4000 && h2After == 0 && h2Back == 2000;
+        }));
         STEPS.add(new Step("void filter destroys overflow only", 0, () -> {
             VoidFilterBlockEntity v = (VoidFilterBlockEntity) level.getBlockEntity(at(0, -1, 0));
             v.filters().setItem(0, new ItemStack(Items.DIRT));
@@ -298,6 +386,9 @@ public final class SystemCheck {
         }));
         STEPS.add(new Step("save totals for the persistence run", 0, () -> {
             long total = net().contents().values().stream().mapToLong(Long::longValue).sum();
+            for (BulkKind kind : BulkKind.values()) {
+                total += net().bulkStats(kind)[0];
+            }
             try {
                 Files.writeString(TOTAL_FILE, Long.toString(total));
             } catch (Exception ex) {
@@ -315,6 +406,12 @@ public final class SystemCheck {
                 return false;
             }
             long total = n.contents().values().stream().mapToLong(Long::longValue).sum();
+            for (BulkKind kind : BulkKind.values()) {
+                total += n.bulkStats(kind)[0];
+            }
+            info("after restart: water={} energy={} hydrogen={} source={}", n.countBulk(BulkKey.fluid(new FluidStack(Fluids.WATER, 1))),
+                    n.countBulk(BulkKey.flat(BulkKind.ENERGY)),
+                    n.countBulk(BulkKey.chemical(ResourceLocation.fromNamespaceAndPath("mekanism", "hydrogen"))), n.countBulk(BulkKey.flat(BulkKind.SOURCE)));
             long expected;
             try {
                 expected = Long.parseLong(Files.readString(TOTAL_FILE).trim());

@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MKM",
+    "RTR",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "tag": "c:ingots/copper"
+    },
+    "K": {
+      "tag": "c:storage_blocks/redstone"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "T": {
+      "tag": "c:ingots/soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:energy_cell_copper",
+    "count": 1
+  }
+}

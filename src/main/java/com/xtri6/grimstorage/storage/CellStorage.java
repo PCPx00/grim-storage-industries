@@ -17,7 +17,9 @@ public final class CellStorage extends SavedData {
     private static final String NAME = "grimstorage_cells";
     private static long version = 1;
 
-    private final Map<UUID, CellContents> cells = new HashMap<>();
+    private final Map<UUID, CellContents<ItemKey>> cells = new HashMap<>();
+    private final Map<UUID, CellContents<BulkKey>> bulk = new HashMap<>();
+    private final Map<UUID, BulkKind> bulkKinds = new HashMap<>();
 
     /** Bumps on any change to any cell, so views of network contents know when to refresh. */
     public static long version() {
@@ -29,8 +31,19 @@ public final class CellStorage extends SavedData {
                 new SavedData.Factory<>(CellStorage::new, CellStorage::load), NAME);
     }
 
-    public CellContents contents(UUID id) {
-        return cells.computeIfAbsent(id, k -> new CellContents(this));
+    public CellContents<ItemKey> contents(UUID id) {
+        return cells.computeIfAbsent(id, k -> new CellContents<>(this));
+    }
+
+    /** Contents of a fluid / chemical / energy / Source cell. */
+    public CellContents<BulkKey> bulk(UUID id) {
+        return bulk.computeIfAbsent(id, k -> new CellContents<>(this));
+    }
+
+    /** Same, remembering which kind the cell holds so it can be saved. */
+    public CellContents<BulkKey> bulk(UUID id, BulkKind kind) {
+        bulkKinds.putIfAbsent(id, kind);
+        return bulk(id);
     }
 
     void changed() {
@@ -43,7 +56,7 @@ public final class CellStorage extends SavedData {
         ListTag list = tag.getList("cells", Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
             CompoundTag cell = list.getCompound(i);
-            CellContents contents = storage.contents(cell.getUUID("id"));
+            CellContents<ItemKey> contents = storage.contents(cell.getUUID("id"));
             ListTag items = cell.getList("items", Tag.TAG_COMPOUND);
             for (int j = 0; j < items.size(); j++) {
                 CompoundTag entry = items.getCompound(j);
@@ -52,6 +65,26 @@ public final class CellStorage extends SavedData {
                 long count = entry.getLong("count");
                 if (key != null && count > 0) {
                     contents.load(key, count);
+                }
+            }
+        }
+        ListTag bulkList = tag.getList("bulk", Tag.TAG_COMPOUND);
+        for (int i = 0; i < bulkList.size(); i++) {
+            CompoundTag cell = bulkList.getCompound(i);
+            BulkKind kind;
+            try {
+                kind = BulkKind.valueOf(cell.getString("kind"));
+            } catch (IllegalArgumentException e) {
+                continue;
+            }
+            CellContents<BulkKey> contents = storage.bulk(cell.getUUID("id"), kind);
+            ListTag entries = cell.getList("entries", Tag.TAG_COMPOUND);
+            for (int j = 0; j < entries.size(); j++) {
+                CompoundTag entry = entries.getCompound(j);
+                BulkKey key = BulkKey.load(kind, entry.getCompound("key"), registries);
+                long amount = entry.getLong("amount");
+                if (key != null && amount > 0) {
+                    contents.load(key, amount);
                 }
             }
         }
@@ -79,6 +112,26 @@ public final class CellStorage extends SavedData {
             list.add(cell);
         });
         tag.put("cells", list);
+        ListTag bulkList = new ListTag();
+        bulk.forEach((id, contents) -> {
+            BulkKind kind = bulkKinds.get(id);
+            if (contents.total() <= 0 || kind == null) {
+                return;
+            }
+            CompoundTag cell = new CompoundTag();
+            cell.putUUID("id", id);
+            cell.putString("kind", kind.name());
+            ListTag entries = new ListTag();
+            contents.view().forEach((key, amount) -> {
+                CompoundTag entry = new CompoundTag();
+                entry.put("key", key.save(registries));
+                entry.putLong("amount", amount);
+                entries.add(entry);
+            });
+            cell.put("entries", entries);
+            bulkList.add(cell);
+        });
+        tag.put("bulk", bulkList);
         return tag;
     }
 }

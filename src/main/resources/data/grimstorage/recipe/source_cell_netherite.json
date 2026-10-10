@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MKM",
+    "RTR",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:netherite_scrap"
+    },
+    "K": {
+      "item": "ars_nouveau:source_gem"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "T": {
+      "item": "grimstorage:echo_soulite_alloy"
+    }
+  },
+  "result": {
+    "id": "grimstorage:source_cell_netherite",
+    "count": 1
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ars_nouveau"
+    }
+  ]
+}

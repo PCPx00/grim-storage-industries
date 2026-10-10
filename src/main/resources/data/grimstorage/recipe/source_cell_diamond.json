@@ -1,0 +1,33 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MKM",
+    "RTR",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "tag": "c:gems/diamond"
+    },
+    "K": {
+      "item": "ars_nouveau:source_gem"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "T": {
+      "item": "grimstorage:infused_soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:source_cell_diamond",
+    "count": 1
+  },
+  "neoforge:conditions": [
+    {
+      "type": "neoforge:mod_loaded",
+      "modid": "ars_nouveau"
+    }
+  ]
+}
