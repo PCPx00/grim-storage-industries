@@ -47,17 +47,20 @@ public final class Payloads {
         r.playToServer(CancelJob.TYPE, CancelJob.CODEC, Payloads::onCancelJob);
         r.playToServer(SetStockTarget.TYPE, SetStockTarget.CODEC, Payloads::onSetStockTarget);
         r.playToServer(DumpInventory.TYPE, DumpInventory.CODEC, Payloads::onDumpInventory);
+        r.playToServer(ClearGrid.TYPE, ClearGrid.CODEC, Payloads::onClearGrid);
     }
 
     // ------------------------------------------------------------------ server -> client
 
-    public record TerminalContents(int containerId, boolean online, List<TerminalMenu.Entry> entries) implements CustomPacketPayload {
+    public record TerminalContents(int containerId, boolean online, long used, long capacity, List<TerminalMenu.Entry> entries)
+            implements CustomPacketPayload {
         public static final Type<TerminalContents> TYPE = id("terminal_contents");
         private static final StreamCodec<RegistryFriendlyByteBuf, TerminalMenu.Entry> ENTRY = StreamCodec.composite(
                 ItemKey.STREAM_CODEC, TerminalMenu.Entry::key, ByteBufCodecs.VAR_LONG, TerminalMenu.Entry::count,
                 ByteBufCodecs.BOOL, TerminalMenu.Entry::craftable, TerminalMenu.Entry::new);
         public static final StreamCodec<RegistryFriendlyByteBuf, TerminalContents> CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, TerminalContents::containerId, ByteBufCodecs.BOOL, TerminalContents::online,
+                ByteBufCodecs.VAR_LONG, TerminalContents::used, ByteBufCodecs.VAR_LONG, TerminalContents::capacity,
                 ENTRY.apply(ByteBufCodecs.list()), TerminalContents::entries, TerminalContents::new);
 
         @Override
@@ -122,6 +125,8 @@ public final class Payloads {
         if (ctx.player().containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
             m.clientEntries = p.entries();
             m.clientOnline = p.online();
+            m.clientUsed = p.used();
+            m.clientCapacity = p.capacity();
             m.clientRevision++;
         }
     }
@@ -188,6 +193,23 @@ public final class Payloads {
         @Override
         public Type<? extends CustomPacketPayload> type() {
             return TYPE;
+        }
+    }
+
+    public record ClearGrid(int containerId) implements CustomPacketPayload {
+        public static final Type<ClearGrid> TYPE = id("clear_grid");
+        public static final StreamCodec<RegistryFriendlyByteBuf, ClearGrid> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, ClearGrid::containerId, ClearGrid::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    private static void onClearGrid(ClearGrid p, IPayloadContext ctx) {
+        if (ctx.player() instanceof ServerPlayer sp && sp.containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
+            m.clearGrid(sp);
         }
     }
 

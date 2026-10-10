@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.2.0
+- New look for every screen: translucent rounded panels, inset slots, flat themed buttons and fields, accent highlights.
+- Dark mode is the default. Switch with the sun/moon button in the corner of any screen, or from the mod list's Config
+  button, where panel opacity can also be changed.
+- Built-in 3x3 crafting grid in the Soul Terminal and both wireless terminals. Grid slots refill themselves from the
+  network as you craft, shift-clicking the result crafts up to a full stack, and the x button sends the grid back to storage.
+- Terminal side panel with a storage gauge, item type count and the current filter.
+- Controller screen redesigned with a usage bar and stat chips.
+
 ## 1.1.0
 - Terminal filter tabs down the left side: Everything, Ores & Raw Materials, Ingots & Gems, Weapons & Tools, Armor, Food,
   Mob Drops, Farming, Building Blocks and Misc. Hover a tab to see how many item types it holds. The terminal remembers

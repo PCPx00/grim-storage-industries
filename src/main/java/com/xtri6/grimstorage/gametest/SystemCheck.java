@@ -264,6 +264,28 @@ public final class SystemCheck {
             info("card result={} carried kept={}", data == null ? "none" : data.result(), carriedKept);
             return data != null && data.result().is(Items.CAULDRON) && carriedKept;
         }));
+        STEPS.add(new Step("terminal crafting grid refills from the network", 0, () -> {
+            FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+            fp.getInventory().clearContent();
+            StorageNetwork n = net();
+            long planksBefore = count(Items.OAK_PLANKS);
+            n.insert(key(Items.OAK_PLANKS), 10, false);
+            TerminalMenu menu = new TerminalMenu(997, fp.getInventory(), () -> NetworkManager.get(level, at(5, 0, 0)), p -> true);
+            menu.getSlot(menu.gridStart).set(new ItemStack(Items.OAK_PLANKS));
+            menu.getSlot(menu.gridStart + 3).set(new ItemStack(Items.OAK_PLANKS));
+            ItemStack preview = menu.getSlot(menu.resultIndex).getItem().copy();
+            menu.clicked(menu.resultIndex, 0, ClickType.QUICK_MOVE, fp);
+            int sticks = fp.getInventory().countItem(Items.STICK);
+            long planksLeft = count(Items.OAK_PLANKS);
+            menu.getSlot(menu.gridStart).set(new ItemStack(Items.FLINT, 3));
+            menu.clearGrid(fp);
+            boolean gridEmpty = menu.getSlot(menu.gridStart).getItem().isEmpty();
+            info("preview={} sticks crafted={} planks left in network={} (before {}) grid cleared={} flint={}",
+                    preview, sticks, planksLeft, planksBefore, gridEmpty, count(Items.FLINT));
+            fp.getInventory().clearContent();
+            return preview.is(Items.STICK) && preview.getCount() == 4 && sticks == 4 * ((int) (planksBefore + 12) / 2)
+                    && planksLeft == (planksBefore + 12) % 2 && gridEmpty;
+        }));
         STEPS.add(new Step("void filter destroys overflow only", 0, () -> {
             VoidFilterBlockEntity v = (VoidFilterBlockEntity) level.getBlockEntity(at(0, -1, 0));
             v.filters().setItem(0, new ItemStack(Items.DIRT));

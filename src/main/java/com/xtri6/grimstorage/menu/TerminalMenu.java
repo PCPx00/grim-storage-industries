@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 
@@ -25,7 +26,18 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.world.Container;
+import net.minecraft.world.inventory.ClickType;
+import net.minecraft.world.inventory.ResultContainer;
+import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.TransientCraftingContainer;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -40,6 +52,12 @@ public class TerminalMenu extends GrimMenu {
 
     public record Entry(ItemKey key, long count, boolean craftable) {}
 
+    /** Where the built-in crafting grid sits in the screen. */
+    public static final int GRID_X = 196;
+    public static final int GRID_Y = 30;
+    public static final int RESULT_X = 214;
+    public static final int RESULT_Y = 114;
+
     @Nullable
     private final Supplier<StorageNetwork> network;
     private final Predicate<Player> valid;
@@ -52,6 +70,14 @@ public class TerminalMenu extends GrimMenu {
     public List<Entry> clientEntries = List.of();
     public boolean clientOnline;
     public int clientRevision;
+    public long clientUsed;
+    public long clientCapacity;
+
+    private final TransientCraftingContainer craftGrid = new TransientCraftingContainer(this, 3, 3);
+    private final ResultContainer craftResult = new ResultContainer();
+    public final int gridStart;
+    public final int resultIndex;
+    private int shiftCrafted;
 
     public TerminalMenu(int id, Inventory inv, @Nullable Supplier<StorageNetwork> network, Predicate<Player> valid) {
         super(Registration.TERMINAL_MENU.get(), id);
@@ -59,6 +85,116 @@ public class TerminalMenu extends GrimMenu {
         this.valid = valid;
         this.player = inv.player;
         addPlayerInventory(inv, 8, 140);
+        gridStart = slots.size();
+        for (int i = 0; i < 9; i++) {
+            addSlot(new Slot(craftGrid, i, GRID_X + (i % 3) * 18, GRID_Y + (i / 3) * 18));
+        }
+        resultIndex = slots.size();
+        addSlot(new RefillingResultSlot(inv.player, RESULT_X, RESULT_Y));
+    }
+
+    /** The crafting output: after each craft, any grid slot that ran out is refilled from the network. */
+    private final class RefillingResultSlot extends ResultSlot {
+        RefillingResultSlot(Player player, int x, int y) {
+            super(player, craftGrid, craftResult, 0, x, y);
+        }
+
+        @Override
+        public void onTake(Player p, ItemStack stack) {
+            ItemStack[] before = new ItemStack[9];
+            for (int i = 0; i < 9; i++) {
+                before[i] = craftGrid.getItem(i).copy();
+            }
+            super.onTake(p, stack);
+            StorageNetwork net = net();
+            if (net == null) {
+                return;
+            }
+            for (int i = 0; i < 9; i++) {
+                ItemKey key = ItemKey.of(before[i]);
+                if (key != null && craftGrid.getItem(i).isEmpty() && net.extract(key, 1, false) == 1) {
+                    craftGrid.setItem(i, key.toStack(1));
+                }
+            }
+        }
+    }
+
+    @Override
+    public void slotsChanged(Container container) {
+        super.slotsChanged(container);
+        if (container == craftGrid && player instanceof ServerPlayer sp) {
+            CraftingInput input = craftGrid.asCraftInput();
+            Level level = sp.level();
+            ItemStack out = ItemStack.EMPTY;
+            Optional<RecipeHolder<CraftingRecipe>> recipe = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level);
+            if (recipe.isPresent() && craftResult.setRecipeUsed(level, sp, recipe.get())) {
+                ItemStack made = recipe.get().value().assemble(input, level.registryAccess());
+                if (made.isItemEnabled(level.enabledFeatures())) {
+                    out = made;
+                }
+            }
+            craftResult.setItem(0, out);
+            setRemoteSlot(resultIndex, out);
+            sp.connection.send(new ClientboundContainerSetSlotPacket(containerId, incrementStateId(), resultIndex, out));
+        }
+    }
+
+    @Override
+    public void clicked(int slotId, int button, ClickType type, Player p) {
+        if (slotId == resultIndex && type == ClickType.QUICK_MOVE) {
+            shiftCrafted = 0;
+        }
+        super.clicked(slotId, button, type, p);
+    }
+
+    @Override
+    public boolean canTakeItemForPickAll(ItemStack stack, Slot slot) {
+        return slot.container != craftResult && super.canTakeItemForPickAll(stack, slot);
+    }
+
+    /** Server: sends everything in the crafting grid back into the network (or your inventory if it is full). */
+    public void clearGrid(ServerPlayer sp) {
+        StorageNetwork net = net();
+        for (int i = 0; i < 9; i++) {
+            ItemStack s = craftGrid.removeItemNoUpdate(i);
+            if (s.isEmpty()) {
+                continue;
+            }
+            if (net != null) {
+                long in = net.insert(s, false);
+                s.shrink((int) in);
+            }
+            if (!s.isEmpty()) {
+                sp.getInventory().placeItemBackInInventory(s);
+            }
+        }
+        slotsChanged(craftGrid);
+        broadcastChanges();
+    }
+
+    @Override
+    public void removed(Player p) {
+        super.removed(p);
+        if (p instanceof ServerPlayer sp) {
+            boolean gone = !sp.isAlive() || sp.hasDisconnected();
+            StorageNetwork net = net();
+            for (int i = 0; i < 9; i++) {
+                ItemStack s = craftGrid.removeItemNoUpdate(i);
+                if (s.isEmpty()) {
+                    continue;
+                }
+                if (net != null) {
+                    s.shrink((int) net.insert(s, false));
+                }
+                if (!s.isEmpty()) {
+                    if (gone) {
+                        sp.drop(s, false);
+                    } else {
+                        sp.getInventory().placeItemBackInInventory(s);
+                    }
+                }
+            }
+        }
     }
 
     public static TerminalMenu client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
@@ -90,7 +226,8 @@ public class TerminalMenu extends GrimMenu {
             sentVersion = version;
             sentEpoch = epoch;
             sinceSend = 0;
-            PacketDistributor.sendToPlayer(sp, new Payloads.TerminalContents(containerId, net != null, snapshot(net)));
+            long[] stats = net == null ? new long[] {0, 0} : net.stats();
+            PacketDistributor.sendToPlayer(sp, new Payloads.TerminalContents(containerId, net != null, stats[0], stats[1], snapshot(net)));
         }
     }
 
@@ -199,12 +336,52 @@ public class TerminalMenu extends GrimMenu {
         sp.displayClientMessage(msg, false);
     }
 
-    /** Shift-clicking your own inventory sends that stack into the network. */
+    /**
+     * Shift-click: your inventory goes into the network, the crafting grid goes back into the network, and the
+     * crafting result crafts up to one full stack into your inventory (refilling the grid as it goes).
+     */
     @Override
     public ItemStack quickMoveStack(Player p, int index) {
         Slot slot = slots.get(index);
+        if (!slot.hasItem()) {
+            return ItemStack.EMPTY;
+        }
+        if (index == resultIndex) {
+            ItemStack stack = slot.getItem();
+            ItemStack copy = stack.copy();
+            if (shiftCrafted >= copy.getMaxStackSize()) {
+                return ItemStack.EMPTY;
+            }
+            stack.getItem().onCraftedBy(stack, p.level(), p);
+            if (!moveItemStackTo(stack, playerStart, playerEnd, true)) {
+                return ItemStack.EMPTY;
+            }
+            slot.onQuickCraft(stack, copy);
+            if (stack.isEmpty()) {
+                slot.setByPlayer(ItemStack.EMPTY);
+            } else {
+                slot.setChanged();
+            }
+            if (stack.getCount() == copy.getCount()) {
+                return ItemStack.EMPTY;
+            }
+            slot.onTake(p, stack);
+            shiftCrafted += copy.getCount();
+            return copy;
+        }
         StorageNetwork net = net();
-        if (net == null || !slot.hasItem()) {
+        if (index >= gridStart && index < resultIndex) {
+            ItemStack stack = slot.getItem();
+            if (net != null) {
+                stack.shrink((int) net.insert(stack, false));
+            }
+            if (!stack.isEmpty()) {
+                moveItemStackTo(stack, playerStart, playerEnd, false);
+            }
+            slot.setChanged();
+            return ItemStack.EMPTY;
+        }
+        if (net == null) {
             return ItemStack.EMPTY;
         }
         ItemStack stack = slot.getItem();
