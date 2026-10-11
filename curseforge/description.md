@@ -53,6 +53,7 @@ The **Grim Storage Guide** you get when you first join explains every block and 
 <img src="https://raw.githubusercontent.com/PCPx00/grim-storage-industries/main/media/section-autocrafting.gif" alt="Autocrafting" width="1200">
 
 - **Recipe Cards:** click items into the grid to teach the network a recipe, then put the card in a **Soul Assembler**. Speed Upgrades double its speed, up to 16x.
+- **No items needed to write cards:** press JEI's **+** on any recipe and the card is written, crafting or any mod's machine. Drag items from JEI onto any card or filter slot. JEI's + in the terminal fills the crafting grid from storage, and the pencil button writes it onto a card.
 - **Machine Bus:** clip it onto a furnace, blast furnace or smoker, or a machine from **Mekanism, Thermal, Ender IO, Immersive Engineering, Create, Ars Nouveau, Powah, Modern Industrialization, Oritech or Actually Additions**, and it learns every recipe that machine can make. No cards at all. It keeps furnaces fuelled and machines powered from your network, takes back every output (extras like sawdust too), opens Mekanism machine sides by itself, and several machines share one big job. Pack makers can add any machine with a datapack file.
 - **Processing Cards** in a **Machine Bus** or **Processing Interface** run machines from **any mod** as steps in a craft.
 - When something can be made more than one way, the network picks the way you have ingredients for.

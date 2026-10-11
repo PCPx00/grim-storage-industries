@@ -118,6 +118,29 @@ public abstract class GrimMenu extends AbstractContainerMenu {
     /** Called after a ghost slot is changed by a click. */
     protected void onGhostChanged() {}
 
+    /**
+     * Sets ghost slots straight from the client (JEI: dragging an item onto a filter slot, or filling a card from
+     * a recipe). Only ghost slots can be set this way, so no real item is ever created. {@code clear} empties every
+     * ghost slot first.
+     */
+    public void setGhosts(boolean clear, java.util.List<Integer> slotIds, java.util.List<ItemStack> stacks) {
+        if (clear) {
+            for (Slot s : slots) {
+                if (s instanceof GhostSlot g) {
+                    g.set(ItemStack.EMPTY);
+                }
+            }
+        }
+        for (int i = 0; i < Math.min(slotIds.size(), stacks.size()); i++) {
+            int id = slotIds.get(i);
+            if (id >= 0 && id < slots.size() && slots.get(id) instanceof GhostSlot g) {
+                ItemStack st = stacks.get(i);
+                g.set(st.isEmpty() ? ItemStack.EMPTY : st.copyWithCount(g.counted() ? Math.max(1, Math.min(64, st.getCount())) : 1));
+            }
+        }
+        onGhostChanged();
+    }
+
     /** Shift-click: player inventory -> real block slots (or the first free ghost slot); block slots -> player. */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {

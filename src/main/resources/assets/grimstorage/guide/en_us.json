@@ -175,7 +175,8 @@
           "text": [
             "The terminal has its own 3x3 crafting grid on the right. Put ingredients in and take the result.",
             "When a slot runs out, it **refills itself from storage**, so you can keep crafting. **Shift-click** the result to craft a full stack at once.",
-            "The small **x** puts everything in the grid back into storage. Closing the terminal does the same."
+            "The small **x** puts everything in the grid back into storage. Closing the terminal does the same.",
+            "With JEI, press **+** on a crafting recipe to fill the grid from storage. Missing ingredients show red. The **pencil** writes the grid's recipe on a Recipe Card you carry; the items stay put."
           ]
         },
         {
@@ -349,6 +350,16 @@
             "Sneak and use a card to wipe it. Hold just one card at a time to edit it."
           ],
           "recipe": "grimstorage:recipe_card"
+        },
+        {
+          "title": "Cards from JEI",
+          "text": [
+            "You don't need the items to write a card.",
+            "- Open the card, then find the recipe in **JEI** and press its **+** button. The card is written.",
+            "- Or **drag** items from JEI's list onto the card's slots. This works on every filter slot too.",
+            "- **Processing Cards** take the + button on a recipe of **any mod**: what goes in and what comes out are both filled in.",
+            "- In the terminal, the **pencil** next to the crafting grid writes the grid's recipe on a Recipe Card you carry."
+          ]
         },
         {
           "title": "Soul Assembler",

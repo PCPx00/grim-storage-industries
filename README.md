@@ -53,8 +53,8 @@ Lost it? Craft one from a book and a Soulite Ingot.
 | Experience Cells | 100k / 2M / 50M / 2B XP. Liquid XP from other mods (`c:experience`) converts at 20 mB per point. |
 | Source Cells | 10k / 100k / 1M / 10M Source (needs Ars Nouveau). |
 | Singularity Cell | Unlimited amount of one item. Use it with that item in your off hand to lock it. |
-| Recipe Card | Use it, click items into the 3x3 grid, and it saves the crafting recipe. Sneak-use to clear. |
-| Processing Card | Same, for machines: what goes in, what comes back. Right-click a slot to add one more. |
+| Recipe Card | Use it, click items into the 3x3 grid, and it saves the crafting recipe. No items needed with JEI: press + on any crafting recipe, or drag items from JEI onto the grid. The terminal's pencil button writes its crafting grid onto a card. Sneak-use to clear. |
+| Processing Card | Same, for machines: what goes in, what comes back. Right-click a slot to add one more. JEI's + on a recipe of any mod fills both sides in. |
 | Wireless Terminal | Sneak-use on a controller to bind. 128 block range, same dimension. |
 | Singularity Terminal | Wireless terminal with unlimited range, any dimension. |
 | Speed Upgrade | Doubles a Soul Assembler's speed (up to 4), or adds a bus's base speed again (up to 8 per bus, for 9x). |

@@ -70,13 +70,23 @@ public final class ScreenshotCheck {
             }
             sp.teleportTo(sp.serverLevel(), mb.getX() + 4.5, mb.getY() + 2.6, mb.getZ() + 4.5, 135f, 28f);
         }, none));
-        SHOTS.add(new Shot("p01_mekanism_scene", true, sp -> {
-            sp.teleportTo(sp.serverLevel(), mb.getX() + 3.5, mb.getY() + 2.2, mb.getZ() + 3.8, 140f, 12f);
-        }, none));
-        SHOTS.add(new Shot("p02_bus_on_enrichment_chamber", true, sp -> Menus.openMachineBus(sp, mb.above()), none));
-        SHOTS.add(new Shot("p04_guide_modded", true, sp -> {}, () -> book(7, 4)));
-        SHOTS.add(new Shot("p05_guide_good_to_know", true, sp -> {}, () -> book(7, 5)));
-        SHOTS.add(new Shot("p03_bus_on_sawmill_light", false, sp -> Menus.openMachineBus(sp, mb.below()), none));
+        SHOTS.add(new Shot("r01_recipe_card_from_jei", true, sp -> {
+            sp.getInventory().clearContent();
+            sp.teleportTo(sp.serverLevel(), 2.5, 220.6, 4.5, 200f, 15f);
+            sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.RECIPE_CARD.get()));
+            Menus.openRecipeCard(sp, InteractionHand.MAIN_HAND);
+        }, () -> JeiShots.transfer("minecraft:torch", mezz.jei.api.constants.RecipeTypes.CRAFTING)));
+        SHOTS.add(new Shot("r02_processing_card_from_jei", true, sp -> {
+            sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.PROCESSING_CARD.get()));
+            Menus.openProcessingCard(sp, InteractionHand.MAIN_HAND);
+        }, () -> JeiShots.transfer("minecraft:iron_ingot_from_smelting_raw_iron", mezz.jei.api.constants.RecipeTypes.SMELTING)));
+        SHOTS.add(new Shot("r03_terminal_grid_from_jei", true, sp -> {
+            sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.RECIPE_CARD.get(), 4));
+            Menus.openTerminal(sp, BASE.offset(5, 0, 0));
+        }, () -> JeiShots.transfer("minecraft:chest", mezz.jei.api.constants.RecipeTypes.CRAFTING)));
+        SHOTS.add(new Shot("r05_guide_cards_from_jei", true, sp -> {}, () -> book(6, 2)));
+        SHOTS.add(new Shot("r04_jei_page_over_terminal", true, sp -> Menus.openTerminal(sp, BASE.offset(5, 0, 0)),
+                () -> JeiShots.show("minecraft:dispenser")));
     }
 
     /** A Soul Infuser with buses on two faces: one fed by cable from its side, one from its back. */

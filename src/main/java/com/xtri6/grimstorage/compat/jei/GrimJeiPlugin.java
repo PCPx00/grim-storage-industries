@@ -36,7 +36,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeManager;
 
-/** JEI support: Soul Infuser recipes get their own page, and cells for mods that are not installed are hidden. */
+/**
+ * JEI support: Soul Infuser recipes get their own page, cells for mods that are not installed are hidden, and
+ * recipes can be written on cards or put in the terminal's grid with JEI's + button (see {@link JeiTransfers}).
+ */
 @JeiPlugin
 public final class GrimJeiPlugin implements IModPlugin {
     public static final RecipeType<RecipeHolder<InfusingRecipe>> INFUSING =
@@ -69,6 +72,16 @@ public final class GrimJeiPlugin implements IModPlugin {
     @Override
     public void registerGuiHandlers(IGuiHandlerRegistration reg) {
         reg.addRecipeClickArea(SimpleScreens.Infuser.class, 70, 34, 26, 18, INFUSING);
+        // drag items from JEI onto any filter or card slot
+        reg.addGhostIngredientHandler(com.xtri6.grimstorage.client.GrimScreen.class, new JeiTransfers.Ghosts());
+    }
+
+    @Override
+    public void registerRecipeTransferHandlers(mezz.jei.api.registration.IRecipeTransferRegistration reg) {
+        // the + button on a recipe: write it on the card in your hand, or fill the terminal's crafting grid
+        reg.addRecipeTransferHandler(new JeiTransfers.RecipeCard(), mezz.jei.api.constants.RecipeTypes.CRAFTING);
+        reg.addRecipeTransferHandler(new JeiTransfers.Terminal(), mezz.jei.api.constants.RecipeTypes.CRAFTING);
+        reg.addUniversalRecipeTransferHandler(new JeiTransfers.ProcessingCard(reg.getTransferHelper()));
     }
 
     /** The live JEI runtime (used by the dev screenshot check to open the infusing page). */

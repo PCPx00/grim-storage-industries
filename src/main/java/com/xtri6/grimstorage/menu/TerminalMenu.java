@@ -194,6 +194,100 @@ public class TerminalMenu extends GrimMenu {
         broadcastChanges();
     }
 
+    /**
+     * Fills the crafting grid for a recipe (JEI's + button): whatever is in the grid goes back first, then each
+     * slot takes the first of its options the network has, or else one from the player's inventory. Slots with
+     * nothing available stay empty.
+     */
+    public void fillGrid(ServerPlayer sp, List<List<ItemStack>> options) {
+        clearGrid(sp);
+        StorageNetwork net = net();
+        for (int i = 0; i < Math.min(9, options.size()); i++) {
+            for (ItemStack want : options.get(i)) {
+                ItemKey key = ItemKey.of(want);
+                if (key == null) {
+                    continue;
+                }
+                if (net != null && net.extract(key, 1, false) == 1) {
+                    craftGrid.setItem(i, key.toStack(1));
+                    break;
+                }
+                int slot = findInInventory(sp, want);
+                if (slot >= 0) {
+                    craftGrid.setItem(i, sp.getInventory().removeItem(slot, 1));
+                    break;
+                }
+            }
+        }
+        slotsChanged(craftGrid);
+        broadcastChanges();
+    }
+
+    private static int findInInventory(ServerPlayer sp, ItemStack want) {
+        Inventory inv = sp.getInventory();
+        for (int i = 0; i < inv.items.size(); i++) {
+            if (ItemStack.isSameItemSameComponents(inv.items.get(i), want)) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    /**
+     * Writes the recipe in the crafting grid onto a Recipe Card in the player's inventory (a blank one first),
+     * so a card can be made from items in the network without taking them out.
+     */
+    public boolean writeCard(ServerPlayer sp) {
+        Level level = sp.level();
+        List<ItemStack> grid = new ArrayList<>(9);
+        boolean any = false;
+        for (int i = 0; i < 9; i++) {
+            ItemStack s = craftGrid.getItem(i);
+            grid.add(s.isEmpty() ? ItemStack.EMPTY : s.copyWithCount(1));
+            any |= !s.isEmpty();
+        }
+        if (!any) {
+            return false;
+        }
+        CraftingInput input = CraftingInput.of(3, 3, grid);
+        Optional<RecipeHolder<CraftingRecipe>> recipe = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level);
+        if (recipe.isEmpty()) {
+            sp.displayClientMessage(Component.translatable("gui.grimstorage.write_card.no_recipe").withStyle(ChatFormatting.RED), true);
+            return false;
+        }
+        ItemStack result = recipe.get().value().assemble(input, level.registryAccess());
+        Inventory inv = sp.getInventory();
+        int target = -1;
+        for (int pass = 0; pass < 2 && target < 0; pass++) {
+            for (int i = 0; i < inv.items.size(); i++) {
+                ItemStack st = inv.items.get(i);
+                if (st.is(Registration.RECIPE_CARD.get()) && (pass == 1 || !st.has(Registration.RECIPE_CARD_DATA.get()))) {
+                    target = i;
+                    break;
+                }
+            }
+        }
+        if (target < 0) {
+            sp.displayClientMessage(Component.translatable("gui.grimstorage.write_card.no_card").withStyle(ChatFormatting.RED), true);
+            return false;
+        }
+        ItemStack card = inv.items.get(target);
+        if (card.getCount() > 1) {
+            // one card off the stack gets the recipe
+            card.shrink(1);
+            ItemStack one = new ItemStack(Registration.RECIPE_CARD.get());
+            one.set(Registration.RECIPE_CARD_DATA.get(), new com.xtri6.grimstorage.item.CardData.Recipe(grid, result));
+            if (!inv.add(one)) {
+                sp.drop(one, false);
+            }
+        } else {
+            card.set(Registration.RECIPE_CARD_DATA.get(), new com.xtri6.grimstorage.item.CardData.Recipe(grid, result));
+        }
+        sp.displayClientMessage(Component.translatable("gui.grimstorage.write_card.done", result.getHoverName()).withStyle(ChatFormatting.AQUA), true);
+        level.playSound(null, sp.blockPosition(), SoundEvents.BOOK_PAGE_TURN, SoundSource.PLAYERS, 0.8f, 1.2f);
+        return true;
+    }
+
     @Override
     public void removed(Player p) {
         super.removed(p);
