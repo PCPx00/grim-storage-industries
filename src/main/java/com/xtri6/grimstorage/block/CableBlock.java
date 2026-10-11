@@ -61,22 +61,22 @@ public class CableBlock extends Block implements NetworkMember {
         SIDES.values().forEach(builder::add);
     }
 
-    private static boolean connects(BlockState neighbor) {
-        return neighbor.getBlock() instanceof NetworkMember;
+    private static boolean connects(Direction dir, BlockState neighbor) {
+        return neighbor.getBlock() instanceof NetworkMember m && m.connectsTo(neighbor, dir.getOpposite());
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
         BlockState state = defaultBlockState();
         for (Direction d : Direction.values()) {
-            state = state.setValue(SIDES.get(d), connects(ctx.getLevel().getBlockState(ctx.getClickedPos().relative(d))));
+            state = state.setValue(SIDES.get(d), connects(d, ctx.getLevel().getBlockState(ctx.getClickedPos().relative(d))));
         }
         return state;
     }
 
     @Override
     protected BlockState updateShape(BlockState state, Direction dir, BlockState neighbor, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
-        return state.setValue(SIDES.get(dir), connects(neighbor));
+        return state.setValue(SIDES.get(dir), connects(dir, neighbor));
     }
 
     @Override

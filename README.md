@@ -15,6 +15,7 @@ Lost it? Craft one from a book and a Soulite Ingot.
 2. Craft a **Network Controller**, a **Soul Drive** and a **Copper Storage Cell**. Put the cell in the drive.
 3. Place a **Soul Terminal** touching the network. Open it and start storing.
 4. Use **Soul Cable** or **Soulite Glass** to reach blocks that are not touching.
+5. Stick an **Import Bus** or **Export Bus** on any chest, tank or machine to move things in and out.
 
 ## Blocks
 
@@ -27,7 +28,9 @@ Lost it? Craft one from a book and a Soulite Ingot.
 | Soul Assembler | Holds 9 Recipe Cards and runs them. Up to 4 Speed Upgrades, each doubling its speed. |
 | Processing Interface | Faces any machine (any mod). Sends Processing Card inputs in and pulls the outputs back. |
 | Stock Keeper | "Always keep N of this": up to 9 items it keeps crafted. |
-| Network Interface | Lets pipes, hoppers and other mods use the network. Items, fluids, energy, chemicals and Source can all be pushed in. Items can only be pulled out if you pick them in its 9 slots; fluids, chemicals, energy and Source each have a Pull switch (off by default). |
+| Import Bus | Sticks onto the face of any block (chest, tank, furnace, generator, any modded machine) and pulls items, fluids, energy, XP, chemicals and Source from it into the network. Facing open air it picks up dropped items and XP orbs. 9-slot filter (whitelist/blacklist, exact or ignore-NBT) and an on/off switch per resource. |
+| Export Bus | The reverse: pushes from the network into the block it is on. Sends only the items you pick by default; switch on fluids, energy, XP, chemicals or Source to send those too. |
+| Network Interface | Lets pipes, hoppers and other mods use the network. Items, fluids, energy, XP, chemicals and Source can all be pushed in. Items can only be pulled out if you pick them in its 9 slots; the other resources each have a Pull switch (off by default). |
 | Void Filter | When storage is full, the items you pick are destroyed instead of backing up. |
 | Quantum Link | Joins two networks across any distance or dimension. Pair two links with a Soul Tether. Both sides must be loaded. |
 | Soul Infuser | The mod's machine: Soulite Ingot + Soul Sand + Quartz makes Infused Soulite. Pipes insert from any side and pull the output. |
@@ -40,6 +43,7 @@ Lost it? Craft one from a book and a Soulite Ingot.
 | Fluid Cells | 256 / 4,096 / 65,536 / 1M buckets. Any mix of fluids. |
 | Chemical Cells | Same sizes, for Mekanism gases, infuse types, pigments and slurries (needs Mekanism). |
 | Energy Cells | 16M / 256M / 4B / 64B FE. |
+| Experience Cells | 100k / 2M / 50M / 2B XP. Liquid XP from other mods (`c:experience`) converts at 20 mB per point. |
 | Source Cells | 10k / 100k / 1M / 10M Source (needs Ars Nouveau). |
 | Singularity Cell | Unlimited amount of one item. Use it with that item in your off hand to lock it. |
 | Recipe Card | Use it, click items into the 3x3 grid, and it saves the crafting recipe. Sneak-use to clear. |
@@ -65,7 +69,7 @@ what it is missing if it cannot. Machine steps use Processing Cards in a Process
 
 | Tier | Gate | Unlocks |
 |---|---|---|
-| 1 | Soulite Ingot | Controller, Drive, Terminal, Cable, Glass, Interface, Copper Cell, Soul Infuser |
+| 1 | Soulite Ingot | Controller, Drive, Terminal, Cable, Glass, Interface, Import Bus, Export Bus, Copper Cell, Soul Infuser |
 | 2 | Soulite + Gold | Gold Cell, Recipe Cards, Soul Assembler, Void Filter |
 | 3 | Infused Soulite | Diamond Cell, Speed Upgrade, Stock Keeper, Wireless Terminal, Processing Card |
 | 4 | Echo Soulite Alloy | Netherite Cell, Processing Interface, Quantum Link, Soul Tether |
@@ -100,12 +104,27 @@ what it is missing if it cannot. Machine steps use Processing Cards in a Process
 }
 ```
 
-## Fluids, chemicals, energy and Source
+## Fluids, chemicals, energy, XP and Source
 
 Put the matching cell in any Soul Drive. In the terminal, the tabs along the top switch between Items, Fluids, Chemicals,
-Energy and Source. Click a fluid with an empty bucket (or any tank) to fill it, or click anywhere with a full one to store it;
-chemicals work the same way with Mekanism tanks. To move these resources with pipes, use a Network Interface: push in from any
-side, and flip its Pull switch for a resource to let pipes take it back out (for example, to power machines from stored FE).
+Energy, Source and Experience. Click a fluid with an empty bucket (or any tank) to fill it, or click anywhere with a full one to store it;
+chemicals work the same way with Mekanism tanks. In the Experience tab, click to take a level, shift-click for 10, right-click to
+store all of your XP.
+
+The easiest way to move these resources is a bus: an Import Bus on a generator stores its power, on a tank empties it, and
+under a mob farm soaks up XP orbs and drops. You can also use pipes with a Network Interface: push in from any side, and flip
+its Pull switch for a resource to let pipes take it back out.
+
+## Import and Export Buses
+
+- Place against the block you want to use; the bus sticks to that face. Run cable to its back. The network never connects
+  through a bus's front, so a bus facing another network's interface moves things between the two networks without merging them.
+- Filter: 9 ghost slots. Buckets and tanks filter their fluid or chemical. **Only these** (whitelist) or **All but these**
+  (blacklist); **Exact match** or **Ignore NBT**. Energy, Source and XP have no types, so their switch alone decides.
+- Defaults: the Import Bus pulls everything; the Export Bus sends only what is in its filter.
+- Speed: a busy bus runs every tick and moves up to 128 items, 32 buckets, 32,000 mB of chemicals, 10,000 XP or Source,
+  and as much FE as the block allows. An idle bus backs off to checking about once a second and wakes as soon as a
+  neighbour changes. Measured in the dev check: 255 buses cost about 0.1 ms per server tick in total.
 
 ## Known limits
 
@@ -113,7 +132,9 @@ side, and flip its Pull switch for a resource to let pipes take it back out (for
   Stored items are always saved.
 - Quantum Links do not keep chunks loaded; the far side must be loaded (or chunk-loaded) to connect.
 - No JEI integration yet, so recipe cards are filled by clicking items in.
-- Autocrafting and Processing Cards work with items only; fluids, chemicals, energy and Source are stored and moved, not crafted.
+- Autocrafting and Processing Cards work with items only; fluids, chemicals, energy, XP and Source are stored and moved, not crafted.
+- New Mekanism tanks and machines start with their chemical sides closed. Open the side the bus touches with a Configurator,
+  the same as for any pipe.
 
 ## Building
 
@@ -122,7 +143,8 @@ Install JDK 21, then double-click `BUILD.bat` (Windows) or run `./gradlew build`
 Dev checks (never shipped in the release jar):
 - `./gradlew runOreCheck` generates terrain and counts ore in every Soulite location.
 - `./gradlew runSystemCheck` builds a network in a test world and checks storage, autocrafting, machine processing,
-  stock keeping, voiding, pipe access, terminal clicks, card editing and a Nether Quantum Link. Run it twice to
+  stock keeping, voiding, pipe access, terminal clicks, card editing, a Nether Quantum Link, Import/Export Buses, XP, and
+  the tick cost of 255 idle buses. Run it twice to
   also check that everything survives a restart.
 - `./gradlew runShots` opens the terminal on every filter tab in a real client on that world and saves screenshots.
 

@@ -1,6 +1,7 @@
 package com.xtri6.grimstorage.menu;
 
 import com.xtri6.grimstorage.block.entity.AssemblerBlockEntity;
+import com.xtri6.grimstorage.block.entity.BusBlockEntity;
 import com.xtri6.grimstorage.block.entity.ControllerBlockEntity;
 import com.xtri6.grimstorage.block.entity.DriveBlockEntity;
 import com.xtri6.grimstorage.block.entity.FilterBlockEntity;
@@ -49,6 +50,12 @@ public final class Menus {
     public static void openFilter(ServerPlayer p, BlockPos pos) {
         if (p.level().getBlockEntity(pos) instanceof FilterBlockEntity be) {
             p.openMenu(new SimpleMenuProvider((id, inv, pl) -> BlockMenus.Filter.server(id, inv, be), title(p, pos)), pos);
+        }
+    }
+
+    public static void openBus(ServerPlayer p, BlockPos pos) {
+        if (p.level().getBlockEntity(pos) instanceof BusBlockEntity be) {
+            p.openMenu(new SimpleMenuProvider((id, inv, pl) -> BlockMenus.Bus.server(id, inv, be), title(p, pos)), pos);
         }
     }
 

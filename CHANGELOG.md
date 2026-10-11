@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.5.0
+- New: **Import Bus** and **Export Bus**. Place one against any block (chest, furnace, tank, generator, any modded machine) and
+  it sticks to that face. One bus handles items, fluids, energy, XP, Mekanism chemicals and Ars Nouveau Source.
+- The Import Bus pulls everything by default. Facing open air it picks up dropped items and XP orbs, which makes it handy under a mob farm.
+- The Export Bus sends only what you pick by default, so it never empties your storage by accident.
+- Bus screen: 9 filter slots (buckets and tanks filter their fluid or chemical), Only these / All but these, Exact match /
+  Ignore NBT, an on/off switch per resource, and a live status (Working, Idle, Storage full, No network, Nothing attached).
+- Built to be lag free: cached block capabilities, a per-run budget, sliced scanning of big inventories, and idle buses back
+  off to about once a second until something next to them changes. 255 buses measured at about 0.1 ms per tick in total.
+- The network never reaches through a bus's front, so a bus can move things between two separate networks.
+- New: **Experience storage**. Experience Cells in four tiers (100k to 2B XP), an Experience tab in the terminal (click to
+  take a level, shift-click for 10, right-click to store all your XP), and liquid XP from other mods (`c:experience`) is
+  converted at 20 mB per point by buses, the Network Interface and the terminal.
+- Network Interface: XP Pull switch, and the Pull switches now always fit in the screen.
+- Guide: new Buses chapter (6 pages), an Experience page, and updated pages for pipes, the interface, progression and help.
+
 ## 1.4.0
 - New: the Grim Storage Guide. Every player gets one the first time they join (turn this off in the common config).
   It can also be crafted from a book and a Soulite Ingot.

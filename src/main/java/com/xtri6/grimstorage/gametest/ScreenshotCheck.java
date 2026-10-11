@@ -59,14 +59,32 @@ public final class ScreenshotCheck {
     public static void register(IEventBus modBus) {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> onTick());
         Runnable none = () -> {};
-        SHOTS.add(new Shot("g01_welcome", true, sp -> {}, () -> book(0, 0)));
-        SHOTS.add(new Shot("g02_first_hour", true, sp -> {}, () -> book(0, 1)));
-        SHOTS.add(new Shot("g03_soulite_ores", true, sp -> {}, () -> book(1, 0)));
-        SHOTS.add(new Shot("g04_infuser_recipe", true, sp -> {}, () -> book(1, 3)));
-        SHOTS.add(new Shot("g05_controller", true, sp -> {}, () -> book(2, 0)));
-        SHOTS.add(new Shot("g06_terminal_controls", true, sp -> {}, () -> book(3, 0)));
-        SHOTS.add(new Shot("g07_smelting", true, sp -> {}, () -> book(1, 2)));
-        SHOTS.add(new Shot("g08_autocrafting_light", false, sp -> {}, () -> book(6, 0)));
+        SHOTS.add(new Shot("b03_terminal_xp", true, sp -> Menus.openTerminal(sp, BASE.offset(5, 0, 0)), () -> {}));
+        SHOTS.add(new Shot("b01_import_bus_dark", true, sp -> Menus.openBus(sp, BASE.offset(3, 1, 0)), none));
+        SHOTS.add(new Shot("b02_export_bus_light", false, sp -> Menus.openBus(sp, BASE.offset(4, 1, 0)), none));
+        SHOTS.add(new Shot("b04_interface", true, sp -> Menus.openFilter(sp, BASE.offset(-1, 0, 0)), none));
+        SHOTS.add(new Shot("b05_controller", true, sp -> Menus.openController(sp, BASE), none));
+        SHOTS.add(new Shot("b11_terminal_xp", true, sp -> Menus.openTerminal(sp, BASE.offset(5, 0, 0)), () -> {}));
+        SHOTS.add(new Shot("b06_guide_buses", true, sp -> {}, () -> book(9, 0)));
+        SHOTS.add(new Shot("b07_guide_filters", true, sp -> {}, () -> book(9, 3)));
+        SHOTS.add(new Shot("b08_guide_xp", true, sp -> {}, () -> book(5, 4)));
+        SHOTS.add(new Shot("b10_guide_import_recipe", false, sp -> {}, () -> book(9, 1)));
+        SHOTS.add(new Shot("b12_showcase", true, sp -> {
+            BlockPos s0 = BASE.offset(20, 6, -6);
+            var lvl = sp.serverLevel();
+            var dir = com.xtri6.grimstorage.block.FacingDeviceBlock.All.FACING;
+            lvl.setBlockAndUpdate(s0, net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState());
+            lvl.setBlockAndUpdate(s0.east(), com.xtri6.grimstorage.Registration.IMPORT_BUS.get().defaultBlockState().setValue(dir, net.minecraft.core.Direction.WEST));
+            lvl.setBlockAndUpdate(s0.east(2), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
+            lvl.setBlockAndUpdate(s0.east(3), com.xtri6.grimstorage.Registration.EXPORT_BUS.get().defaultBlockState().setValue(dir, net.minecraft.core.Direction.EAST));
+            lvl.setBlockAndUpdate(s0.east(4), net.minecraft.world.level.block.Blocks.FURNACE.defaultBlockState());
+            lvl.setBlockAndUpdate(s0.east(2).below(), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
+            lvl.setBlockAndUpdate(s0.east(2).below(2), com.xtri6.grimstorage.Registration.CONTROLLER.get().defaultBlockState());
+            lvl.setBlockAndUpdate(s0.east(2).above(), com.xtri6.grimstorage.Registration.IMPORT_BUS.get().defaultBlockState().setValue(dir, net.minecraft.core.Direction.UP));
+            lvl.setBlockAndUpdate(s0.east(2).above(2), net.minecraft.world.level.block.Blocks.CAULDRON.defaultBlockState());
+            sp.teleportTo(lvl, s0.getX() + 2.5, s0.getY() - 0.4, s0.getZ() + 3.6, 180f, 8f);
+        }, none));
+        SHOTS.add(new Shot("b09_world", true, sp -> sp.teleportTo(sp.serverLevel(), 14.5, 221.0, 9.5, 155f, 12f), none));
     }
 
     private static void book(int chapter, int page) {
@@ -147,6 +165,7 @@ public final class ScreenshotCheck {
                 return;
             }
             Shot shot = SHOTS.get(index);
+            setMode(shot.name().contains("_xp") && !shot.name().contains("guide") ? BulkKind.EXPERIENCE : null);
             ClientConfig.setDark(shot.dark());
             if (mc.screen != null) {
                 mc.setScreen(null);

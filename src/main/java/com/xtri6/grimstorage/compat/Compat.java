@@ -7,6 +7,12 @@ import com.xtri6.grimstorage.block.entity.InterfaceBlockEntity;
 import com.xtri6.grimstorage.storage.BulkKey;
 import com.xtri6.grimstorage.storage.StorageNetwork;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
+
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -20,8 +26,24 @@ import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 public final class Compat {
     private Compat() {}
 
+    /**
+     * A cached connection from an Import/Export Bus to the block it faces, for one optional-mod resource.
+     * Both methods return how much was moved.
+     */
+    public interface BulkLink {
+        long pull(StorageNetwork net, long max, Predicate<BulkKey> ok);
+
+        long push(StorageNetwork net, long max, Iterable<BulkKey> candidates);
+    }
+
     public interface Chemicals {
         void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<InterfaceBlockEntity> type);
+
+        BulkLink link(ServerLevel level, BlockPos pos, Direction side, BooleanSupplier valid, Runnable invalidated);
+
+        /** The chemical inside a chemical tank item, for bus filters. */
+        @Nullable
+        BulkKey chemicalIn(ItemStack stack);
 
         /** Terminal click with a chemical tank on the cursor: empties it into the network, or fills it with {@code key}. */
         ItemStack click(ServerPlayer player, StorageNetwork network, ItemStack carried, @Nullable BulkKey key);
@@ -29,6 +51,8 @@ public final class Compat {
 
     public interface Source {
         void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<InterfaceBlockEntity> type);
+
+        BulkLink link(ServerLevel level, BlockPos pos, Direction side, BooleanSupplier valid, Runnable invalidated);
     }
 
     private static Chemicals chemicals;

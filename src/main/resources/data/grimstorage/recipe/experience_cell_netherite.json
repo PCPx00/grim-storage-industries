@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    "MKM",
+    "RTR",
+    "MMM"
+  ],
+  "key": {
+    "M": {
+      "item": "minecraft:netherite_scrap"
+    },
+    "K": {
+      "item": "minecraft:experience_bottle"
+    },
+    "R": {
+      "tag": "c:dusts/redstone"
+    },
+    "T": {
+      "item": "grimstorage:echo_soulite_alloy"
+    }
+  },
+  "result": {
+    "id": "grimstorage:experience_cell_netherite",
+    "count": 1
+  }
+}

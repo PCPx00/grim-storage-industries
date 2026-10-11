@@ -2,6 +2,8 @@ package com.xtri6.grimstorage.compat;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
@@ -15,7 +17,10 @@ import mekanism.api.MekanismAPI;
 import mekanism.api.chemical.Chemical;
 import mekanism.api.chemical.ChemicalStack;
 import mekanism.api.chemical.IChemicalHandler;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -48,6 +53,85 @@ final class MekanismCompat implements Compat.Chemicals {
     @Override
     public void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<InterfaceBlockEntity> type) {
         event.registerBlockEntity(CHEMICAL_BLOCK, type, (be, side) -> new Handler(be));
+    }
+
+    @Nullable
+    @Override
+    public BulkKey chemicalIn(ItemStack stack) {
+        IChemicalHandler tank = stack.isEmpty() ? null : stack.getCapability(CHEMICAL_ITEM);
+        if (tank == null) {
+            return null;
+        }
+        for (int i = 0; i < tank.getChemicalTanks(); i++) {
+            BulkKey k = key(tank.getChemicalInTank(i));
+            if (k != null) {
+                return k;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Compat.BulkLink link(ServerLevel level, BlockPos pos, Direction side, BooleanSupplier valid, Runnable invalidated) {
+        BlockCapabilityCache<IChemicalHandler, Direction> cache = BlockCapabilityCache.create(CHEMICAL_BLOCK, level, pos, side, valid, invalidated);
+        return new Compat.BulkLink() {
+            @Override
+            public long pull(StorageNetwork net, long max, Predicate<BulkKey> ok) {
+                IChemicalHandler h = cache.getCapability();
+                if (h == null) {
+                    return -1;
+                }
+                long moved = 0;
+                for (int t = 0; t < h.getChemicalTanks() && moved < max; t++) {
+                    ChemicalStack inside = h.getChemicalInTank(t);
+                    BulkKey k = key(inside);
+                    if (k == null || !ok.test(k)) {
+                        continue;
+                    }
+                    ChemicalStack can = h.extractChemical(t, Math.min(max - moved, inside.getAmount()), Action.SIMULATE);
+                    long fits = can.isEmpty() ? 0 : net.insertBulk(k, can.getAmount(), true);
+                    if (fits <= 0) {
+                        continue;
+                    }
+                    ChemicalStack got = h.extractChemical(t, fits, Action.EXECUTE);
+                    if (!got.isEmpty()) {
+                        net.insertBulk(k, got.getAmount(), false);
+                        moved += got.getAmount();
+                    }
+                }
+                return moved;
+            }
+
+            @Override
+            public long push(StorageNetwork net, long max, Iterable<BulkKey> candidates) {
+                IChemicalHandler h = cache.getCapability();
+                if (h == null) {
+                    return -1;
+                }
+                long moved = 0;
+                for (BulkKey k : candidates) {
+                    if (moved >= max) {
+                        break;
+                    }
+                    long have = net.extractBulk(k, max - moved, true);
+                    ChemicalStack offer = stack(k, have);
+                    if (offer.isEmpty()) {
+                        continue;
+                    }
+                    long accepted = have - h.insertChemical(offer, Action.SIMULATE).getAmount();
+                    if (accepted <= 0) {
+                        continue;
+                    }
+                    long got = net.extractBulk(k, accepted, false);
+                    ChemicalStack left = h.insertChemical(stack(k, got), Action.EXECUTE);
+                    if (!left.isEmpty()) {
+                        net.insertBulk(k, left.getAmount(), false);
+                    }
+                    moved += got - left.getAmount();
+                }
+                return moved;
+            }
+        };
     }
 
     @Override

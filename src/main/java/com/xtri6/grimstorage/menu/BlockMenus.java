@@ -2,6 +2,7 @@ package com.xtri6.grimstorage.menu;
 
 import com.xtri6.grimstorage.Registration;
 import com.xtri6.grimstorage.block.entity.AssemblerBlockEntity;
+import com.xtri6.grimstorage.block.entity.BusBlockEntity;
 import com.xtri6.grimstorage.block.entity.DriveBlockEntity;
 import com.xtri6.grimstorage.block.entity.FilterBlockEntity;
 import com.xtri6.grimstorage.block.entity.GhostContainer;
@@ -178,6 +179,94 @@ public final class BlockMenus {
         public void toggleExport(BulkKind kind) {
             if (iface != null) {
                 iface.toggleExport(kind);
+            }
+        }
+    }
+
+    // ------------------------------------------------------------------ import / export bus
+    public static class Bus extends AtBlock {
+        public static final int BLACKLIST = 0;
+        public static final int MATCH_COMPONENTS = 1;
+        /** Buttons 10+ toggle one resource (see {@link BusBlockEntity#ITEMS_BIT}). */
+        public static final int RESOURCE = 10;
+
+        private final ContainerData data;
+        @javax.annotation.Nullable
+        private final BusBlockEntity be;
+
+        public Bus(int id, Inventory inv, GhostContainer filters, ContainerData data, ContainerLevelAccess access, Block block,
+                   @javax.annotation.Nullable BusBlockEntity be) {
+            super(Registration.BUS_MENU.get(), id, access, block);
+            this.data = data;
+            this.be = be;
+            for (int i = 0; i < FilterBlockEntity.SLOTS; i++) {
+                addSlot(new GhostSlot(filters, i, 8 + i * 18, 20, false));
+            }
+            addDataSlots(data);
+            addPlayerInventory(inv, 8, 104);
+        }
+
+        public static Bus server(int id, Inventory inv, BusBlockEntity be) {
+            ContainerData data = new ContainerData() {
+                @Override
+                public int get(int index) {
+                    return switch (index) {
+                        case 0 -> (be.blacklist() ? 1 : 0) | (be.matchComponents() ? 2 : 0) | (be.isExport() ? 4 : 0);
+                        case 1 -> be.resources();
+                        default -> be.status().ordinal();
+                    };
+                }
+
+                @Override
+                public void set(int index, int value) {}
+
+                @Override
+                public int getCount() {
+                    return 3;
+                }
+            };
+            return new Bus(id, inv, be.filters(), data, ContainerLevelAccess.create(be.getLevel(), be.getBlockPos()),
+                    be.getBlockState().getBlock(), be);
+        }
+
+        public static Bus client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
+            return new Bus(id, inv, new GhostContainer(FilterBlockEntity.SLOTS, false, () -> {}), new SimpleContainerData(3),
+                    ContainerLevelAccess.NULL, null, null);
+        }
+
+        public boolean blacklist() {
+            return (data.get(0) & 1) != 0;
+        }
+
+        public boolean matchComponents() {
+            return (data.get(0) & 2) != 0;
+        }
+
+        public boolean isExport() {
+            return (data.get(0) & 4) != 0;
+        }
+
+        public boolean moves(int bit) {
+            return (data.get(1) & (1 << bit)) != 0;
+        }
+
+        public BusBlockEntity.Status status() {
+            BusBlockEntity.Status[] all = BusBlockEntity.Status.values();
+            int i = data.get(2);
+            return i >= 0 && i < all.length ? all[i] : BusBlockEntity.Status.IDLE;
+        }
+
+        /** Server: a button on the screen was pressed. */
+        public void press(int button) {
+            if (be == null) {
+                return;
+            }
+            if (button == BLACKLIST) {
+                be.toggleBlacklist();
+            } else if (button == MATCH_COMPONENTS) {
+                be.toggleMatchComponents();
+            } else if (button >= RESOURCE) {
+                be.toggleResource(button - RESOURCE);
             }
         }
     }

@@ -18,6 +18,8 @@
     "grimstorage:quantum_link",
     "grimstorage:soul_cable",
     "grimstorage:soulite_glass",
-    "grimstorage:soul_infuser"
+    "grimstorage:soul_infuser",
+    "grimstorage:import_bus",
+    "grimstorage:export_bus"
   ]
 }
