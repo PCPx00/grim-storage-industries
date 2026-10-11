@@ -12,6 +12,7 @@ import com.xtri6.grimstorage.block.FacingDeviceBlock;
 import com.xtri6.grimstorage.item.CardData;
 import com.xtri6.grimstorage.item.ProcessingCardItem;
 import com.xtri6.grimstorage.storage.ItemKey;
+import com.xtri6.grimstorage.storage.MachineLink;
 import com.xtri6.grimstorage.storage.StorageNetwork;
 
 import net.minecraft.core.BlockPos;
@@ -29,7 +30,7 @@ import net.neoforged.neoforge.items.ItemStackHandler;
  * Faces a machine (any mod's). Sends Processing Card inputs into it and pulls the card's outputs back out
  * into the network, which works with every machine that exposes an item inventory.
  */
-public class ProcessingInterfaceBlockEntity extends NetworkBlockEntity implements DropsContents {
+public class ProcessingInterfaceBlockEntity extends NetworkBlockEntity implements DropsContents, MachineLink {
     public static final int SLOTS = 9;
     private final ItemStackHandler cards = handler(SLOTS, 1, true, s -> s.getItem() instanceof ProcessingCardItem);
 
@@ -41,6 +42,12 @@ public class ProcessingInterfaceBlockEntity extends NetworkBlockEntity implement
         return cards;
     }
 
+    @Override
+    public boolean linkRemoved() {
+        return isRemoved();
+    }
+
+    @Override
     public List<ItemStack> cards() {
         List<ItemStack> out = new ArrayList<>();
         for (int i = 0; i < SLOTS; i++) {
@@ -58,6 +65,7 @@ public class ProcessingInterfaceBlockEntity extends NetworkBlockEntity implement
 
     /** The machine's inventory as seen from the side this interface touches. */
     @Nullable
+    @Override
     public IItemHandler machineInput() {
         if (level == null) {
             return null;
@@ -81,6 +89,7 @@ public class ProcessingInterfaceBlockEntity extends NetworkBlockEntity implement
     }
 
     /** Moves any of this interface's card outputs that the machine has finished into the network. */
+    @Override
     public void pullOutputs(StorageNetwork network) {
         IItemHandler machine = machineAll();
         if (machine == null) {

@@ -125,6 +125,81 @@ public final class BlockMenus {
         }
     }
 
+    // ------------------------------------------------------------------ machine bus
+    public static class MachineBus extends AtBlock {
+        public static final int LEARN = 0;
+        public static final int FUEL = 1;
+        public final BlockPos pos;
+        private final ContainerData data;
+        @javax.annotation.Nullable
+        private final com.xtri6.grimstorage.block.entity.MachineBusBlockEntity be;
+
+        public MachineBus(int id, Inventory inv, IItemHandler cards, ContainerData data, BlockPos pos, ContainerLevelAccess access, Block block,
+                          @javax.annotation.Nullable com.xtri6.grimstorage.block.entity.MachineBusBlockEntity be) {
+            super(Registration.MACHINE_BUS_MENU.get(), id, access, block);
+            this.pos = pos;
+            this.data = data;
+            this.be = be;
+            for (int i = 0; i < com.xtri6.grimstorage.block.entity.MachineBusBlockEntity.SLOTS; i++) {
+                addSlot(new SlotItemHandler(cards, i, 8 + (i % 3) * 18, 22 + (i / 3) * 18));
+            }
+            addDataSlots(data);
+            addPlayerInventory(inv, 8, 98);
+        }
+
+        public static MachineBus server(int id, Inventory inv, com.xtri6.grimstorage.block.entity.MachineBusBlockEntity be) {
+            ContainerData data = new ContainerData() {
+                @Override
+                public int get(int index) {
+                    return switch (index) {
+                        case 0 -> (be.learns() ? 1 : 0) | (be.fuels() ? 2 : 0);
+                        default -> be.recipeCount();
+                    };
+                }
+
+                @Override
+                public void set(int index, int value) {}
+
+                @Override
+                public int getCount() {
+                    return 2;
+                }
+            };
+            return new MachineBus(id, inv, be.cardHandler(), data, be.getBlockPos(), ContainerLevelAccess.create(be.getLevel(), be.getBlockPos()),
+                    be.getBlockState().getBlock(), be);
+        }
+
+        public static MachineBus client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
+            return new MachineBus(id, inv, dummy(9, s -> s.getItem() instanceof ProcessingCardItem), new SimpleContainerData(2), buf.readBlockPos(),
+                    ContainerLevelAccess.NULL, null, null);
+        }
+
+        public boolean learns() {
+            return (data.get(0) & 1) != 0;
+        }
+
+        public boolean fuels() {
+            return (data.get(0) & 2) != 0;
+        }
+
+        public int recipes() {
+            return data.get(1);
+        }
+
+        @Override
+        public boolean clickMenuButton(Player player, int id) {
+            if (be == null) {
+                return false;
+            }
+            if (id == LEARN) {
+                be.toggleLearn();
+            } else if (id == FUEL) {
+                be.toggleFuel();
+            }
+            return true;
+        }
+    }
+
     // ------------------------------------------------------------------ filters (void filter, network interface)
     public static class Filter extends AtBlock {
         /** Which block this is, so the screen can show the right hint (void filter or interface). */

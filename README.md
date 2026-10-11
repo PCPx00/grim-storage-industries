@@ -28,10 +28,11 @@ Lost it? Craft one from a book and a Soulite Ingot.
 |---|---|
 | Network Controller | The heart of a network. Exactly one per network. Open it to see storage use and crafting jobs (and cancel them). |
 | Soul Drive | Holds 8 storage cells. Cells keep their contents when moved. |
-| Soul Terminal | An Everything tab shows items and every other resource in one list. Browse, search (`@mod` searches by mod), filter with the side tabs (ores, ingots, tools, armor, food, mob drops, farming, building, misc), take, store, order crafts, and craft by hand in the built-in 3x3 grid that refills itself from storage. |
+| Soul Terminal | An Everything tab shows items and every other resource in one list. Browse, search (`@mod` searches by mod), filter with the side tabs (ores, ingots, tools, armor, food, mob drops, farming, building, misc, and Craftable for everything the network can make), take, store, order crafts, and craft by hand in the built-in 3x3 grid that refills itself from storage. Hold Shift and nothing moves, so you can shift-click the same spot again and again. |
 | Soul Cable / Soulite Glass | Connect network blocks. Cable is 4 px thick and each of its sides can hold an Import or Export Bus. One cable carries everything (items, fluids, energy, XP, chemicals, Source) to every bus, interface and machine on the network. The glass is decorative and see-through. |
 | Soul Assembler | Holds 9 Recipe Cards and runs them. Up to 4 Speed Upgrades, each doubling its speed. |
 | Processing Interface | Faces any machine (any mod). Sends Processing Card inputs in and pulls the outputs back. |
+| Machine Bus | Clips onto a machine like a bus. On a furnace, blast furnace or smoker (or a modded furnace built on them) it learns every recipe with no cards, keeps the furnace fuelled from the network and only takes from the output slot. Several on several furnaces share big jobs. Holds 9 Processing Cards for any other machine. |
 | Stock Keeper | "Always keep N of this": up to 9 items it keeps crafted. |
 | Import Bus | Sticks onto the face of any block (chest, tank, furnace, generator, any modded machine) and pulls items, fluids, energy, XP, chemicals and Source from it into the network. Facing open air it picks up dropped items and XP orbs. 9-slot filter (whitelist/blacklist, exact or ignore-NBT) and an on/off switch per resource. |
 | Export Bus | The reverse: pushes from the network into the block it is on. Sends only the items you pick by default; switch on fluids, energy, XP, chemicals or Source to send those too. |
@@ -70,7 +71,7 @@ corner to switch to light mode; panel opacity is in the mod's Config screen (mod
 Put Recipe Cards in a Soul Assembler on the network. Craftable items show in the terminal with a "Craft" label.
 Click one (or ctrl-click / middle-click any craftable item), type an amount, and the network works out the
 whole tree: it uses what is stored, crafts what is missing (including sub-recipes), and tells you exactly
-what it is missing if it cannot. Machine steps use Processing Cards in a Processing Interface.
+what it is missing if it cannot. Machine steps use Processing Cards in a Processing Interface or Machine Bus, and a Machine Bus on a furnace learns its recipes by itself. When an item can be made more than one way, the network picks a way it has the ingredients for.
 
 ## Progression
 
@@ -78,7 +79,7 @@ what it is missing if it cannot. Machine steps use Processing Cards in a Process
 |---|---|---|
 | 1 | Soulite Ingot | Controller, Drive, Terminal, Cable, Glass, Interface, Import Bus, Export Bus, Copper Cell, Soul Infuser |
 | 2 | Soulite + Gold | Gold Cell, Recipe Cards, Soul Assembler, Void Filter |
-| 3 | Infused Soulite | Diamond Cell, Speed Upgrade, Stock Keeper, Wireless Terminal, Processing Card |
+| 3 | Infused Soulite | Diamond Cell, Speed Upgrade, Stock Keeper, Wireless Terminal, Processing Card, Machine Bus |
 | 4 | Echo Soulite Alloy | Netherite Cell, Processing Interface, Quantum Link, Soul Tether |
 | 5 | Singularity Core | Singularity Cell, Singularity Terminal |
 

@@ -1,0 +1,30 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "redstone",
+  "pattern": [
+    " P ",
+    "IXE",
+    " S "
+  ],
+  "key": {
+    "P": {
+      "item": "grimstorage:processing_card"
+    },
+    "I": {
+      "item": "grimstorage:import_bus"
+    },
+    "E": {
+      "item": "grimstorage:export_bus"
+    },
+    "X": {
+      "item": "grimstorage:infused_soulite"
+    },
+    "S": {
+      "tag": "c:ingots/soulite"
+    }
+  },
+  "result": {
+    "id": "grimstorage:machine_bus",
+    "count": 1
+  }
+}

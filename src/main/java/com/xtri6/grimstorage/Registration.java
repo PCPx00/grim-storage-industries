@@ -172,6 +172,9 @@ public final class Registration {
             () -> new BusBlock(machine().noOcclusion(), Registration.IMPORT_BUS_ENTITY, Menus::openBus));
     public static final DeferredBlock<NetworkDeviceBlock> EXPORT_BUS = BLOCKS.register("export_bus",
             () -> new BusBlock(machine().noOcclusion(), Registration.EXPORT_BUS_ENTITY, Menus::openBus));
+    /** Clips onto any machine so the network can craft with it (learns furnace recipes by itself). */
+    public static final DeferredBlock<NetworkDeviceBlock> MACHINE_BUS = device("machine_bus",
+            () -> new BusBlock(machine().noOcclusion(), Registration.MACHINE_BUS_ENTITY, Menus::openMachineBus));
     /** Bus items also go straight onto Soul Cable. */
     public static final DeferredItem<com.xtri6.grimstorage.item.BusItem> IMPORT_BUS_ITEM = ITEMS.register("import_bus",
             () -> new com.xtri6.grimstorage.item.BusItem(IMPORT_BUS.get(), false, new Item.Properties()));
@@ -211,6 +214,8 @@ public final class Registration {
             be("import_bus", BusBlockEntity::new, IMPORT_BUS);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BusBlockEntity>> EXPORT_BUS_ENTITY =
             be("export_bus", BusBlockEntity::new, EXPORT_BUS);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.MachineBusBlockEntity>> MACHINE_BUS_ENTITY =
+            be("machine_bus", com.xtri6.grimstorage.block.entity.MachineBusBlockEntity::new, MACHINE_BUS);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.CableBusBlockEntity>> CABLE_BUS_ENTITY =
             be("cable_bus", com.xtri6.grimstorage.block.entity.CableBusBlockEntity::new, CABLE);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<QuantumLinkBlockEntity>> QUANTUM_LINK_ENTITY =
@@ -295,6 +300,8 @@ public final class Registration {
             () -> IMenuTypeExtension.create(BlockMenus.Assembler::client));
     public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Processing>> PROCESSING_MENU = MENUS.register("processing_interface",
             () -> IMenuTypeExtension.create(BlockMenus.Processing::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.MachineBus>> MACHINE_BUS_MENU = MENUS.register("machine_bus",
+            () -> IMenuTypeExtension.create(BlockMenus.MachineBus::client));
     public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Filter>> FILTER_MENU = MENUS.register("filter",
             () -> IMenuTypeExtension.create(BlockMenus.Filter::client));
     public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Bus>> BUS_MENU = MENUS.register("bus",
@@ -328,7 +335,7 @@ public final class Registration {
                                 RAW_SOULITE_BLOCK, SOULITE_BLOCK,
                                 RAW_SOULITE, SOULITE_DUST, SOULITE_NUGGET, SOULITE_INGOT,
                                 INFUSED_SOULITE, ECHO_SOULITE_SHARD, ECHO_SOULITE_ALLOY, SINGULARITY_CORE,
-                                SOUL_INFUSER, CONTROLLER, DRIVE, TERMINAL, CABLE, SOUL_GLASS, INTERFACE, IMPORT_BUS, EXPORT_BUS,
+                                SOUL_INFUSER, CONTROLLER, DRIVE, TERMINAL, CABLE, SOUL_GLASS, INTERFACE, IMPORT_BUS, EXPORT_BUS, MACHINE_BUS,
                                 ASSEMBLER, STOCK_KEEPER, VOID_FILTER, PROCESSING_INTERFACE, QUANTUM_LINK));
                         for (CellTier t : CellTier.values()) {
                             order.add(CELLS.get(t));

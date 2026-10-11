@@ -59,11 +59,31 @@ public final class ScreenshotCheck {
     public static void register(IEventBus modBus) {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> onTick());
         Runnable none = () -> {};
-        SHOTS.add(new Shot("g01_loading", true, ScreenshotCheck::sideLinkScene, none));
-        SHOTS.add(new Shot("g02_side_links", true, sp -> {}, none));
-        SHOTS.add(new Shot("g03_side_links_top", true, sp -> {
-            BlockPos o = BASE.offset(40, 14, 40);
-            sp.teleportTo(sp.serverLevel(), o.getX() + 0.5, o.getY() + 3.2, o.getZ() + 0.5, 0f, 89f);
+        BlockPos mb = new BlockPos(24, 230, 0);
+        SHOTS.add(new Shot("m01_loading", true, sp -> {
+            sp.serverLevel().setDayTime(6000);
+            sp.serverLevel().setBlockAndUpdate(mb.above(), com.xtri6.grimstorage.Registration.TERMINAL.get().defaultBlockState());
+            StorageNetwork n = NetworkManager.get(sp.serverLevel(), mb);
+            if (n != null) {
+                for (Item i : new Item[] {Items.RAW_IRON, Items.RAW_GOLD, Items.COAL, Items.SAND, Items.COBBLESTONE, Items.OAK_LOG, Items.BEEF}) {
+                    n.insert(ItemKey.of(new ItemStack(i)), 32, false);
+                }
+            }
+            sp.teleportTo(sp.serverLevel(), mb.getX() + 4.5, mb.getY() + 2.6, mb.getZ() + 4.5, 135f, 28f);
+        }, none));
+        SHOTS.add(new Shot("m02_machine_bus_scene", true, sp -> {}, none));
+        SHOTS.add(new Shot("m03_machine_bus_screen", true, sp -> Menus.openMachineBus(sp, mb.east()), none));
+        SHOTS.add(new Shot("m04_machine_bus_screen_light", false, sp -> Menus.openMachineBus(sp, mb.east()), none));
+        SHOTS.add(new Shot("m07_guide_machine_bus", true, sp -> {}, () -> book(7, 2)));
+        SHOTS.add(new Shot("m08_guide_machine_bus_tricks", true, sp -> {}, () -> book(7, 3)));
+        SHOTS.add(new Shot("m09_guide_shift", true, sp -> {}, () -> book(3, 1)));
+        SHOTS.add(new Shot("m05_all_tab", true, sp -> {
+            setStatic(TerminalScreen.class, "lastCategory", com.xtri6.grimstorage.client.ItemCategories.Category.ALL);
+            Menus.openTerminal(sp, mb.above());
+        }, none));
+        SHOTS.add(new Shot("m06_craftable_tab", true, sp -> {
+            setStatic(TerminalScreen.class, "lastCategory", com.xtri6.grimstorage.client.ItemCategories.Category.CRAFTABLE);
+            Menus.openTerminal(sp, mb.above());
         }, none));
     }
 

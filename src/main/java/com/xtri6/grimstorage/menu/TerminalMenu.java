@@ -61,7 +61,8 @@ public class TerminalMenu extends GrimMenu {
     public static final int INSERT_ONE = 4;
     public static final int EXTRACT_ONE = 5;
 
-    public record Entry(ItemKey key, long count, boolean craftable) {}
+    /** {@code learned}: craftable only through recipes a Machine Bus learned (listed in the Craftable tab, not everywhere). */
+    public record Entry(ItemKey key, long count, boolean craftable, boolean learned) {}
 
     /** A stored fluid / chemical / energy / Source amount, for the terminal's resource tabs. */
     public record BulkEntry(BulkKey key, long amount) {}
@@ -265,11 +266,13 @@ public class TerminalMenu extends GrimMenu {
             return out;
         }
         Set<ItemKey> craftable = new HashSet<>(net.craftables());
+        Set<ItemKey> explicit = net.explicitCraftables();
         for (Map.Entry<ItemKey, Long> e : net.contents().entrySet()) {
-            out.add(new Entry(e.getKey(), e.getValue(), craftable.remove(e.getKey())));
+            boolean c = craftable.remove(e.getKey());
+            out.add(new Entry(e.getKey(), e.getValue(), c, c && !explicit.contains(e.getKey())));
         }
         for (ItemKey k : craftable) {
-            out.add(new Entry(k, 0, true));
+            out.add(new Entry(k, 0, true, !explicit.contains(k)));
         }
         return out;
     }
