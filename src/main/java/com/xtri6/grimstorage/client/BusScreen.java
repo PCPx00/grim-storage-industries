@@ -20,6 +20,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 /** Import / Export Bus: 9 filter slots, whitelist or blacklist, exact match, and a switch per resource. */
 public class BusScreen extends GrimScreen<BlockMenus.Bus> {
+    private GrimButton direction;
     private GrimButton mode;
     private GrimButton match;
     private final List<Toggle> toggles = new ArrayList<>();
@@ -41,6 +42,8 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
         mode = addRenderableWidget(new GrimButton(leftPos + 8, topPos + 42, 78, 14, Component.empty(), b -> send(BlockMenus.Bus.BLACKLIST)));
         match = addRenderableWidget(new GrimButton(leftPos + 90, topPos + 42, 78, 14, Component.empty(), b -> send(BlockMenus.Bus.MATCH_COMPONENTS)));
         match.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.bus.match.tooltip")));
+        direction = addRenderableWidget(new GrimButton(leftPos + 8, topPos + 57, 160, 12, Component.empty(), b -> send(BlockMenus.Bus.DIRECTION)));
+        direction.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.bus.direction.tooltip")));
         int x = leftPos + 8;
         addToggle(x, BusBlockEntity.ITEMS_BIT, new ItemStack(Items.CHEST), Component.translatable("gui.grimstorage.kind.items"));
         x += 22;
@@ -79,6 +82,7 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
     }
 
     private void refreshLabels() {
+        direction.setMessage(Component.translatable(menu.isExport() ? "gui.grimstorage.bus.direction.export" : "gui.grimstorage.bus.direction.import"));
         mode.setMessage(Component.translatable(menu.blacklist() ? "gui.grimstorage.bus.blacklist" : "gui.grimstorage.bus.whitelist"));
         mode.setTooltip(Tooltip.create(Component.translatable(menu.blacklist() ? "gui.grimstorage.bus.blacklist.tooltip"
                 : "gui.grimstorage.bus.whitelist.tooltip")));
@@ -99,7 +103,7 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
         int color = switch (s) {
             case WORKING -> t.ok();
             case IDLE -> t.textDim();
-            case FULL -> t.warn();
+            case FULL, NO_FILTER -> t.warn();
             default -> t.danger();
         };
         Component text = Component.translatable("gui.grimstorage.bus.status." + s.name().toLowerCase(java.util.Locale.ROOT));
@@ -107,7 +111,6 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
         int x = imageWidth - 22 - w;
         g.fill(x - 7, 9, x - 3, 13, color);
         g.drawString(font, text, x, 7, color, false);
-        hint(g, Component.translatable(menu.isExport() ? "gui.grimstorage.bus.moves.export" : "gui.grimstorage.bus.moves.import"), 8, 60);
     }
 
     @Override

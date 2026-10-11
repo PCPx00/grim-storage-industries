@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.1
+- Every bus screen has a direction button: switch a placed bus between Import (takes things out of the block into the
+  network) and Export (sends things from the network into the block) without swapping the item. Free-standing buses
+  keep their facing, and cable buses stay on their cable side.
+- An Export Bus with nothing picked to send now says "Pick items" instead of "Idle".
+- Bus tooltips say which way each one moves things, and placing an Export Bus shows a reminder of what it does.
+- Guide: the Buses page now leads with what each bus does (Import is cyan, Export is orange) and how to switch.
+
 ## 1.7.0
 - Buses now go on Soul Cable. Run cable up to a chest or machine, then use an Import or Export Bus on that block
   (or on the end of the cable): the bus clips onto the cable facing it, and items, fluids, energy, XP, chemicals and Source

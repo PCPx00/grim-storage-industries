@@ -61,6 +61,27 @@ public class BusBlockEntity extends NetworkBlockEntity implements Ticking, PipeP
         return isRemoved();
     }
 
+    /** Swaps this block for the other kind of bus, facing the same way, with the same settings. */
+    @Override
+    public void switchDirection(net.minecraft.server.level.ServerPlayer player) {
+        if (level == null || level.isClientSide) {
+            return;
+        }
+        logic.flipDirection();
+        CompoundTag tag = new CompoundTag();
+        logic.save(tag, level.registryAccess());
+        BlockPos pos = worldPosition;
+        Level lvl = level;
+        BlockState next = (logic.isExport() ? Registration.EXPORT_BUS.get() : Registration.IMPORT_BUS.get()).defaultBlockState()
+                .setValue(BusBlock.FACING, facing());
+        lvl.setBlock(pos, next, net.minecraft.world.level.block.Block.UPDATE_ALL);
+        if (lvl.getBlockEntity(pos) instanceof BusBlockEntity fresh) {
+            fresh.logic.load(tag, lvl.registryAccess());
+            fresh.setChanged();
+        }
+        com.xtri6.grimstorage.menu.Menus.openBus(player, pos);
+    }
+
     @Override
     public void serverTick() {
         logic.serverTick();
