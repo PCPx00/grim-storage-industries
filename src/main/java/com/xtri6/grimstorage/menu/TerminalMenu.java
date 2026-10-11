@@ -90,6 +90,10 @@ public class TerminalMenu extends GrimMenu {
     public List<BulkEntry> clientBulk = List.of();
     /** used, capacity for each {@link BulkKind}, in order. */
     public long[] clientBulkStats = new long[BulkKind.values().length * 2];
+    /** Client copy of the running crafting jobs, filled by {@link Payloads.TerminalJobs}. */
+    public List<Payloads.JobView> clientJobs = List.of();
+    private int sinceJobs;
+    private boolean sentJobs;
 
     private final TransientCraftingContainer craftGrid = new TransientCraftingContainer(this, 3, 3);
     private final ResultContainer craftResult = new ResultContainer();
@@ -224,6 +228,30 @@ public class TerminalMenu extends GrimMenu {
         return network == null ? null : network.get();
     }
 
+    /** The network this terminal shows (server side only). */
+    @Nullable
+    public StorageNetwork network() {
+        return net();
+    }
+
+    /**
+     * Moves the player inventory to a new height (client side; the screen can be made taller). Slot positions are
+     * final, so the slots are swapped for copies at the new spot. The server never looks at slot positions.
+     */
+    public void movePlayerInventory(int y) {
+        for (int i = playerStart; i < playerEnd; i++) {
+            Slot old = slots.get(i);
+            int row = (i - playerStart) / 9;
+            int ny = row < 3 ? y + row * 18 : y + 58;
+            if (old.y == ny) {
+                continue;
+            }
+            Slot moved = new Slot(old.container, old.getContainerSlot(), old.x, ny);
+            moved.index = old.index;
+            slots.set(i, moved);
+        }
+    }
+
     @Override
     public boolean stillValid(Player p) {
         return valid.test(p);
@@ -258,6 +286,50 @@ public class TerminalMenu extends GrimMenu {
             PacketDistributor.sendToPlayer(sp, new Payloads.TerminalContents(containerId, net != null, stats[0], stats[1], snapshot(net),
                     bulk, bulkStats));
         }
+        // running jobs, twice a second while there are any (and once more when the last one ends)
+        if (++sinceJobs >= 10) {
+            sinceJobs = 0;
+            List<Payloads.JobView> jobs = jobViews(net);
+            if (!jobs.isEmpty() || sentJobs) {
+                sentJobs = !jobs.isEmpty();
+                PacketDistributor.sendToPlayer(sp, new Payloads.TerminalJobs(containerId, jobs));
+            }
+        }
+    }
+
+    public static List<Payloads.JobView> jobViews(@Nullable StorageNetwork net) {
+        List<Payloads.JobView> out = new ArrayList<>();
+        if (net == null) {
+            return out;
+        }
+        for (com.xtri6.grimstorage.storage.CraftingJob job : net.jobs()) {
+            List<Payloads.StepView> steps = new ArrayList<>();
+            for (com.xtri6.grimstorage.storage.CraftingJob.StepState st : job.steps()) {
+                com.xtri6.grimstorage.storage.Pattern p = st.pattern();
+                boolean processing = p.kind() == com.xtri6.grimstorage.storage.Pattern.Kind.PROCESSING;
+                Component machine;
+                if (!processing) {
+                    machine = Registration.ASSEMBLER.get().getName();
+                } else {
+                    Component name = null;
+                    int count = 0;
+                    for (com.xtri6.grimstorage.storage.MachineLink link : p.machines()) {
+                        if (!link.linkRemoved()) {
+                            count++;
+                            if (name == null) {
+                                name = link.machineName();
+                            }
+                        }
+                    }
+                    machine = name == null ? Component.translatable("gui.grimstorage.jobs.machine") : count > 1
+                            ? name.copy().append(" x" + count) : name;
+                }
+                steps.add(new Payloads.StepView(p.primary().toStack(1), processing, st.total(), st.finished(), st.inMachines(), machine));
+            }
+            out.add(new Payloads.JobView(new Payloads.JobInfo(job.id(), job.target().toStack(1), job.amount(), job.status(), job.progress(),
+                    job.source()), steps));
+        }
+        return out;
     }
 
     private static List<Entry> snapshot(@Nullable StorageNetwork net) {

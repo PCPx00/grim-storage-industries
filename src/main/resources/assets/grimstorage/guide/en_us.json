@@ -179,6 +179,24 @@
           ]
         },
         {
+          "title": "Crafting jobs",
+          "text": [
+            "The **last tab along the top** shows everything the network is crafting right now.",
+            "Each job shows how far along it is and what it is waiting for. Under it, every step: which machine makes it, how many are done and how many are **in machines** right now.",
+            "Click the **x** on a job to cancel it. Anything already made stays in storage."
+          ]
+        },
+        {
+          "title": "Terminal settings",
+          "text": [
+            "Click the **gear** at the top of the terminal:",
+            "- **Sync search with JEI:** the terminal and JEI share one search.",
+            "- **Type to search on open:** start typing as soon as it opens.",
+            "- **Keep search when closed:** your search is still there next time.",
+            "- **Size:** Auto fits your screen. Normal, Tall and Taller show 6, 9 or 12 rows."
+          ]
+        },
+        {
           "title": "Resource tabs",
           "text": [
             "The tabs **along the top** switch what the terminal shows.",

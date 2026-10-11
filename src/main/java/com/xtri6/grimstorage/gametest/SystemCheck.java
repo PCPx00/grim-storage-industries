@@ -1283,6 +1283,32 @@ public final class SystemCheck {
             info("lit={} coal left in network={}", lit, coal);
             return lit && coal < 4;
         }));
+        STEPS.add(new Step("terminal crafting tab sees the job, its furnace step and both furnaces", 0, () -> {
+            List<com.xtri6.grimstorage.net.Payloads.JobView> views = TerminalMenu.jobViews(mbNet());
+            if (views.size() != 1) {
+                info("job views={}", views.size());
+                return false;
+            }
+            com.xtri6.grimstorage.net.Payloads.JobView v = views.get(0);
+            com.xtri6.grimstorage.net.Payloads.StepView st = v.steps().get(0);
+            info("job {}x {} status={} progress={} step machine={} total={} finished={} inMachines={}", v.info().amount(),
+                    v.info().icon().getItem(), v.info().status().getString(), v.info().progress(), st.machine().getString(), st.total(),
+                    st.finished(), st.inMachines());
+            return v.info().icon().is(Items.IRON_INGOT) && v.steps().size() == 1 && st.processing() && st.total() == 4
+                    && st.inMachines() == 4 && st.machine().getString().equals("Furnace x2") && v.info().progress() > 0.4f;
+        }));
+        STEPS.add(new Step("terminal can move its inventory rows (taller sizes) without breaking slots", 0, () -> {
+            FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+            TerminalMenu menu = new TerminalMenu(994, fp.getInventory(), null, p -> true);
+            int first = 0;
+            net.minecraft.world.inventory.Slot before = menu.getSlot(first);
+            menu.movePlayerInventory(140 + 6 * 18);
+            net.minecraft.world.inventory.Slot after = menu.getSlot(first);
+            net.minecraft.world.inventory.Slot hotbar = menu.getSlot(27);
+            info("slot0 y {} -> {} index {} hotbar y={}", before.y, after.y, after.index, hotbar.y);
+            return after.y == before.y + 108 && after.index == before.index && after.getContainerSlot() == before.getContainerSlot()
+                    && hotbar.y == 140 + 108 + 58 && menu.getSlot(menu.gridStart).y == TerminalMenu.GRID_Y;
+        }));
         STEPS.add(new Step("iron ingots came back from the result slots only", 900, () -> {
             StorageNetwork n = mbNet();
             long iron = n.count(key(Items.IRON_INGOT)), raw = n.count(key(Items.RAW_IRON));

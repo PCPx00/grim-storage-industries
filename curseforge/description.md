@@ -11,7 +11,7 @@
 - **Full autocrafting:** whole crafting trees, sub-recipes, machine steps from any mod, and a clear list of anything missing.
 - **Machine Bus:** clip it onto a furnace and the network learns every recipe it can cook, keeps it fuelled, and shares big jobs across all your furnaces. No cards needed.
 - **Import and Export Buses** that clip onto cable, with filters, and pipes from any mod can plug into them.
-- **A terminal you'll actually like:** an Everything tab that shows every item and resource in one list, search, `@mod` search, category tabs, a Craftable tab, Shift to keep everything in place while you take, a built-in crafting grid that refills itself, and dark mode by default.
+- **A terminal you'll actually like:** an Everything tab that shows every item and resource in one list, search, `@mod` search, category tabs, a Craftable tab, a Crafting jobs tab that shows every step as it runs, Shift to keep everything in place while you take, search shared with JEI, a size that fits your screen (or Tall and Taller), a built-in crafting grid that refills itself, and dark mode by default.
 - **Soul Wrench:** cut or rejoin cable connections, take buses off cable, turn machines, and pick up your blocks.
 - **Wireless access** within 128 blocks, or anywhere in any dimension with the Singularity Terminal.
 - **Its own ore, Soulite,** and a five-tier progression up to the Singularity Core.

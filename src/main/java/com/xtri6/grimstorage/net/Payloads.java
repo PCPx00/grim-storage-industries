@@ -44,6 +44,7 @@ public final class Payloads {
         PayloadRegistrar r = event.registrar("1");
         r.playToClient(TerminalContents.TYPE, TerminalContents.CODEC, Payloads::onTerminalContents);
         r.playToClient(ControllerStatus.TYPE, ControllerStatus.CODEC, Payloads::onControllerStatus);
+        r.playToClient(TerminalJobs.TYPE, TerminalJobs.CODEC, Payloads::onTerminalJobs);
         r.playToServer(TerminalClick.TYPE, TerminalClick.CODEC, Payloads::onTerminalClick);
         r.playToServer(TerminalCraft.TYPE, TerminalCraft.CODEC, Payloads::onTerminalCraft);
         r.playToServer(CancelJob.TYPE, CancelJob.CODEC, Payloads::onCancelJob);
@@ -105,6 +106,31 @@ public final class Payloads {
                 UUIDUtil.STREAM_CODEC, JobInfo::id, ItemStack.STREAM_CODEC, JobInfo::icon, ByteBufCodecs.VAR_LONG, JobInfo::amount,
                 ComponentSerialization.STREAM_CODEC, JobInfo::status, ByteBufCodecs.FLOAT, JobInfo::progress,
                 ByteBufCodecs.STRING_UTF8, JobInfo::source, JobInfo::new);
+    }
+
+    /** One step of a running job, for the terminal's crafting tab. */
+    public record StepView(ItemStack output, boolean processing, long total, long finished, long inMachines, Component machine) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, StepView> CODEC = StreamCodec.composite(
+                ItemStack.STREAM_CODEC, StepView::output, ByteBufCodecs.BOOL, StepView::processing, ByteBufCodecs.VAR_LONG, StepView::total,
+                ByteBufCodecs.VAR_LONG, StepView::finished, ByteBufCodecs.VAR_LONG, StepView::inMachines,
+                ComponentSerialization.STREAM_CODEC, StepView::machine, StepView::new);
+    }
+
+    /** A running job with every step, for the terminal's crafting tab. */
+    public record JobView(JobInfo info, List<StepView> steps) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, JobView> CODEC = StreamCodec.composite(
+                JobInfo.CODEC, JobView::info, StepView.CODEC.apply(ByteBufCodecs.list()), JobView::steps, JobView::new);
+    }
+
+    public record TerminalJobs(int containerId, List<JobView> jobs) implements CustomPacketPayload {
+        public static final Type<TerminalJobs> TYPE = id("terminal_jobs");
+        public static final StreamCodec<RegistryFriendlyByteBuf, TerminalJobs> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, TerminalJobs::containerId, JobView.CODEC.apply(ByteBufCodecs.list()), TerminalJobs::jobs, TerminalJobs::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
     }
 
     public record ControllerStatus(int containerId, boolean active, Component problem, long used, long capacity, long singular, int types,
@@ -171,6 +197,12 @@ public final class Payloads {
                 m.clientBulkStats = p.bulkStats();
             }
             m.clientRevision++;
+        }
+    }
+
+    private static void onTerminalJobs(TerminalJobs p, IPayloadContext ctx) {
+        if (ctx.player().containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
+            m.clientJobs = p.jobs();
         }
     }
 
@@ -345,11 +377,14 @@ public final class Payloads {
     }
 
     private static void onCancelJob(CancelJob p, IPayloadContext ctx) {
+        StorageNetwork net = null;
         if (ctx.player().containerMenu instanceof ControllerMenu m && m.containerId == p.containerId()) {
-            StorageNetwork net = m.network();
-            if (net != null) {
-                net.cancel(p.job());
-            }
+            net = m.network();
+        } else if (ctx.player().containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
+            net = m.network();
+        }
+        if (net != null) {
+            net.cancel(p.job());
         }
     }
 

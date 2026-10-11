@@ -71,20 +71,53 @@ public final class ScreenshotCheck {
             }
             sp.teleportTo(sp.serverLevel(), mb.getX() + 4.5, mb.getY() + 2.6, mb.getZ() + 4.5, 135f, 28f);
         }, none));
-        SHOTS.add(new Shot("m02_machine_bus_scene", true, sp -> {}, none));
-        SHOTS.add(new Shot("m03_machine_bus_screen", true, sp -> Menus.openMachineBus(sp, mb.east()), none));
-        SHOTS.add(new Shot("m04_machine_bus_screen_light", false, sp -> Menus.openMachineBus(sp, mb.east()), none));
-        SHOTS.add(new Shot("m07_guide_machine_bus", true, sp -> {}, () -> book(7, 2)));
-        SHOTS.add(new Shot("m08_guide_machine_bus_tricks", true, sp -> {}, () -> book(7, 3)));
-        SHOTS.add(new Shot("m09_guide_shift", true, sp -> {}, () -> book(3, 1)));
-        SHOTS.add(new Shot("m05_all_tab", true, sp -> {
-            setStatic(TerminalScreen.class, "lastCategory", com.xtri6.grimstorage.client.ItemCategories.Category.ALL);
+        SHOTS.add(new Shot("n01_jobs_tab", true, sp -> {
+            StorageNetwork n = NetworkManager.get(sp.serverLevel(), mb);
+            if (n != null) {
+                n.insert(ItemKey.of(new ItemStack(Items.RAW_IRON)), 64, false);
+                n.insert(ItemKey.of(new ItemStack(Items.COAL)), 16, false);
+                n.insert(ItemKey.of(new ItemStack(Items.BIRCH_LOG)), 8, false);
+                n.request(ItemKey.of(new ItemStack(Items.IRON_INGOT)), 48, sp.getName().getString());
+                n.request(ItemKey.of(new ItemStack(Items.CHARCOAL)), 8, sp.getName().getString());
+            }
+            setStatic(TerminalScreen.class, "lastJobs", true);
             Menus.openTerminal(sp, mb.above());
         }, none));
-        SHOTS.add(new Shot("m06_craftable_tab", true, sp -> {
-            setStatic(TerminalScreen.class, "lastCategory", com.xtri6.grimstorage.client.ItemCategories.Category.CRAFTABLE);
+        SHOTS.add(new Shot("n02_jobs_tab_light", false, sp -> Menus.openTerminal(sp, mb.above()), none));
+        SHOTS.add(new Shot("n03_settings", true, sp -> {
+            setStatic(TerminalScreen.class, "lastJobs", false);
             Menus.openTerminal(sp, mb.above());
-        }, none));
+        }, ScreenshotCheck::openSettings));
+        SHOTS.add(new Shot("n04_taller", true, sp -> {
+            ClientConfig.setTerminalSize(ClientConfig.TerminalSize.TALLER);
+            Menus.openTerminal(sp, mb.above());
+        }, () -> guiScale(2)));
+        SHOTS.add(new Shot("n05_tall_jobs", true, sp -> {
+            ClientConfig.setTerminalSize(ClientConfig.TerminalSize.TALL);
+            setStatic(TerminalScreen.class, "lastJobs", true);
+            Menus.openTerminal(sp, mb.above());
+        }, () -> {}));
+        SHOTS.add(new Shot("n06_auto_scale2", true, sp -> {
+            ClientConfig.setTerminalSize(ClientConfig.TerminalSize.AUTO);
+            setStatic(TerminalScreen.class, "lastJobs", false);
+            Menus.openTerminal(sp, mb.above());
+        }, () -> {}));
+        SHOTS.add(new Shot("n08_jei_sync_from_terminal", true, sp -> Menus.openTerminal(sp, mb.above()), () -> {
+            if (Minecraft.getInstance().screen instanceof TerminalScreen ts) {
+                try {
+                    java.lang.reflect.Field f = TerminalScreen.class.getDeclaredField("search");
+                    f.setAccessible(true);
+                    ((net.minecraft.client.gui.components.EditBox) f.get(ts)).setValue("raw");
+                } catch (ReflectiveOperationException ex) {
+                    GrimStorage.LOGGER.error("[Shots] could not type", ex);
+                }
+            }
+        }));
+        SHOTS.add(new Shot("n09_jei_sync_from_jei", true, sp -> Menus.openTerminal(sp, mb.above()), () ->
+                com.xtri6.grimstorage.client.RecipeViewerSearch.set("coal")));
+        SHOTS.add(new Shot("n10_guide_jobs", true, sp -> {}, () -> book(3, 4)));
+        SHOTS.add(new Shot("n11_guide_settings", true, sp -> {}, () -> book(3, 5)));
+        SHOTS.add(new Shot("n07_auto_scale3", true, sp -> Menus.openTerminal(sp, mb.above()), () -> guiScale(3)));
     }
 
     /** A Soul Infuser with buses on two faces: one fed by cable from its side, one from its back. */
@@ -224,6 +257,24 @@ public final class ScreenshotCheck {
         com.xtri6.grimstorage.client.guide.GuideScreen.open();
     }
 
+    private static void openSettings() {
+        if (Minecraft.getInstance().screen instanceof TerminalScreen ts) {
+            try {
+                Method m = TerminalScreen.class.getDeclaredMethod("toggleSettings");
+                m.setAccessible(true);
+                m.invoke(ts);
+            } catch (ReflectiveOperationException ex) {
+                GrimStorage.LOGGER.error("[Shots] could not open settings", ex);
+            }
+        }
+    }
+
+    private static void guiScale(int scale) {
+        Minecraft mc = Minecraft.getInstance();
+        mc.options.guiScale().set(scale);
+        mc.resizeDisplay();
+    }
+
     private static void setStatic(Class<?> c, String field, Object value) {
         try {
             java.lang.reflect.Field f = c.getDeclaredField(field);
@@ -300,8 +351,9 @@ public final class ScreenshotCheck {
             setMode(shot.name().contains("_xp") && !shot.name().contains("guide") ? BulkKind.EXPERIENCE : null);
             ClientConfig.setDark(shot.dark());
             if (mc.screen != null) {
+                // the server closes the old menu itself when it opens the next one (a close packet could arrive late
+                // and shut the new one instead)
                 mc.setScreen(null);
-                mc.player.closeContainer();
             }
             server.execute(() -> shot.open().accept(server.getPlayerList().getPlayers().get(0)));
         } else if (local == 20 && index < SHOTS.size()) {

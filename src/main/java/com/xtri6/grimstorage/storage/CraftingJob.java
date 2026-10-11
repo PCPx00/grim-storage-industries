@@ -10,13 +10,40 @@ import net.minecraft.network.chat.Component;
 public final class CraftingJob {
     public static final class StepState {
         final Pattern pattern;
+        final long total;
         long remaining;
         /** Processing only: primary outputs sent to a machine and not yet returned. */
         long awaiting;
 
         StepState(Pattern pattern, long times) {
             this.pattern = pattern;
+            this.total = times;
             this.remaining = times;
+        }
+
+        public Pattern pattern() {
+            return pattern;
+        }
+
+        /** Crafts (or machine runs) this step needs in all. */
+        public long total() {
+            return total;
+        }
+
+        /** Crafts not started yet. */
+        public long remaining() {
+            return remaining;
+        }
+
+        /** Machine runs sent off and not back yet. */
+        public long inMachines() {
+            long per = Math.max(1, pattern.outputCount(pattern.primary()));
+            return (awaiting + per - 1) / per;
+        }
+
+        /** Crafts fully finished. */
+        public long finished() {
+            return Math.max(0, total - remaining - inMachines());
         }
 
         boolean done() {
@@ -61,15 +88,18 @@ public final class CraftingJob {
         return status;
     }
 
-    /** 0..1 progress by number of crafts done. */
+    public List<StepState> steps() {
+        return java.util.Collections.unmodifiableList(steps);
+    }
+
+    /** 0..1 progress: finished crafts over all crafts, machine runs on their way counting half. */
     public float progress() {
-        int done = 0;
+        double done = 0, all = 0;
         for (StepState s : steps) {
-            if (s.done()) {
-                done++;
-            }
+            all += s.total;
+            done += s.finished() + s.inMachines() * 0.5;
         }
-        return steps.isEmpty() ? 1f : (float) done / steps.size();
+        return all <= 0 ? 1f : (float) Math.min(1, done / all);
     }
 
     public boolean finished() {

@@ -28,4 +28,10 @@ public interface MachineLink {
     }
 
     boolean linkRemoved();
+
+    /** The machine this link runs, for the terminal's crafting tab (null if nothing is there). */
+    @Nullable
+    default net.minecraft.network.chat.Component machineName() {
+        return null;
+    }
 }

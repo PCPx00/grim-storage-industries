@@ -58,6 +58,16 @@ public class ProcessingInterfaceBlockEntity extends NetworkBlockEntity implement
         return out;
     }
 
+    @Nullable
+    @Override
+    public net.minecraft.network.chat.Component machineName() {
+        if (level == null) {
+            return null;
+        }
+        BlockState st = level.getBlockState(worldPosition.relative(facing()));
+        return st.isAir() ? null : st.getBlock().getName();
+    }
+
     private Direction facing() {
         BlockState state = getBlockState();
         return state.hasProperty(FacingDeviceBlock.All.FACING) ? state.getValue(FacingDeviceBlock.All.FACING) : Direction.NORTH;

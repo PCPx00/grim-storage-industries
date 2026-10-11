@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.10.0
+- Terminal: new Crafting jobs tab (last along the top, with a count of running jobs). Every job shows its progress
+  and what it is waiting for, and under it every step: which machine makes it (for example "Furnace x2"), how many
+  are done and how many are in machines right now. Hover for details, click the x to cancel. The search box filters
+  jobs too.
+- Terminal: settings (the gear at the top):
+  - Sync search with JEI: the terminal and JEI share one search, both ways.
+  - Type to search on open: the cursor starts in the search box.
+  - Keep search when closed.
+  - Size: Auto (fits your screen), Normal (6 rows), Tall (9) or Taller (12). Auto is the default, so big screens
+    get a bigger terminal straight away.
+  All of them are also in the client config file.
+- Job progress now counts finished crafts instead of finished steps, so a long job moves smoothly.
+- The "no machine" message now mentions the Machine Bus too.
+
 ## 1.9.0
 - New: Machine Bus. Clips onto a machine like an Import Bus, and the network uses that machine for autocrafting.
   - On a furnace, blast furnace or smoker (or any modded furnace built on them) it needs no cards: it learns every
