@@ -22,11 +22,18 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * on the back for cable to reach.
  */
 public class BusBlock extends FacingDeviceBlock.All {
+    /** Which sides reach out to a cable or network block, so the bus draws a cable arm that way. */
+    public static final Map<Direction, net.minecraft.world.level.block.state.properties.BooleanProperty> LINKS =
+            net.minecraft.world.level.block.PipeBlock.PROPERTY_BY_DIRECTION;
     private static final Map<Direction, VoxelShape> SHAPES = new EnumMap<>(Direction.class);
+    private static final Map<Direction, VoxelShape> ARMS = new EnumMap<>(Direction.class);
+    private static final Map<BlockState, VoxelShape> SHAPE_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
 
     static {
         for (Direction d : Direction.values()) {
-            SHAPES.put(d, Shapes.or(box(d, 1, 1, 0, 15, 15, 2), box(d, 4, 4, 2, 12, 12, 5), box(d, 6, 6, 5, 10, 10, 16)));
+            // plate, collar and a neck out to the middle of the block
+            SHAPES.put(d, Shapes.or(box(d, 1, 1, 0, 15, 15, 2), box(d, 4, 4, 2, 12, 12, 5), box(d, 6, 6, 5, 10, 10, 10)));
+            ARMS.put(d, box(d, 6, 6, 0, 10, 10, 6));
         }
     }
 
@@ -44,6 +51,53 @@ public class BusBlock extends FacingDeviceBlock.All {
 
     public BusBlock(Properties props, Supplier<? extends BlockEntityType<?>> type, Opener opener) {
         super(props, type, opener);
+        BlockState st = defaultBlockState();
+        for (var p : LINKS.values()) {
+            st = st.setValue(p, false);
+        }
+        registerDefaultState(st);
+    }
+
+    @Override
+    protected void createBlockStateDefinition(net.minecraft.world.level.block.state.StateDefinition.Builder<Block, BlockState> builder) {
+        super.createBlockStateDefinition(builder);
+        LINKS.values().forEach(builder::add);
+    }
+
+    private static boolean links(BlockState self, Direction dir, BlockState neighbor) {
+        return dir != self.getValue(FACING) && neighbor.getBlock() instanceof NetworkMember m && m.connectsTo(neighbor, dir.getOpposite());
+    }
+
+    /** Every side worked out from the neighbors: an arm wherever cable or a network block touches (never the front). */
+    private static BlockState linked(BlockState state, BlockGetter level, BlockPos pos) {
+        for (Direction d : Direction.values()) {
+            state = state.setValue(LINKS.get(d), links(state, d, level.getBlockState(pos.relative(d))));
+        }
+        return state;
+    }
+
+    @Override
+    public BlockState getStateForPlacement(net.minecraft.world.item.context.BlockPlaceContext ctx) {
+        BlockState st = super.getStateForPlacement(ctx);
+        return st == null ? null : linked(st, ctx.getLevel(), ctx.getClickedPos());
+    }
+
+    @Override
+    protected BlockState updateShape(BlockState state, Direction dir, BlockState neighbor, net.minecraft.world.level.LevelAccessor level,
+                                     BlockPos pos, BlockPos neighborPos) {
+        return state.setValue(LINKS.get(dir), links(state, dir, neighbor));
+    }
+
+    /** Placed by commands or other mods, or turned with a wrench: work the arms out again. */
+    @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moved) {
+        super.onPlace(state, level, pos, oldState, moved);
+        if (!level.isClientSide) {
+            BlockState fixed = linked(state, level, pos);
+            if (fixed != state) {
+                level.setBlock(pos, fixed, Block.UPDATE_CLIENTS);
+            }
+        }
     }
 
     /** The front sits on the block being imported from or exported to, so the network never reaches through it. */
@@ -54,7 +108,15 @@ public class BusBlock extends FacingDeviceBlock.All {
 
     @Override
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
-        return SHAPES.get(state.getValue(FACING));
+        return SHAPE_CACHE.computeIfAbsent(state, st -> {
+            VoxelShape shape = SHAPES.get(st.getValue(FACING));
+            for (Direction d : Direction.values()) {
+                if (st.getValue(LINKS.get(d))) {
+                    shape = Shapes.or(shape, ARMS.get(d));
+                }
+            }
+            return shape.optimize();
+        });
     }
 
     @Override

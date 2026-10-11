@@ -919,6 +919,32 @@ public final class SystemCheck {
             }
             return in == 32 && shards == 20 && "WORKING".equals(ffStatus[0]);
         }));
+        final int[] sl = {0};
+        final long[] slBefore = new long[1];
+        STEPS.add(new Step("a bus with cable touching only its side links up, draws an arm that way and works", 60, () -> {
+            BlockPos bus = at(-4, 5, 0);
+            BlockPos barrel = at(-4, 5, -1);
+            if (sl[0] == 0) {
+                sl[0] = 1;
+                slBefore[0] = count(Items.AMETHYST_SHARD);
+                level.setBlockAndUpdate(barrel, Blocks.BARREL.defaultBlockState());
+                level.getCapability(Capabilities.ItemHandler.BLOCK, barrel, Direction.SOUTH).insertItem(0, new ItemStack(Items.AMETHYST_SHARD, 24), false);
+                // facing north into the barrel; the network cable column at x = -3 touches its east side
+                level.setBlockAndUpdate(bus, Registration.IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.NORTH));
+                return false;
+            }
+            var st = level.getBlockState(bus);
+            var cable = level.getBlockState(at(-3, 5, 0));
+            long got = count(Items.AMETHYST_SHARD) - slBefore[0];
+            boolean arms = st.getValue(com.xtri6.grimstorage.block.BusBlock.LINKS.get(Direction.EAST))
+                    && !st.getValue(com.xtri6.grimstorage.block.BusBlock.LINKS.get(Direction.NORTH))
+                    && !st.getValue(com.xtri6.grimstorage.block.BusBlock.LINKS.get(Direction.SOUTH))
+                    && com.xtri6.grimstorage.block.CableBlock.side(cable, Direction.WEST) == com.xtri6.grimstorage.block.CableBlock.Side.CABLE;
+            if (sl[0]++ % 10 == 1) {
+                info("side-linked bus: {} cable west side={} shards in={}", st, com.xtri6.grimstorage.block.CableBlock.side(cable, Direction.WEST), got);
+            }
+            return arms && got == 24;
+        }));
         final int[] sp = {0};
         final long[] spBefore = new long[1];
         STEPS.add(new Step("speed upgrades: 8 in a bus make it 9x as fast, and they drop when the bus comes off", 40, () -> {

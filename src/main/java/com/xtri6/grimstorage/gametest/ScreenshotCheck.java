@@ -59,37 +59,39 @@ public final class ScreenshotCheck {
     public static void register(IEventBus modBus) {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> onTick());
         Runnable none = () -> {};
-        SHOTS.add(new Shot("f01_terminal_everything", true, sp -> {
-            sp.teleportTo(sp.serverLevel(), 5.5, 221.0, 2.5, 180f, 30f);
-            StorageNetwork n = NetworkManager.get(sp.serverLevel(), BASE);
-            if (n != null) {
-                n.insertBulk(com.xtri6.grimstorage.storage.BulkKey.fluid(new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, 1)), 48_000, false);
-                n.insertBulk(com.xtri6.grimstorage.storage.BulkKey.fluid(new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.LAVA, 1)), 12_000, false);
-                n.insertBulk(com.xtri6.grimstorage.storage.BulkKey.flat(BulkKind.EXPERIENCE), 5_000, false);
-                n.insertBulk(com.xtri6.grimstorage.storage.BulkKey.flat(BulkKind.ENERGY), 2_500_000, false);
+        SHOTS.add(new Shot("g01_loading", true, ScreenshotCheck::sideLinkScene, none));
+        SHOTS.add(new Shot("g02_side_links", true, sp -> {}, none));
+        SHOTS.add(new Shot("g03_side_links_top", true, sp -> {
+            BlockPos o = BASE.offset(40, 14, 40);
+            sp.teleportTo(sp.serverLevel(), o.getX() + 0.5, o.getY() + 3.2, o.getZ() + 0.5, 0f, 89f);
+        }, none));
+    }
+
+    /** A Soul Infuser with buses on two faces: one fed by cable from its side, one from its back. */
+    private static void sideLinkScene(ServerPlayer sp) {
+        var lvl = sp.serverLevel();
+        lvl.setDayTime(6000);
+        BlockPos o = BASE.offset(40, 14, 40);
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dz = -3; dz <= 3; dz++) {
+                lvl.removeBlock(o.offset(dx, 0, dz), false);
             }
-            setStatic(TerminalScreen.class, "lastAll", true);
-            Menus.openTerminal(sp, BASE.offset(5, 0, 0));
-        }, none));
-        SHOTS.add(new Shot("f02_cable_loading", true, ScreenshotCheck::cableBuses, none));
-        SHOTS.add(new Shot("f03_bus_upgrades", true, sp -> {
-            BlockPos cable = BASE.offset(-40, 14, -40).east(3);
-            if (sp.serverLevel().getBlockEntity(cable) instanceof com.xtri6.grimstorage.block.entity.CableBusBlockEntity be && be.part(net.minecraft.core.Direction.EAST) != null) {
-                for (int i = 0; i < 5; i++) {
-                    be.part(net.minecraft.core.Direction.EAST).upgrades().setStackInSlot(i, new ItemStack(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get()));
-                }
-            }
-            Menus.openCableBus(sp, cable, net.minecraft.core.Direction.EAST);
-        }, none));
-        SHOTS.add(new Shot("f04_wrench_in_hand", true, sp -> {
-            sp.getInventory().selected = 0;
-            sp.getInventory().setItem(0, new ItemStack(com.xtri6.grimstorage.Registration.SOUL_WRENCH.get()));
-            BlockPos o = BASE.offset(-40, 14, -40);
-            sp.teleportTo(sp.serverLevel(), o.getX() + 3.6, o.getY() + 1.4, o.getZ() + 2.4, 160f, 30f);
-        }, none));
-        SHOTS.add(new Shot("f05_guide_wrench", true, sp -> {}, () -> book(2, 4)));
-        SHOTS.add(new Shot("f06_guide_speed", false, sp -> {}, () -> book(9, 7)));
-        SHOTS.add(new Shot("f07_guide_tabs", true, sp -> {}, () -> book(3, 3)));
+        }
+        var dir = com.xtri6.grimstorage.block.FacingDeviceBlock.All.FACING;
+        var R = com.xtri6.grimstorage.Registration.class;
+        lvl.setBlockAndUpdate(o.east(), com.xtri6.grimstorage.Registration.SOUL_INFUSER.get().defaultBlockState());
+        // bus on the infuser's west face; cable comes in from the bus's north side
+        lvl.setBlockAndUpdate(o, com.xtri6.grimstorage.Registration.IMPORT_BUS.get().defaultBlockState().setValue(dir, net.minecraft.core.Direction.EAST));
+        lvl.setBlockAndUpdate(o.north(), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.north().west(), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.north().west(2), com.xtri6.grimstorage.Registration.CONTROLLER.get().defaultBlockState());
+        // bus on the infuser's south face, cable to its back
+        lvl.setBlockAndUpdate(o.east().south(), com.xtri6.grimstorage.Registration.IMPORT_BUS.get().defaultBlockState().setValue(dir, net.minecraft.core.Direction.NORTH));
+        lvl.setBlockAndUpdate(o.east().south(2), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.east().south(2).west(), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.south(2).west(), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.south().west(), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
+        sp.teleportTo(lvl, o.getX() - 1.8, o.getY() + 2.6, o.getZ() + 3.2, 215f, 38f);
     }
 
     private static void cableBuses(ServerPlayer sp) {
