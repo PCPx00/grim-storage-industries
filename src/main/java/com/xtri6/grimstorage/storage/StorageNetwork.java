@@ -28,6 +28,7 @@ import com.xtri6.grimstorage.item.CardData;
 import com.xtri6.grimstorage.item.StorageCellItem;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.NonNullList;
@@ -160,10 +161,11 @@ public final class StorageNetwork {
                     queue.add(new Node(server.getLevel(partner.dimension()), partner.pos()));
                 }
             }
+            BlockState here = level.getBlockState(pos);
             for (Direction dir : Direction.values()) {
                 BlockPos next = pos.relative(dir);
                 GlobalPos key = GlobalPos.of(level.dimension(), next);
-                if (!seen.contains(key) && level.isLoaded(next) && level.getBlockState(next).getBlock() instanceof NetworkMember) {
+                if (!seen.contains(key) && level.isLoaded(next) && NetworkMember.linked(here, dir, level.getBlockState(next))) {
                     seen.add(key);
                     queue.add(new Node(level, next));
                 }

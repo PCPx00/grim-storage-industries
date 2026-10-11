@@ -1,7 +1,9 @@
 {
   "chapters": [
     {
-      "id": "welcome", "title": "Welcome", "icon": "grimstorage:guide_book",
+      "id": "welcome",
+      "title": "Welcome",
+      "icon": "grimstorage:guide_book",
       "pages": [
         {
           "title": "Grim Storage Industries",
@@ -19,7 +21,14 @@
             "- Put the cell in the drive, place everything touching, and open the terminal.",
             "That is a working storage system. The rest of this book shows how to grow it."
           ],
-          "items": ["grimstorage:soulite_ore", "grimstorage:soulite_ingot", "grimstorage:network_controller", "grimstorage:soul_drive", "grimstorage:storage_cell_4k", "grimstorage:soul_terminal"]
+          "items": [
+            "grimstorage:soulite_ore",
+            "grimstorage:soulite_ingot",
+            "grimstorage:network_controller",
+            "grimstorage:soul_drive",
+            "grimstorage:storage_cell_4k",
+            "grimstorage:soul_terminal"
+          ]
         },
         {
           "title": "Lost this book?",
@@ -29,7 +38,9 @@
       ]
     },
     {
-      "id": "soulite", "title": "Soulite", "icon": "grimstorage:soulite_ingot",
+      "id": "soulite",
+      "title": "Soulite",
+      "icon": "grimstorage:soulite_ingot",
       "pages": [
         {
           "title": "Finding Soulite",
@@ -40,7 +51,12 @@
             "- **Deep Dark:** rare **Echo Soulite Ore** near the sculk. Needs a diamond pickaxe. You will need it for late tiers.",
             "Fortune works on all of them."
           ],
-          "items": ["grimstorage:soulite_ore", "grimstorage:deepslate_soulite_ore", "grimstorage:soul_sand_soulite_ore", "grimstorage:echo_soulite_ore"]
+          "items": [
+            "grimstorage:soulite_ore",
+            "grimstorage:deepslate_soulite_ore",
+            "grimstorage:soul_sand_soulite_ore",
+            "grimstorage:echo_soulite_ore"
+          ]
         },
         {
           "title": "Smelting",
@@ -73,7 +89,9 @@
       ]
     },
     {
-      "id": "network", "title": "First Network", "icon": "grimstorage:network_controller",
+      "id": "network",
+      "title": "First Network",
+      "icon": "grimstorage:network_controller",
       "pages": [
         {
           "title": "Network Controller",
@@ -100,12 +118,17 @@
             "There is no limit on how many blocks a network can have."
           ],
           "recipe": "grimstorage:soul_cable",
-          "items": ["grimstorage:soul_cable", "grimstorage:soulite_glass"]
+          "items": [
+            "grimstorage:soul_cable",
+            "grimstorage:soulite_glass"
+          ]
         }
       ]
     },
     {
-      "id": "terminal", "title": "The Terminal", "icon": "grimstorage:soul_terminal",
+      "id": "terminal",
+      "title": "The Terminal",
+      "icon": "grimstorage:soul_terminal",
       "pages": [
         {
           "title": "Taking and storing",
@@ -136,7 +159,7 @@
         {
           "title": "Resource tabs",
           "text": [
-            "The tabs **along the top** switch between Items, Fluids, Chemicals, Energy and Source. See the chapter on fluids, energy and more.",
+            "The tabs **along the top** switch between Items, Fluids, Chemicals, Energy, Source and Experience. See the chapter on fluids, energy and more.",
             "The panel on the right shows how full that kind of storage is."
           ]
         },
@@ -150,7 +173,9 @@
       ]
     },
     {
-      "id": "cells", "title": "Storage Cells", "icon": "grimstorage:storage_cell_64k",
+      "id": "cells",
+      "title": "Storage Cells",
+      "icon": "grimstorage:storage_cell_64k",
       "pages": [
         {
           "title": "Item cells",
@@ -162,7 +187,12 @@
             "- **Netherite:** about 67 million items",
             "Hover over a cell to see how full it is."
           ],
-          "items": ["grimstorage:storage_cell_4k", "grimstorage:storage_cell_64k", "grimstorage:storage_cell_1m", "grimstorage:storage_cell_64m"],
+          "items": [
+            "grimstorage:storage_cell_4k",
+            "grimstorage:storage_cell_64k",
+            "grimstorage:storage_cell_1m",
+            "grimstorage:storage_cell_64m"
+          ],
           "recipe": "grimstorage:storage_cell_4k"
         },
         {
@@ -182,15 +212,23 @@
       ]
     },
     {
-      "id": "resources", "title": "Fluids & More", "icon": "grimstorage:fluid_cell_copper",
+      "id": "resources",
+      "title": "Fluids & More",
+      "icon": "grimstorage:fluid_cell_copper",
       "pages": [
         {
           "title": "More than items",
           "text": [
-            "The network can also store **fluids**, **energy (FE)**, Mekanism **chemicals** and Ars Nouveau **Source**. Each has its own cells, and they all go in the same Soul Drive.",
+            "The network can also store **fluids**, **energy (FE)**, **experience (XP)**, Mekanism **chemicals** and Ars Nouveau **Source**. Each has its own cells, and they all go in the same Soul Drive.",
             "Chemical cells need Mekanism and Source cells need Ars Nouveau. Without those mods, those cells simply do not appear."
           ],
-          "items": ["grimstorage:fluid_cell_copper", "grimstorage:chemical_cell_copper", "grimstorage:energy_cell_copper", "grimstorage:source_cell_copper"]
+          "items": [
+            "grimstorage:fluid_cell_copper",
+            "grimstorage:chemical_cell_copper",
+            "grimstorage:energy_cell_copper",
+            "grimstorage:experience_cell_copper",
+            "grimstorage:source_cell_copper"
+          ]
         },
         {
           "title": "Sizes",
@@ -198,6 +236,7 @@
             "- **Fluid and chemical cells:** 256, 4,096, 65,536 and about a million buckets.",
             "- **Energy cells:** 16M, 256M, 4B and 64B FE.",
             "- **Source cells:** 10k, 100k, 1M and 10M Source.",
+            "- **Experience cells:** 100k, 2M, 50M and 2B XP.",
             "They use the same Copper, Gold, Diamond and Netherite tiers as item cells."
           ],
           "recipe": "grimstorage:fluid_cell_copper"
@@ -212,18 +251,27 @@
           ]
         },
         {
+          "title": "Experience",
+          "text": [
+            "XP is stored in points. In the **Experience** tab: **click** to take a level, **shift-click** for 10 levels, and **right-click** to store all of your XP.",
+            "Liquid XP from other mods is turned into points automatically (20 mB per point), and an **Import Bus** under a mob farm soaks up XP orbs."
+          ],
+          "recipe": "grimstorage:experience_cell_copper"
+        },
+        {
           "title": "Pipes and machines",
           "text": [
-            "Pipes and machines put fluids, energy, chemicals and Source in through a **Network Interface**. Anything can be pushed in from any side.",
-            "To let things be **pulled back out**, open the interface and turn on that resource's **Pull** switch. They start off so nothing drains by accident.",
-            "For example, turn on **FE** and pipe power from the interface to your machines."
+            "The easy way: stick an **Import Bus** on a machine, tank or generator and everything in it flows into the network. An **Export Bus** sends things back out. See the Import & Export chapter.",
+            "Pipes can also push anything into a **Network Interface**. To let pipes **pull** from it, open it and turn on that resource's **Pull** switch."
           ],
-          "recipe": "grimstorage:energy_cell_copper"
+          "recipe": "grimstorage:network_interface"
         }
       ]
     },
     {
-      "id": "crafting", "title": "Autocrafting", "icon": "grimstorage:soul_assembler",
+      "id": "crafting",
+      "title": "Autocrafting",
+      "icon": "grimstorage:soul_assembler",
       "pages": [
         {
           "title": "How it works",
@@ -231,7 +279,10 @@
             "Teach the network a recipe with a **Recipe Card**, then put the card in a **Soul Assembler** on the network.",
             "Now that item shows in the terminal with a **Craft** label. Click it, type how many, and the network does the rest. It uses what it has, crafts any ingredients it can, and tells you exactly what is missing if it cannot."
           ],
-          "items": ["grimstorage:recipe_card", "grimstorage:soul_assembler"]
+          "items": [
+            "grimstorage:recipe_card",
+            "grimstorage:soul_assembler"
+          ]
         },
         {
           "title": "Recipe Cards",
@@ -266,7 +317,9 @@
       ]
     },
     {
-      "id": "machines", "title": "Machines", "icon": "grimstorage:processing_interface",
+      "id": "machines",
+      "title": "Machines",
+      "icon": "grimstorage:processing_interface",
       "pages": [
         {
           "title": "Using any machine",
@@ -293,12 +346,18 @@
             "- Put the card in the interface.",
             "Infused Soulite now shows as craftable in the terminal."
           ],
-          "items": ["grimstorage:soul_infuser", "grimstorage:processing_interface", "grimstorage:infused_soulite"]
+          "items": [
+            "grimstorage:soul_infuser",
+            "grimstorage:processing_interface",
+            "grimstorage:infused_soulite"
+          ]
         }
       ]
     },
     {
-      "id": "automation", "title": "Automation", "icon": "grimstorage:stock_keeper",
+      "id": "automation",
+      "title": "Automation",
+      "icon": "grimstorage:stock_keeper",
       "pages": [
         {
           "title": "Stock Keeper",
@@ -321,15 +380,79 @@
           "title": "Network Interface",
           "text": [
             "Lets pipes, hoppers and other mods use the network. Anything pushed in is stored.",
-            "Things can only be pulled **out** if you allow it: put items in its 9 slots, or turn on the **Pull** switches for fluids, energy, chemicals and Source.",
-            "Works with Grim Pipe Industries and other pipe mods."
+            "Things can only be pulled **out** if you allow it: put items in its 9 slots, or turn on the **Pull** switches for fluids, energy, chemicals, Source and XP.",
+            "Works with Grim Pipe Industries and other pipe mods. For no pipes at all, use an Import or Export Bus."
           ],
           "recipe": "grimstorage:network_interface"
         }
       ]
     },
     {
-      "id": "wireless", "title": "Wireless & Far", "icon": "grimstorage:wireless_terminal",
+      "id": "buses",
+      "title": "Buses",
+      "icon": "grimstorage:import_bus",
+      "pages": [
+        {
+          "title": "Buses",
+          "text": [
+            "The fastest way to move things in and out. Place a bus **against any block**: a chest, furnace, tank, generator or any modded machine. It sticks to that face.",
+            "- **Import Bus:** pulls from the block into the network.",
+            "- **Export Bus:** pushes from the network into the block.",
+            "The bus must touch your network. Run Soul Cable to the back of it."
+          ],
+          "items": [
+            "grimstorage:import_bus",
+            "grimstorage:export_bus",
+            "grimstorage:soul_cable"
+          ]
+        },
+        {
+          "title": "Import Bus",
+          "text": [
+            "Pulls **everything** by default: items, fluids, energy, XP, chemicals and Source, all from one bus.",
+            "Put one on a generator to store its power, on a tank to empty it, or on a furnace to collect what it smelts.",
+            "Facing **open air**, it picks up dropped items and **XP orbs** in that block. Put it under a mob farm."
+          ],
+          "recipe": "grimstorage:import_bus"
+        },
+        {
+          "title": "Export Bus",
+          "text": [
+            "Sends out **only the items you pick** in its filter by default, so it never empties your storage by accident.",
+            "Switch on fluids, energy, XP, chemicals or Source to send those too. Energy, Source and XP do not need a filter.",
+            "Example: an Export Bus on a furnace with coal in its filter keeps it fuelled."
+          ],
+          "recipe": "grimstorage:export_bus"
+        },
+        {
+          "title": "Filters",
+          "text": [
+            "Open a bus to set it up. Click items into the **9 filter slots**. A bucket or tank filters the fluid or chemical inside it.",
+            "- **Only these:** just what is in the filter moves.",
+            "- **All but these:** everything moves except what is in the filter.",
+            "- **Exact match / Ignore NBT:** whether enchantments and other item data must match."
+          ]
+        },
+        {
+          "title": "Resource switches",
+          "text": [
+            "The icons in the middle turn each resource **on or off** for that bus: Items, Fluids, Chemicals, Energy, Source and XP. A green line means it is on.",
+            "The top right shows what the bus is doing: **Working**, **Idle**, **Storage full**, **No network** or **Nothing attached**."
+          ]
+        },
+        {
+          "title": "Fast and light",
+          "text": [
+            "A busy bus moves up to **128 items** or **32 buckets** every tick, and as much energy as the machine allows.",
+            "When there is nothing to move it slows down to check about once a second, and wakes up right away when something next to it changes. Hundreds of buses are fine."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wireless",
+      "title": "Wireless & Far",
+      "icon": "grimstorage:wireless_terminal",
       "pages": [
         {
           "title": "Wireless Terminal",
@@ -359,28 +482,40 @@
             "Both ends must be loaded to connect, so use a chunk loader for far-away bases."
           ],
           "recipe": "grimstorage:quantum_link",
-          "items": ["grimstorage:quantum_link", "grimstorage:soul_tether"]
+          "items": [
+            "grimstorage:quantum_link",
+            "grimstorage:soul_tether"
+          ]
         }
       ]
     },
     {
-      "id": "tiers", "title": "Progression", "icon": "grimstorage:singularity_core",
+      "id": "tiers",
+      "title": "Progression",
+      "icon": "grimstorage:singularity_core",
       "pages": [
         {
           "title": "The five tiers",
           "text": [
-            "- **1. Soulite Ingot:** controller, drive, terminal, cable, glass, interface, Copper cells, Soul Infuser.",
+            "- **1. Soulite Ingot:** controller, drive, terminal, cable, glass, interface, Import and Export Bus, Copper cells, Soul Infuser.",
             "- **2. Soulite and Gold:** Gold cells, Recipe Cards, Soul Assembler, Void Filter.",
             "- **3. Infused Soulite:** Diamond cells, Speed Upgrade, Stock Keeper, Wireless Terminal, Processing Card.",
             "- **4. Echo Soulite Alloy:** Netherite cells, Processing Interface, Quantum Link.",
             "- **5. Singularity Core:** Singularity Cell, Singularity Terminal."
           ],
-          "items": ["grimstorage:soulite_ingot", "grimstorage:infused_soulite", "grimstorage:echo_soulite_alloy", "grimstorage:singularity_core"]
+          "items": [
+            "grimstorage:soulite_ingot",
+            "grimstorage:infused_soulite",
+            "grimstorage:echo_soulite_alloy",
+            "grimstorage:singularity_core"
+          ]
         }
       ]
     },
     {
-      "id": "help", "title": "Help", "icon": "minecraft:compass",
+      "id": "help",
+      "title": "Help",
+      "icon": "minecraft:compass",
       "pages": [
         {
           "title": "Something is wrong",
@@ -388,6 +523,7 @@
             "- **Terminal says no working network:** check the controller is connected and there is only one.",
             "- **Items will not go in:** storage is full. Add cells, or a Void Filter for junk.",
             "- **A craft never finishes:** open the controller to see what it is waiting for, and cancel it if needed.",
+            "- **A bus says Nothing attached or Idle:** check it is on the right face, its resource switches are on, and (Export Bus) its filter has something in it.",
             "- **Wireless terminal will not open:** link it again, and stay in range."
           ]
         },
@@ -396,7 +532,8 @@
           "text": [
             "- Crafting jobs in progress stop if the world closes. Stored items are always saved.",
             "- Quantum Links need both ends loaded.",
-            "- Autocrafting works with items. Fluids, energy, chemicals and Source are stored and moved, not crafted.",
+            "- Autocrafting works with items. Fluids, energy, XP, chemicals and Source are stored and moved, not crafted.",
+            "- New Mekanism tanks and machines start with their sides closed. Open the side the bus touches with a **Configurator**.",
             "Made by xTri6 for Nine Craft."
           ]
         }

@@ -21,6 +21,9 @@ import com.xtri6.grimstorage.storage.CellStorage;
 import com.xtri6.grimstorage.storage.CraftingPlanner;
 import com.xtri6.grimstorage.storage.ItemKey;
 import com.xtri6.grimstorage.storage.StorageNetwork;
+import com.xtri6.grimstorage.storage.Experience;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import com.xtri6.grimstorage.util.Fmt;
 
 import net.minecraft.ChatFormatting;
@@ -359,6 +362,32 @@ public class TerminalMenu extends GrimMenu {
             }
         } else if (kind == BulkKind.CHEMICAL && Compat.chemicals() != null) {
             setCarried(Compat.chemicals().click(sp, net, carried, key).copy());
+        }
+        broadcastChanges();
+    }
+
+    /** Server: take levels out of the network's XP cells, or store all of the player's XP. */
+    public void handleXp(ServerPlayer sp, int action) {
+        StorageNetwork network = net();
+        if (network == null) {
+            return;
+        }
+        if (action == 2) {
+            long have = Experience.points(sp);
+            long stored = network.insertBulk(Experience.KEY, have, false);
+            if (stored > 0) {
+                Experience.setPoints(sp, have - stored);
+                sp.level().playSound(null, sp.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP,
+                        SoundSource.PLAYERS, 0.4f, 0.8f);
+            }
+        } else if (action == 0 || action == 1) {
+            long want = Experience.pointsToGain(sp, action == 0 ? 1 : 10);
+            long got = network.extractBulk(Experience.KEY, Math.max(0, want), false);
+            if (got > 0) {
+                Experience.setPoints(sp, Experience.points(sp) + got);
+                sp.level().playSound(null, sp.blockPosition(), SoundEvents.PLAYER_LEVELUP,
+                        SoundSource.PLAYERS, 0.5f, 1.2f);
+            }
         }
         broadcastChanges();
     }

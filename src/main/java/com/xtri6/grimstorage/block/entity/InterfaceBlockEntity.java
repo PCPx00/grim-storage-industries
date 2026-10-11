@@ -20,7 +20,8 @@ public class InterfaceBlockEntity extends FilterBlockEntity {
     private final IItemHandler handler = new NetworkHandler();
     /** Per {@link BulkKind}: may pipes pull this resource out? Off by default so nothing drains by accident. */
     private final boolean[] exports = new boolean[BulkKind.values().length];
-    private final NetworkFluidHandler fluids = new NetworkFluidHandler(this::network, () -> exports(BulkKind.FLUID), null);
+    private final NetworkFluidHandler fluids = new NetworkFluidHandler(this::network, () -> exports(BulkKind.FLUID), null,
+            () -> exports(BulkKind.EXPERIENCE));
     private final NetworkEnergyStorage energy = new NetworkEnergyStorage(this::network, () -> exports(BulkKind.ENERGY));
 
     public InterfaceBlockEntity(BlockPos pos, BlockState state) {

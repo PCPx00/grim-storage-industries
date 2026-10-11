@@ -43,6 +43,7 @@ public final class BulkRender {
             case CHEMICAL -> ModList.get().isLoaded("mekanism") ? ChemicalClient.name(key) : Component.literal(String.valueOf(key.id()));
             case ENERGY -> Component.translatable("gui.grimstorage.kind.energy");
             case SOURCE -> Component.translatable("gui.grimstorage.kind.source");
+            case EXPERIENCE -> Component.translatable("gui.grimstorage.kind.experience");
         };
     }
 

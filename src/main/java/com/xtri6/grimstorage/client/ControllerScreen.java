@@ -80,6 +80,7 @@ public class ControllerScreen extends GrimScreen<ControllerMenu> {
                     case CHEMICAL -> 0xFF8FE04A;
                     case ENERGY -> 0xFFFF5A4A;
                     case SOURCE -> t.purple();
+                    case EXPERIENCE -> 0xFF7FE03A;
                 };
                 Ui.bar(g, t, cx + 3, cy + 28, cw - 6, 5, cap <= 0 ? 0 : (float) used / cap, kc);
                 i++;

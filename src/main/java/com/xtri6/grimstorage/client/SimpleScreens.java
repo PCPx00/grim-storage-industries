@@ -87,12 +87,17 @@ public final class SimpleScreens {
                 return;
             }
             // Export switches: may pipes pull fluids / chemicals / energy / Source out of this interface?
-            int x = leftPos + 34;
+            int shown = 0;
+            for (BulkKind kind : BulkKind.values()) {
+                shown += kind.available() ? 1 : 0;
+            }
+            int step = Math.min(35, 136 / Math.max(1, shown));
+            int x = leftPos + 32;
             for (BulkKind kind : BulkKind.values()) {
                 if (!kind.available()) {
                     continue;
                 }
-                GrimButton b = new GrimButton(x, topPos + 55, 33, 13, Component.translatable("gui.grimstorage.export." + kind.id()),
+                GrimButton b = new GrimButton(x, topPos + 55, step - 2, 13, Component.translatable("gui.grimstorage.export." + kind.id()),
                         btn -> PacketDistributor.sendToServer(new Payloads.ToggleExport(menu.containerId, kind.ordinal()))) {
                     @Override
                     protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
@@ -105,7 +110,7 @@ public final class SimpleScreens {
                 b.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.export.tooltip",
                         Component.translatable("gui.grimstorage.kind." + kind.id()))));
                 addRenderableWidget(b);
-                x += 35;
+                x += step;
             }
         }
 

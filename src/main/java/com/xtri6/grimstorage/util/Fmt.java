@@ -17,6 +17,7 @@ public final class Fmt {
             case FLUID, CHEMICAL -> n < 1000 ? n + " mB" : compact(n / 1000) + " B";
             case ENERGY -> compact(n) + " FE";
             case SOURCE -> compact(n) + " Source";
+            case EXPERIENCE -> compact(n) + " XP";
         };
     }
 

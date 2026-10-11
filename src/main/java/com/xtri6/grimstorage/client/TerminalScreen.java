@@ -505,6 +505,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     /** Energy and Source are one big pool each, so they get a gauge instead of a grid. */
     private void drawPool(GuiGraphics g, Theme t, BulkKind kind) {
         int x = leftPos + GX - 1, y = topPos + GY - 1, w = COLS * 18, h = ROWS * 18;
+        boolean xp = kind == BulkKind.EXPERIENCE;
         g.pose().pushPose();
         g.pose().translate(0, 0, 200);
         g.fill(x, y, x + w, y + h, 0xFF000000 | (t.panelBottom() & 0xFFFFFF));
@@ -512,18 +513,40 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         long used = menu.clientBulkStats[kind.ordinal() * 2];
         long cap = menu.clientBulkStats[kind.ordinal() * 2 + 1];
         float f = cap <= 0 ? 0 : (float) used / cap;
+        // XP needs room for its click hints, so it skips the name (the tab says it) and sits higher.
+        int iconY = xp ? 8 : 14, barY = xp ? 46 : 66, amountY = xp ? 62 : 82, pctY = xp ? 73 : 93;
         g.pose().pushPose();
-        g.pose().translate(x + w / 2f - 16, y + 14, 0);
+        g.pose().translate(x + w / 2f - 16, y + iconY, 0);
         g.pose().scale(2f, 2f, 1f);
         g.renderItem(BulkRender.icon(kind), 0, 0);
         g.pose().popPose();
-        Component name = modeName(kind);
-        g.drawString(font, name, x + (w - font.width(name)) / 2, y + 52, t.text(), false);
-        Ui.bar(g, t, x + 12, y + 66, w - 24, 10, f, kind == BulkKind.ENERGY ? 0xFFFF5A4A : t.purple());
+        if (!xp) {
+            Component name = modeName(kind);
+            g.drawString(font, name, x + (w - font.width(name)) / 2, y + 52, t.text(), false);
+        }
+        int color = kind == BulkKind.ENERGY ? 0xFFFF5A4A : xp ? 0xFF7FE03A : t.purple();
+        Ui.bar(g, t, x + 12, y + barY, w - 24, 10, f, color);
         String amount = Fmt.amount(kind, used) + " / " + Fmt.amount(kind, cap);
-        g.drawString(font, amount, x + (w - font.width(amount)) / 2, y + 82, t.textDim(), false);
+        g.drawString(font, amount, x + (w - font.width(amount)) / 2, y + amountY, t.textDim(), false);
         String pct = cap <= 0 ? Component.translatable("gui.grimstorage.bulk.no_cells").getString() : Math.round(f * 100) + "%";
-        g.drawString(font, pct, x + (w - font.width(pct)) / 2, y + 93, cap <= 0 ? t.warn() : t.accent(), false);
+        if (xp && cap > 0) {
+            int lv = 0;
+            while (lv < 21863 && com.xtri6.grimstorage.storage.Experience.pointsForLevel(lv + 1) <= used) {
+                lv++;
+            }
+            pct += "  \u00b7  " + Component.translatable("gui.grimstorage.xp.levels", lv).getString();
+        }
+        g.drawString(font, pct, x + (w - font.width(pct)) / 2, y + pctY, cap <= 0 ? t.warn() : xp ? color : t.accent(), false);
+        if (xp && cap > 0) {
+            for (int i = 0; i < 2; i++) {
+                Component hint = Component.translatable("gui.grimstorage.xp.hint" + (i + 1));
+                g.pose().pushPose();
+                g.pose().translate(x + w / 2f - font.width(hint) * 0.375f, y + 88 + i * 8, 0);
+                g.pose().scale(0.75f, 0.75f, 1f);
+                g.drawString(font, hint, 0, 0, t.textFaint(), false);
+                g.pose().popPose();
+            }
+        }
         g.pose().popPose();
     }
 
@@ -617,7 +640,11 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         }
         if (mode != null && inGrid(mx, my)) {
             search.setFocused(false);
-            if (mode.typed() && !menu.getCarried().isEmpty()) {
+            if (mode == BulkKind.EXPERIENCE && menu.getCarried().isEmpty()) {
+                int action = button == 1 ? 2 : hasShiftDown() ? 1 : 0;
+                PacketDistributor.sendToServer(new Payloads.TerminalXp(menu.containerId, action));
+                minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 0.4f));
+            } else if (mode.typed() && !menu.getCarried().isEmpty()) {
                 TerminalMenu.BulkEntry e = bulkAt(mx, my);
                 PacketDistributor.sendToServer(new Payloads.TerminalBulkClick(menu.containerId, mode.ordinal(),
                         java.util.Optional.ofNullable(e == null ? null : e.key())));

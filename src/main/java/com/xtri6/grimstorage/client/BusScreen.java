@@ -1,0 +1,120 @@
+package com.xtri6.grimstorage.client;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import com.xtri6.grimstorage.block.entity.BusBlockEntity;
+import com.xtri6.grimstorage.client.ui.GrimButton;
+import com.xtri6.grimstorage.client.ui.Theme;
+import com.xtri6.grimstorage.menu.BlockMenus;
+import com.xtri6.grimstorage.net.Payloads;
+import com.xtri6.grimstorage.storage.BulkKind;
+
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.network.PacketDistributor;
+
+/** Import / Export Bus: 9 filter slots, whitelist or blacklist, exact match, and a switch per resource. */
+public class BusScreen extends GrimScreen<BlockMenus.Bus> {
+    private GrimButton mode;
+    private GrimButton match;
+    private final List<Toggle> toggles = new ArrayList<>();
+
+    public BusScreen(BlockMenus.Bus menu, Inventory inv, Component title) {
+        super(menu, inv, title, 176, 186);
+    }
+
+    private record Toggle(GrimButton button, int bit) {}
+
+    private void send(int button) {
+        PacketDistributor.sendToServer(new Payloads.BusSetting(menu.containerId, button));
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        toggles.clear();
+        mode = addRenderableWidget(new GrimButton(leftPos + 8, topPos + 42, 78, 14, Component.empty(), b -> send(BlockMenus.Bus.BLACKLIST)));
+        match = addRenderableWidget(new GrimButton(leftPos + 90, topPos + 42, 78, 14, Component.empty(), b -> send(BlockMenus.Bus.MATCH_COMPONENTS)));
+        match.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.bus.match.tooltip")));
+        int x = leftPos + 8;
+        addToggle(x, BusBlockEntity.ITEMS_BIT, new ItemStack(Items.CHEST), Component.translatable("gui.grimstorage.kind.items"));
+        x += 22;
+        for (BulkKind kind : BulkKind.values()) {
+            if (!kind.available()) {
+                continue;
+            }
+            ItemStack icon = switch (kind) {
+                case FLUID -> new ItemStack(Items.WATER_BUCKET);
+                case EXPERIENCE -> new ItemStack(Items.EXPERIENCE_BOTTLE);
+                default -> BulkRender.icon(kind);
+            };
+            addToggle(x, 1 + kind.ordinal(), icon, Component.translatable("gui.grimstorage.kind." + kind.id()));
+            x += 22;
+        }
+        refreshLabels();
+    }
+
+    private void addToggle(int x, int bit, ItemStack icon, Component name) {
+        GrimButton b = new GrimButton(x, topPos + 70, 20, 20, Component.empty(), btn -> send(BlockMenus.Bus.RESOURCE + bit)) {
+            @Override
+            protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+                super.renderWidget(g, mouseX, mouseY, partialTick);
+                Theme t = t();
+                boolean on = menu.moves(bit);
+                g.renderItem(icon, getX() + 2, getY() + 1);
+                if (!on) {
+                    g.fill(getX() + 1, getY() + 1, getX() + getWidth() - 1, getY() + getHeight() - 1, 0xA0000000 | (t.panelBottom() & 0xFFFFFF));
+                }
+                g.fill(getX() + 3, getY() + getHeight() - 3, getX() + getWidth() - 3, getY() + getHeight() - 2,
+                        on ? t.ok() : Theme.withAlpha(t.textFaint(), 0x80));
+            }
+        };
+        b.setTooltip(Tooltip.create(Component.translatable(menu.isExport() ? "gui.grimstorage.bus.toggle.export" : "gui.grimstorage.bus.toggle.import", name)));
+        toggles.add(new Toggle(addRenderableWidget(b), bit));
+    }
+
+    private void refreshLabels() {
+        mode.setMessage(Component.translatable(menu.blacklist() ? "gui.grimstorage.bus.blacklist" : "gui.grimstorage.bus.whitelist"));
+        mode.setTooltip(Tooltip.create(Component.translatable(menu.blacklist() ? "gui.grimstorage.bus.blacklist.tooltip"
+                : "gui.grimstorage.bus.whitelist.tooltip")));
+        match.setMessage(Component.translatable(menu.matchComponents() ? "gui.grimstorage.bus.exact" : "gui.grimstorage.bus.any"));
+    }
+
+    @Override
+    protected void containerTick() {
+        super.containerTick();
+        refreshLabels();
+    }
+
+    @Override
+    protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
+        super.renderLabels(g, mouseX, mouseY);
+        Theme t = t();
+        BusBlockEntity.Status s = menu.status();
+        int color = switch (s) {
+            case WORKING -> t.ok();
+            case IDLE -> t.textDim();
+            case FULL -> t.warn();
+            default -> t.danger();
+        };
+        Component text = Component.translatable("gui.grimstorage.bus.status." + s.name().toLowerCase(java.util.Locale.ROOT));
+        int w = font.width(text);
+        int x = imageWidth - 22 - w;
+        g.fill(x - 7, 9, x - 3, 13, color);
+        g.drawString(font, text, x, 7, color, false);
+        hint(g, Component.translatable(menu.isExport() ? "gui.grimstorage.bus.moves.export" : "gui.grimstorage.bus.moves.import"), 8, 60);
+    }
+
+    @Override
+    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        super.render(g, mouseX, mouseY, partialTick);
+        if (hoveredSlot instanceof net.minecraft.world.inventory.Slot slot && slot.index < 9 && !slot.hasItem() && menu.getCarried().isEmpty()) {
+            g.renderTooltip(font, Component.translatable("gui.grimstorage.bus.slot"), mouseX, mouseY);
+        }
+    }
+}

@@ -7,12 +7,14 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.function.Supplier;
 
+import com.xtri6.grimstorage.block.BusBlock;
 import com.xtri6.grimstorage.block.CableBlock;
 import com.xtri6.grimstorage.block.FacingDeviceBlock;
 import com.xtri6.grimstorage.block.NetworkDeviceBlock;
 import com.xtri6.grimstorage.block.SoulGlassBlock;
 import com.xtri6.grimstorage.block.SoulInfuserBlock;
 import com.xtri6.grimstorage.block.entity.AssemblerBlockEntity;
+import com.xtri6.grimstorage.block.entity.BusBlockEntity;
 import com.xtri6.grimstorage.block.entity.ControllerBlockEntity;
 import com.xtri6.grimstorage.block.entity.DriveBlockEntity;
 import com.xtri6.grimstorage.block.entity.InterfaceBlockEntity;
@@ -166,6 +168,10 @@ public final class Registration {
             () -> new NetworkDeviceBlock(machine(), Registration.STOCK_KEEPER_ENTITY, Menus::openStockKeeper));
     public static final DeferredBlock<NetworkDeviceBlock> VOID_FILTER = device("void_filter",
             () -> new NetworkDeviceBlock(machine(), Registration.VOID_FILTER_ENTITY, Menus::openFilter));
+    public static final DeferredBlock<NetworkDeviceBlock> IMPORT_BUS = device("import_bus",
+            () -> new BusBlock(machine().noOcclusion(), Registration.IMPORT_BUS_ENTITY, Menus::openBus));
+    public static final DeferredBlock<NetworkDeviceBlock> EXPORT_BUS = device("export_bus",
+            () -> new BusBlock(machine().noOcclusion(), Registration.EXPORT_BUS_ENTITY, Menus::openBus));
     public static final DeferredBlock<NetworkDeviceBlock> QUANTUM_LINK = device("quantum_link",
             () -> new NetworkDeviceBlock(machine().lightLevel(s -> 9), Registration.QUANTUM_LINK_ENTITY, null));
     public static final DeferredBlock<CableBlock> CABLE = device("soul_cable",
@@ -196,6 +202,10 @@ public final class Registration {
             be("stock_keeper", StockKeeperBlockEntity::new, STOCK_KEEPER);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<VoidFilterBlockEntity>> VOID_FILTER_ENTITY =
             be("void_filter", VoidFilterBlockEntity::new, VOID_FILTER);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BusBlockEntity>> IMPORT_BUS_ENTITY =
+            be("import_bus", BusBlockEntity::new, IMPORT_BUS);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BusBlockEntity>> EXPORT_BUS_ENTITY =
+            be("export_bus", BusBlockEntity::new, EXPORT_BUS);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<QuantumLinkBlockEntity>> QUANTUM_LINK_ENTITY =
             be("quantum_link", QuantumLinkBlockEntity::new, QUANTUM_LINK);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SoulInfuserBlockEntity>> SOUL_INFUSER_ENTITY =
@@ -284,6 +294,8 @@ public final class Registration {
             () -> IMenuTypeExtension.create(BlockMenus.Processing::client));
     public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Filter>> FILTER_MENU = MENUS.register("filter",
             () -> IMenuTypeExtension.create(BlockMenus.Filter::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Bus>> BUS_MENU = MENUS.register("bus",
+            () -> IMenuTypeExtension.create(BlockMenus.Bus::client));
     public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.StockKeeper>> STOCK_KEEPER_MENU = MENUS.register("stock_keeper",
             () -> IMenuTypeExtension.create(BlockMenus.StockKeeper::client));
     public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Infuser>> INFUSER_MENU = MENUS.register("soul_infuser",
@@ -313,7 +325,7 @@ public final class Registration {
                                 RAW_SOULITE_BLOCK, SOULITE_BLOCK,
                                 RAW_SOULITE, SOULITE_DUST, SOULITE_NUGGET, SOULITE_INGOT,
                                 INFUSED_SOULITE, ECHO_SOULITE_SHARD, ECHO_SOULITE_ALLOY, SINGULARITY_CORE,
-                                SOUL_INFUSER, CONTROLLER, DRIVE, TERMINAL, CABLE, SOUL_GLASS, INTERFACE,
+                                SOUL_INFUSER, CONTROLLER, DRIVE, TERMINAL, CABLE, SOUL_GLASS, INTERFACE, IMPORT_BUS, EXPORT_BUS,
                                 ASSEMBLER, STOCK_KEEPER, VOID_FILTER, PROCESSING_INTERFACE, QUANTUM_LINK));
                         for (CellTier t : CellTier.values()) {
                             order.add(CELLS.get(t));

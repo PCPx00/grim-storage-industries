@@ -9,7 +9,9 @@ public enum BulkKind {
     FLUID("fluid", null, new long[] {256_000L, 4_096_000L, 65_536_000L, 1_048_576_000L}),
     CHEMICAL("chemical", "mekanism", new long[] {256_000L, 4_096_000L, 65_536_000L, 1_048_576_000L}),
     ENERGY("energy", null, new long[] {16_000_000L, 256_000_000L, 4_096_000_000L, 65_536_000_000L}),
-    SOURCE("source", "ars_nouveau", new long[] {10_000L, 100_000L, 1_000_000L, 10_000_000L});
+    SOURCE("source", "ars_nouveau", new long[] {10_000L, 100_000L, 1_000_000L, 10_000_000L}),
+    /** Experience points. Liquid XP from other mods ({@code c:experience}) is converted at 20 mB per point. */
+    EXPERIENCE("experience", null, new long[] {100_000L, 2_000_000L, 50_000_000L, 2_000_000_000L});
 
     private final String id;
     @Nullable
@@ -36,12 +38,12 @@ public enum BulkKind {
         return requiredMod == null || ModList.get().isLoaded(requiredMod);
     }
 
-    /** Capacity for a cell tier, in mB for fluids and chemicals, FE for energy, Source for Source. */
+    /** Capacity for a cell tier, in mB for fluids and chemicals, FE for energy, Source for Source, points for XP. */
     public long capacity(CellTier tier) {
         return capacities[Math.min(tier.ordinal(), capacities.length - 1)];
     }
 
-    /** Fluids and chemicals hold many types per cell; energy and Source are a single pool. */
+    /** Fluids and chemicals hold many types per cell; energy, Source and XP are a single pool. */
     public boolean typed() {
         return this == FLUID || this == CHEMICAL;
     }

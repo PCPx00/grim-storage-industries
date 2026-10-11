@@ -180,6 +180,40 @@ public final class SystemCheck {
         there.setPartner(GlobalPos.of(Level.OVERWORLD, at(0, 0, 1)));
     }
 
+    private static net.minecraft.world.level.block.state.BlockState bus(boolean importing) {
+        return (importing ? Registration.IMPORT_BUS.get() : Registration.EXPORT_BUS.get()).defaultBlockState()
+                .setValue(FacingDeviceBlock.All.FACING, Direction.UP);
+    }
+
+    private static double avgTickMs() {
+        long[] t = server.getTickTimesNanos();
+        long sum = 0;
+        for (long v : t) {
+            sum += v;
+        }
+        return sum / (double) t.length / 1_000_000.0;
+    }
+
+    /** Sets every chemical side of a Mekanism machine, like a player with a Configurator (new tanks start closed). */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static void mekanismSidesTo(BlockPos pos, String dataType) {
+        try {
+            Object be = level.getBlockEntity(pos);
+            Object config = be.getClass().getMethod("getConfig").invoke(be);
+            Class tt = Class.forName("mekanism.common.lib.transmitter.TransmissionType");
+            Object infoObj = config.getClass().getMethod("getConfig", tt).invoke(config, Enum.valueOf(tt, "CHEMICAL"));
+            Class dt = Class.forName("mekanism.common.tile.component.config.DataType");
+            Class rs = Class.forName("mekanism.api.RelativeSide");
+            java.lang.reflect.Method set = infoObj.getClass().getMethod("setDataType", dt, rs);
+            for (Object side : rs.getEnumConstants()) {
+                set.invoke(infoObj, Enum.valueOf(dt, dataType), side);
+            }
+            level.invalidateCapabilities(pos);
+        } catch (Throwable t) {
+            GrimStorage.LOGGER.error("[SystemCheck] could not configure Mekanism sides", t);
+        }
+    }
+
     private static void buildSteps() {
         STEPS.add(new Step("network forms with 3 drives' worth of cells across dimensions", 5, () -> {
             StorageNetwork n = net();
@@ -216,7 +250,7 @@ public final class SystemCheck {
                     }
                 }
                 info("guide: {} chapters, {} pages, {} item icons, {} recipes, broken={}", chapters.size(), pages, items, recipes, broken);
-                return chapters.size() == 12 && broken.isEmpty();
+                return chapters.size() == 13 && broken.isEmpty();
             } catch (Exception ex) {
                 GrimStorage.LOGGER.error("[SystemCheck] guide parse failed", ex);
                 return false;
@@ -415,6 +449,245 @@ public final class SystemCheck {
                     filled, 4000, afterFill, emptied, afterEmpty, h2After, h2Back);
             return filled && afterFill == 3000 && emptied && afterEmpty == 4000 && h2After == 0 && h2Back == 2000;
         }));
+        // ---- Import / Export Bus
+        final long[] before = new long[4];
+        STEPS.add(new Step("buses: place import and export buses", 0, () -> {
+            before[0] = count(Items.IRON_INGOT);
+            before[1] = net().countBulk(BulkKey.fluid(new FluidStack(Fluids.WATER, 1)));
+            before[2] = net().countBulk(BulkKey.flat(BulkKind.EXPERIENCE));
+            before[3] = count(Items.APPLE);
+            // Import bus on the cable, facing up into a barrel full of iron and apples.
+            level.setBlockAndUpdate(at(3, 2, 0), Blocks.BARREL.defaultBlockState());
+            IItemHandler barrel = level.getCapability(Capabilities.ItemHandler.BLOCK, at(3, 2, 0), Direction.DOWN);
+            for (int i = 0; i < 3; i++) {
+                barrel.insertItem(i, new ItemStack(Items.IRON_INGOT, 64), false);
+            }
+            barrel.insertItem(3, new ItemStack(Items.APPLE, 10), false);
+            level.setBlockAndUpdate(at(3, 1, 0), bus(true));
+            // Import bus on the terminal, facing up into a full water cauldron.
+            level.setBlockAndUpdate(at(5, 2, 0), Blocks.WATER_CAULDRON.defaultBlockState()
+                    .setValue(net.minecraft.world.level.block.LayeredCauldronBlock.LEVEL, 3));
+            level.setBlockAndUpdate(at(5, 1, 0), bus(true));
+            // Import bus on the assembler, facing open air, with XP orbs and an item floating there.
+            level.setBlockAndUpdate(at(2, 1, 0), bus(true));
+            level.addFreshEntity(new net.minecraft.world.entity.ExperienceOrb(level, BASE.getX() + 2.5, BASE.getY() + 2.3, BASE.getZ() + 0.5, 50));
+            level.addFreshEntity(new net.minecraft.world.entity.ExperienceOrb(level, BASE.getX() + 2.5, BASE.getY() + 2.3, BASE.getZ() + 0.5, 25));
+            net.minecraft.world.entity.item.ItemEntity drop = new net.minecraft.world.entity.item.ItemEntity(level,
+                    BASE.getX() + 2.5, BASE.getY() + 2.2, BASE.getZ() + 0.5, new ItemStack(Items.BONE, 5));
+            drop.setNoGravity(true);
+            level.addFreshEntity(drop);
+            return true;
+        }));
+        STEPS.add(new Step("import bus empties a barrel", 40, () -> {
+            IItemHandler barrel = level.getCapability(Capabilities.ItemHandler.BLOCK, at(3, 2, 0), Direction.DOWN);
+            int left = 0;
+            for (int i = 0; i < barrel.getSlots(); i++) {
+                left += barrel.getStackInSlot(i).getCount();
+            }
+            long iron = count(Items.IRON_INGOT) - before[0];
+            info("barrel left={} iron imported={} apples imported={}", left, iron, count(Items.APPLE) - before[3]);
+            return left == 0 && iron == 192 && count(Items.APPLE) - before[3] == 10;
+        }));
+        STEPS.add(new Step("import bus drains a cauldron", 40, () -> {
+            long water = net().countBulk(BulkKey.fluid(new FluidStack(Fluids.WATER, 1))) - before[1];
+            boolean empty = level.getBlockState(at(5, 2, 0)).is(Blocks.CAULDRON);
+            info("water imported={} cauldron empty={}", water, empty);
+            return water == 1000 && empty;
+        }));
+        STEPS.add(new Step("import bus in open air picks up XP orbs and items", 40, () -> {
+            long xp = net().countBulk(BulkKey.flat(BulkKind.EXPERIENCE)) - before[2];
+            long bones = count(Items.BONE);
+            info("xp collected={} bones={}", xp, bones);
+            return xp == 75 && bones >= 5;
+        }));
+        STEPS.add(new Step("export bus sends only filtered items", 40, () -> {
+            if (!level.getBlockState(at(4, 1, 0)).is(Registration.EXPORT_BUS.get())) {
+                level.setBlockAndUpdate(at(4, 2, 0), Blocks.BARREL.defaultBlockState());
+                level.setBlockAndUpdate(at(4, 1, 0), bus(false));
+                com.xtri6.grimstorage.block.entity.BusBlockEntity b = (com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(at(4, 1, 0));
+                b.filters().setItem(0, new ItemStack(Items.APPLE));
+                return false;
+            }
+            IItemHandler barrel = level.getCapability(Capabilities.ItemHandler.BLOCK, at(4, 2, 0), Direction.DOWN);
+            int apples = 0, other = 0;
+            for (int i = 0; i < barrel.getSlots(); i++) {
+                ItemStack st = barrel.getStackInSlot(i);
+                if (st.is(Items.APPLE)) {
+                    apples += st.getCount();
+                } else {
+                    other += st.getCount();
+                }
+            }
+            info("barrel apples={} other={} apples left in network={}", apples, other, count(Items.APPLE));
+            return apples == before[3] + 10 && other == 0 && count(Items.APPLE) == 0;
+        }));
+        STEPS.add(new Step("bus settings: blacklist, resource switches and saving", 0, () -> {
+            com.xtri6.grimstorage.block.entity.BusBlockEntity b = (com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(at(4, 1, 0));
+            boolean defaults = !b.blacklist() && b.moves(com.xtri6.grimstorage.block.entity.BusBlockEntity.ITEMS_BIT) && !b.moves(BulkKind.FLUID);
+            b.toggleResource(1 + BulkKind.ENERGY.ordinal());
+            var tag = b.saveWithoutMetadata(level.registryAccess());
+            com.xtri6.grimstorage.block.entity.BusBlockEntity copy = new com.xtri6.grimstorage.block.entity.BusBlockEntity(at(4, 1, 0), b.getBlockState());
+            copy.loadWithComponents(tag, level.registryAccess());
+            b.toggleResource(1 + BulkKind.ENERGY.ordinal());
+            boolean importDefaults = ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(at(3, 1, 0))).blacklist();
+            info("export defaults ok={} energy saved={} filter saved={} import defaults to blacklist={}", defaults, copy.moves(BulkKind.ENERGY),
+                    copy.filters().getItem(0).getItem(), importDefaults);
+            return defaults && copy.moves(BulkKind.ENERGY) && copy.filters().getItem(0).is(Items.APPLE) && importDefaults;
+        }));
+        STEPS.add(new Step("terminal: store and take XP", 0, () -> {
+            FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+            TerminalMenu menu = new TerminalMenu(995, fp.getInventory(), () -> NetworkManager.get(level, at(5, 0, 0)), p -> true);
+            BulkKey xp = BulkKey.flat(BulkKind.EXPERIENCE);
+            com.xtri6.grimstorage.storage.Experience.setPoints(fp, 1000);
+            long start = net().countBulk(xp);
+            int startLevel = fp.experienceLevel;
+            menu.handleXp(fp, 2);
+            long stored = net().countBulk(xp) - start;
+            long left = com.xtri6.grimstorage.storage.Experience.points(fp);
+            menu.handleXp(fp, 1);
+            int lvl = fp.experienceLevel;
+            long after = net().countBulk(xp);
+            info("1000 points = level {}; stored={} player left={} after taking 10 levels: level={} network xp={}", startLevel, stored, left, lvl,
+                    after);
+            return startLevel == 26 && stored == 1000 && left == 0 && lvl == 10 && after == start + 1000 - com.xtri6.grimstorage.storage.Experience.pointsForLevel(10);
+        }));
+        final int[] phase = {0};
+        STEPS.add(new Step("import bus pulls chemicals from another network, and its front never merges networks", 60, () -> {
+            BulkKey h2 = BulkKey.chemical(ResourceLocation.fromNamespaceAndPath("mekanism", "hydrogen"));
+            if (phase[0] == 0) {
+                // A second, separate network: interface (8) - controller (9) - drive (10). The main network reaches it
+                // only through an Import Bus at (7) facing east, connected by cable at (6).
+                level.setBlockAndUpdate(at(8, 0, 0), Registration.INTERFACE.get().defaultBlockState());
+                level.setBlockAndUpdate(at(9, 0, 0), Registration.CONTROLLER.get().defaultBlockState());
+                level.setBlockAndUpdate(at(10, 0, 0), Registration.DRIVE.get().defaultBlockState());
+                ((DriveBlockEntity) level.getBlockEntity(at(10, 0, 0))).cells().setStackInSlot(0,
+                        new ItemStack(Registration.BULK_CELLS.get(BulkKind.CHEMICAL).get(CellTier.COPPER).get()));
+                ((InterfaceBlockEntity) level.getBlockEntity(at(8, 0, 0))).toggleExport(BulkKind.CHEMICAL);
+                phase[0] = 1;
+                return false;
+            }
+            StorageNetwork other = NetworkManager.get(level, at(9, 0, 0));
+            if (phase[0] == 1) {
+                if (other == null) {
+                    return false;
+                }
+                before[0] = net().countBulk(h2);
+                long in = other.insertBulk(h2, 3000, false);
+                level.setBlockAndUpdate(at(6, 0, 0), Registration.CABLE.get().defaultBlockState());
+                level.setBlockAndUpdate(at(7, 0, 0), Registration.IMPORT_BUS.get().defaultBlockState()
+                        .setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
+                info("second network up, hydrogen put in={}", in);
+                phase[0] = 2;
+                return false;
+            }
+            StorageNetwork main = net();
+            long got = main == null ? -1 : main.countBulk(h2) - before[0];
+            long left = other == null ? -1 : other.countBulk(h2);
+            info("main network ok={} other network ok={} hydrogen moved={} left over there={}", main != null, other != null, got, left);
+            return main != null && other != null && main != other && got == 3000 && left == 0;
+        }));
+        // ---- Lag check: 256 idle buses on the network
+        final double[] tickMs = new double[2];
+        final int[] lagWait = {0};
+        final long[] epochAt = {0};
+        STEPS.add(new Step("lag check: baseline tick time", 120, () -> {
+            if (lagWait[0]++ < 110) {
+                return false;
+            }
+            tickMs[0] = avgTickMs();
+            lagWait[0] = 0;
+            for (int cx = 0; cx <= 4; cx++) {
+                level.setChunkForced(cx, 0, true);
+            }
+            level.setBlockAndUpdate(at(0, 0, 2), Registration.CABLE.get().defaultBlockState());
+            for (int x = 0; x < 64; x++) {
+                BlockPos cable = at(x, 0, 3);
+                level.setBlockAndUpdate(cable, Registration.CABLE.get().defaultBlockState());
+                for (Direction d : new Direction[] {Direction.UP, Direction.DOWN, Direction.SOUTH}) {
+                    level.setBlockAndUpdate(cable.relative(d), Registration.IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, d));
+                    level.setBlockAndUpdate(cable.relative(d, 2), Blocks.BARREL.defaultBlockState());
+                }
+                // and an Export Bus with a filter, facing an empty barrel
+                BlockPos top = at(x, 0, 3).relative(Direction.UP, 3);
+                level.setBlockAndUpdate(top, Blocks.AIR.defaultBlockState());
+            }
+            for (int x = 0; x < 64; x++) {
+                BlockPos side = at(x, 0, 3).relative(Direction.NORTH);
+                if (x == 0) {
+                    continue;
+                }
+                level.setBlockAndUpdate(side, Registration.EXPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.NORTH));
+                level.setBlockAndUpdate(side.relative(Direction.NORTH), Blocks.BARREL.defaultBlockState());
+                ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(side)).filters().setItem(0, new ItemStack(Items.DIAMOND));
+            }
+            return true;
+        }));
+        STEPS.add(new Step("lag check: 255 idle buses barely cost anything", 140, () -> {
+            if (lagWait[0] == 30) {
+                epochAt[0] = NetworkManager.epoch();
+                com.xtri6.grimstorage.block.entity.BusBlockEntity.profileNanos = 0;
+                com.xtri6.grimstorage.block.entity.BusBlockEntity.profileTicks = 0;
+            }
+            if (lagWait[0]++ < 130) {
+                return false;
+            }
+            double busUs = com.xtri6.grimstorage.block.entity.BusBlockEntity.profileNanos / 1000.0
+                    / Math.max(1, com.xtri6.grimstorage.block.entity.BusBlockEntity.profileTicks);
+            tickMs[1] = avgTickMs();
+            StorageNetwork n = net();
+            int buses = 0;
+            for (int x = 0; x < 64; x++) {
+                for (Direction d : Direction.values()) {
+                    if (level.getBlockEntity(at(x, 0, 3).relative(d)) instanceof com.xtri6.grimstorage.block.entity.BusBlockEntity b && b.network() == n) {
+                        buses++;
+                    }
+                }
+            }
+            double perBusUs = (tickMs[1] - tickMs[0]) * 1000.0 / Math.max(1, buses);
+            info("buses on network={} avg tick before={} ms after={} ms (incl. 5 extra force-loaded chunks); measured inside the buses: {} microseconds per bus per tick, {} ms per tick for all of them",
+                    buses, String.format("%.3f", tickMs[0]), String.format("%.3f", tickMs[1]), String.format("%.3f", busUs),
+                    String.format("%.3f", busUs * buses / 1000.0));
+            info("network rebuilds during the window: {}", NetworkManager.epoch() - epochAt[0]);
+            return buses == 255 && busUs < 1.0;
+        }));
+        final int[] mek = {0};
+        final long[] mekHeld = {0};
+        STEPS.add(new Step("Mekanism: import bus pulls hydrogen out of a real chemical tank (sides set to output)", 80, () -> {
+            BlockPos tankPos = at(-1, 2, 0);
+            BulkKey h2 = BulkKey.chemical(ResourceLocation.fromNamespaceAndPath("mekanism", "hydrogen"));
+            BlockCapability<IChemicalHandler, Direction> cap = BlockCapability.createSided(
+                    ResourceLocation.fromNamespaceAndPath("mekanism", "chemical_handler"), IChemicalHandler.class);
+            if (mek[0] == 0) {
+                net.minecraft.world.level.block.Block block = BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("mekanism", "basic_chemical_tank"));
+                level.setBlockAndUpdate(tankPos, block.defaultBlockState());
+                block.setPlacedBy(level, tankPos, level.getBlockState(tankPos), FakePlayerFactory.getMinecraft(level), new ItemStack(block.asItem()));
+                mek[0] = 1;
+                return false;
+            }
+            if (mek[0] < 10) {
+                mek[0]++;
+                return false;
+            }
+            if (mek[0] == 10) {
+                mekanismSidesTo(tankPos, "OUTPUT");
+                Chemical hydrogen = MekanismAPI.CHEMICAL_REGISTRY.get(ResourceLocation.fromNamespaceAndPath("mekanism", "hydrogen"));
+                ((mekanism.api.chemical.IMekanismChemicalHandler) level.getBlockEntity(tankPos))
+                        .insertChemical(0, new ChemicalStack(hydrogen, 4000), null, Action.EXECUTE);
+                before[0] = net().countBulk(h2);
+                IChemicalHandler all0 = level.getCapability(cap, tankPos, null);
+                mekHeld[0] = all0 == null ? 0 : all0.getChemicalInTank(0).getAmount();
+                info("tank down side open={} tank holds={} network chemical stats={}", level.getCapability(cap, tankPos, Direction.DOWN) != null,
+                        all0 == null ? -1 : all0.getChemicalInTank(0).getAmount(), java.util.Arrays.toString(net().bulkStats(BulkKind.CHEMICAL)));
+                level.setBlockAndUpdate(at(-1, 1, 0), bus(true));
+                mek[0] = 11;
+                return false;
+            }
+            long got = net().countBulk(h2) - before[0];
+            IChemicalHandler all = level.getCapability(cap, tankPos, null);
+            long left = all == null ? -1 : all.getChemicalInTank(0).getAmount();
+            info("hydrogen pulled from the Mekanism tank={} left in tank={}", got, left);
+            return mekHeld[0] > 0 && got == mekHeld[0] && left == 0;
+        }));
         STEPS.add(new Step("void filter destroys overflow only", 0, () -> {
             VoidFilterBlockEntity v = (VoidFilterBlockEntity) level.getBlockEntity(at(0, -1, 0));
             v.filters().setItem(0, new ItemStack(Items.DIRT));
@@ -459,8 +732,11 @@ public final class SystemCheck {
             } catch (Exception ex) {
                 return false;
             }
-            info("after restart total={} expected={} drives={}", total, expected, n.driveCount());
-            return total == expected && n.driveCount() == 2;
+            boolean busKept = level.getBlockEntity(at(4, 1, 0)) instanceof com.xtri6.grimstorage.block.entity.BusBlockEntity b
+                    && b.filters().getItem(0).is(Items.APPLE) && !b.blacklist();
+            info("after restart total={} expected={} drives={} export bus kept its filter={} xp={}", total, expected, n.driveCount(), busKept,
+                    n.countBulk(BulkKey.flat(BulkKind.EXPERIENCE)));
+            return total == expected && n.driveCount() == 2 && busKept;
         }));
     }
 

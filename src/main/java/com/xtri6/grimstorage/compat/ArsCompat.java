@@ -6,7 +6,13 @@ import com.xtri6.grimstorage.storage.BulkKey;
 import com.xtri6.grimstorage.storage.BulkKind;
 import com.xtri6.grimstorage.storage.StorageNetwork;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
+
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.capabilities.BlockCapability;
@@ -22,6 +28,49 @@ final class ArsCompat implements Compat.Source {
     @Override
     public void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<InterfaceBlockEntity> type) {
         event.registerBlockEntity(SOURCE, type, (be, side) -> new Cap(be));
+    }
+
+    @Override
+    public Compat.BulkLink link(ServerLevel level, BlockPos pos, Direction side, BooleanSupplier valid, Runnable invalidated) {
+        BlockCapabilityCache<ISourceCap, Direction> cache = BlockCapabilityCache.create(SOURCE, level, pos, side, valid, invalidated);
+        return new Compat.BulkLink() {
+            @Override
+            public long pull(StorageNetwork net, long max, Predicate<BulkKey> ok) {
+                ISourceCap cap = cache.getCapability();
+                if (cap == null) {
+                    return -1;
+                }
+                int want = (int) Math.min(Math.min(max, Integer.MAX_VALUE), cap.getSource());
+                int can = want <= 0 ? 0 : cap.extractSource(want, true);
+                long fits = can <= 0 ? 0 : net.insertBulk(KEY, can, true);
+                if (fits <= 0) {
+                    return 0;
+                }
+                int got = cap.extractSource((int) fits, false);
+                net.insertBulk(KEY, got, false);
+                return got;
+            }
+
+            @Override
+            public long push(StorageNetwork net, long max, Iterable<BulkKey> candidates) {
+                ISourceCap cap = cache.getCapability();
+                if (cap == null) {
+                    return -1;
+                }
+                long have = net.extractBulk(KEY, Math.min(max, Integer.MAX_VALUE), true);
+                int room = Math.max(0, cap.getSourceCapacity() - cap.getSource());
+                int accepted = have <= 0 || room <= 0 ? 0 : cap.receiveSource((int) Math.min(have, room), true);
+                if (accepted <= 0) {
+                    return 0;
+                }
+                long got = net.extractBulk(KEY, accepted, false);
+                int in = cap.receiveSource((int) got, false);
+                if (in < got) {
+                    net.insertBulk(KEY, got - in, false);
+                }
+                return in;
+            }
+        };
     }
 
     /** The interface as a Source container: anything can add Source, taking it is allowed when switched on. */

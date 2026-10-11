@@ -19,6 +19,7 @@ import net.neoforged.neoforge.fluids.FluidStack;
 public final class BulkKey {
     private static final BulkKey ENERGY = new BulkKey(BulkKind.ENERGY, null, FluidStack.EMPTY);
     private static final BulkKey SOURCE = new BulkKey(BulkKind.SOURCE, null, FluidStack.EMPTY);
+    private static final BulkKey EXPERIENCE = new BulkKey(BulkKind.EXPERIENCE, null, FluidStack.EMPTY);
 
     private final BulkKind kind;
     @Nullable
@@ -43,7 +44,11 @@ public final class BulkKey {
     }
 
     public static BulkKey flat(BulkKind kind) {
-        return kind == BulkKind.ENERGY ? ENERGY : SOURCE;
+        return switch (kind) {
+            case ENERGY -> ENERGY;
+            case EXPERIENCE -> EXPERIENCE;
+            default -> SOURCE;
+        };
     }
 
     public BulkKind kind() {

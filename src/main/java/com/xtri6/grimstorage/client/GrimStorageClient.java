@@ -40,6 +40,7 @@ public final class GrimStorageClient {
         e.register(Registration.ASSEMBLER_MENU.get(), SimpleScreens.Assembler::new);
         e.register(Registration.PROCESSING_MENU.get(), SimpleScreens.Processing::new);
         e.register(Registration.FILTER_MENU.get(), SimpleScreens.Filter::new);
+        e.register(Registration.BUS_MENU.get(), BusScreen::new);
         e.register(Registration.STOCK_KEEPER_MENU.get(), StockKeeperScreen::new);
         e.register(Registration.INFUSER_MENU.get(), SimpleScreens.Infuser::new);
         e.register(Registration.RECIPE_CARD_MENU.get(), SimpleScreens.RecipeCard::new);

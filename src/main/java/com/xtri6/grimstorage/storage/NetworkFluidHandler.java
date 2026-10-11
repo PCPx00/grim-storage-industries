@@ -19,11 +19,18 @@ public final class NetworkFluidHandler implements IFluidHandler {
     private final BooleanSupplier canDrain;
     @Nullable
     private final BulkKey only;
+    private final BooleanSupplier canDrainXp;
 
     public NetworkFluidHandler(Supplier<StorageNetwork> network, BooleanSupplier canDrain, @Nullable BulkKey only) {
+        this(network, canDrain, only, () -> false);
+    }
+
+    /** {@code canDrainXp}: may stored XP points be drained back out as liquid XP? */
+    public NetworkFluidHandler(Supplier<StorageNetwork> network, BooleanSupplier canDrain, @Nullable BulkKey only, BooleanSupplier canDrainXp) {
         this.network = network;
         this.canDrain = canDrain;
         this.only = only;
+        this.canDrainXp = canDrainXp;
     }
 
     private List<BulkKey> keys(StorageNetwork net) {
@@ -58,17 +65,31 @@ public final class NetworkFluidHandler implements IFluidHandler {
     @Override
     public int fill(FluidStack resource, FluidAction action) {
         StorageNetwork net = network.get();
-        return net == null || resource.isEmpty() ? 0 : (int) net.insertBulk(BulkKey.fluid(resource), resource.getAmount(), action.simulate());
+        if (net == null || resource.isEmpty()) {
+            return 0;
+        }
+        if (Experience.isXpFluid(resource)) {
+            // Liquid XP becomes XP points when there is an XP cell with room; otherwise it is stored as a fluid.
+            long points = net.insertBulk(Experience.KEY, resource.getAmount() / Experience.MB_PER_POINT, action.simulate());
+            if (points > 0) {
+                return (int) (points * Experience.MB_PER_POINT);
+            }
+        }
+        return (int) net.insertBulk(BulkKey.fluid(resource), resource.getAmount(), action.simulate());
     }
 
     @Override
     public FluidStack drain(FluidStack resource, FluidAction action) {
         StorageNetwork net = network.get();
         BulkKey key = BulkKey.fluid(resource);
-        if (net == null || key == null || !canDrain.getAsBoolean() || (only != null && !only.equals(key))) {
+        if (net == null || key == null || (only != null && !only.equals(key))) {
             return FluidStack.EMPTY;
         }
-        long got = net.extractBulk(key, resource.getAmount(), action.simulate());
+        long got = canDrain.getAsBoolean() ? net.extractBulk(key, resource.getAmount(), action.simulate()) : 0;
+        if (got <= 0 && Experience.isXpFluid(resource) && canDrainXp.getAsBoolean()) {
+            long points = net.extractBulk(Experience.KEY, resource.getAmount() / Experience.MB_PER_POINT, action.simulate());
+            return points <= 0 ? FluidStack.EMPTY : resource.copyWithAmount((int) (points * Experience.MB_PER_POINT));
+        }
         return got <= 0 ? FluidStack.EMPTY : key.fluid((int) got);
     }
 

@@ -52,6 +52,8 @@ public final class Payloads {
         r.playToServer(ClearGrid.TYPE, ClearGrid.CODEC, Payloads::onClearGrid);
         r.playToServer(ToggleExport.TYPE, ToggleExport.CODEC, Payloads::onToggleExport);
         r.playToServer(TerminalBulkClick.TYPE, TerminalBulkClick.CODEC, Payloads::onTerminalBulkClick);
+        r.playToServer(TerminalXp.TYPE, TerminalXp.CODEC, Payloads::onTerminalXp);
+        r.playToServer(BusSetting.TYPE, BusSetting.CODEC, Payloads::onBusSetting);
     }
 
     // ------------------------------------------------------------------ server -> client
@@ -252,6 +254,42 @@ public final class Payloads {
         if (ctx.player().containerMenu instanceof BlockMenus.Filter m && m.containerId == p.containerId()
                 && p.kind() >= 0 && p.kind() < BulkKind.values().length) {
             m.toggleExport(BulkKind.values()[p.kind()]);
+        }
+    }
+
+    /** Experience view: 0 = take one level, 1 = take ten levels, 2 = store all of your XP. */
+    public record TerminalXp(int containerId, int action) implements CustomPacketPayload {
+        public static final Type<TerminalXp> TYPE = id("terminal_xp");
+        public static final StreamCodec<RegistryFriendlyByteBuf, TerminalXp> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, TerminalXp::containerId, ByteBufCodecs.VAR_INT, TerminalXp::action, TerminalXp::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    private static void onTerminalXp(TerminalXp p, IPayloadContext ctx) {
+        if (ctx.player() instanceof ServerPlayer sp && sp.containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
+            m.handleXp(sp, p.action());
+        }
+    }
+
+    /** Import/Export Bus screen: a button was pressed (see {@link com.xtri6.grimstorage.menu.BlockMenus.Bus#press}). */
+    public record BusSetting(int containerId, int button) implements CustomPacketPayload {
+        public static final Type<BusSetting> TYPE = id("bus_setting");
+        public static final StreamCodec<RegistryFriendlyByteBuf, BusSetting> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, BusSetting::containerId, ByteBufCodecs.VAR_INT, BusSetting::button, BusSetting::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    private static void onBusSetting(BusSetting p, IPayloadContext ctx) {
+        if (ctx.player().containerMenu instanceof BlockMenus.Bus m && m.containerId == p.containerId()) {
+            m.press(p.button());
         }
     }
 
