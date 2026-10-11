@@ -214,6 +214,7 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
     }
 
     @Nullable
+    @Override
     public Component machineName() {
         if (machineName == null && level != null) {
             machineName = level.getBlockState(target()).getBlock().getName();
