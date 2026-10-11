@@ -220,12 +220,7 @@ public final class Registration {
             if (tier == CellTier.NETHERITE || tier == CellTier.SINGULARITY) {
                 props.fireResistant();
             }
-            props.rarity(switch (tier) {
-                case COPPER, GOLD -> Rarity.COMMON;
-                case DIAMOND -> Rarity.UNCOMMON;
-                case NETHERITE -> Rarity.RARE;
-                case SINGULARITY -> Rarity.EPIC;
-            });
+            props.rarity(tier.rarity());
             CELLS.put(tier, ITEMS.register(tier.id(), () -> new StorageCellItem(tier, props)));
         }
     }
@@ -237,8 +232,7 @@ public final class Registration {
         for (BulkKind kind : BulkKind.values()) {
             Map<CellTier, DeferredItem<BulkCellItem>> tiers = new EnumMap<>(CellTier.class);
             for (CellTier tier : BulkKind.TIERS) {
-                Item.Properties props = new Item.Properties().rarity(tier == CellTier.DIAMOND ? Rarity.UNCOMMON
-                        : tier == CellTier.NETHERITE ? Rarity.RARE : Rarity.COMMON);
+                Item.Properties props = new Item.Properties().rarity(tier.rarity());
                 if (tier == CellTier.NETHERITE) {
                     props.fireResistant();
                 }

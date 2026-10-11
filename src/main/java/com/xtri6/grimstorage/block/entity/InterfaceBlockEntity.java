@@ -1,7 +1,9 @@
 package com.xtri6.grimstorage.block.entity;
 
 import com.xtri6.grimstorage.Registration;
+import com.xtri6.grimstorage.storage.BulkKey;
 import com.xtri6.grimstorage.storage.BulkKind;
+import com.xtri6.grimstorage.storage.PipePort;
 import com.xtri6.grimstorage.storage.ItemKey;
 import com.xtri6.grimstorage.storage.NetworkEnergyStorage;
 import com.xtri6.grimstorage.storage.NetworkFluidHandler;
@@ -16,7 +18,7 @@ import net.neoforged.neoforge.items.IItemHandler;
  * Lets pipes, hoppers and other mods talk to the network. Anything can be pushed in. Only the items set in
  * the 9 export slots can be pulled out, so a hopper underneath cannot drain the whole system.
  */
-public class InterfaceBlockEntity extends FilterBlockEntity {
+public class InterfaceBlockEntity extends FilterBlockEntity implements PipePort {
     private final IItemHandler handler = new NetworkHandler();
     /** Per {@link BulkKind}: may pipes pull this resource out? Off by default so nothing drains by accident. */
     private final boolean[] exports = new boolean[BulkKind.values().length];
@@ -42,6 +44,22 @@ public class InterfaceBlockEntity extends FilterBlockEntity {
 
     public boolean exports(BulkKind kind) {
         return exports[kind.ordinal()];
+    }
+
+    @Override
+    public boolean pipeInsert(BulkKey key) {
+        return true;
+    }
+
+    @Override
+    public boolean pipeExtract(BulkKey key) {
+        return exports(key.kind());
+    }
+
+    /** Pipes can see everything stored here, even what they are not allowed to pull. */
+    @Override
+    public boolean pipeLists(BulkKey key) {
+        return true;
     }
 
     public void toggleExport(BulkKind kind) {

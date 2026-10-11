@@ -61,7 +61,13 @@ public class StorageCellItem extends Item {
     }
 
     @Override
+    public boolean isFoil(ItemStack stack) {
+        return tier.glints() || super.isFoil(stack);
+    }
+
+    @Override
     public void appendHoverText(ItemStack stack, TooltipContext ctx, List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(tier.tooltipLine());
         CardData.CellStats stats = stack.get(Registration.CELL_STATS.get());
         long used = stats == null ? 0 : stats.used();
         int types = stats == null ? 0 : stats.types();

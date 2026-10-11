@@ -27,7 +27,7 @@ sourceSets.main.resources {
 }
 
 repositories {
-    // Optional integrations, compile-time only: the mod runs fine without either installed.
+    // Optional integrations, compile-time only: the mod runs fine without any of them installed.
     maven {
         name = 'ModMaven'
         url = 'https://modmaven.dev'
@@ -36,7 +36,7 @@ repositories {
     maven {
         name = 'BlameJared'
         url = 'https://maven.blamejared.com'
-        content { includeGroup 'com.hollingsworth.ars_nouveau' }
+        content { includeGroup 'com.hollingsworth.ars_nouveau'; includeGroup 'mezz.jei'; includeGroupByRegex 'net[.]mezzdev.*' }
     }
 }
 
@@ -154,6 +154,11 @@ dependencies {
     compileOnly "mekanism:Mekanism:${mekanism_version}:api"
     localRuntime "mekanism:Mekanism:${mekanism_version}"
     // Ars Nouveau Source (optional), API only.
+    compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
+    compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
+    localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    // Dev runs only: any mod jars dropped in libs-dev/ (for example Grim Pipe Industries, to test real pipes on the buses).
+    localRuntime fileTree(dir: 'libs-dev', include: '*.jar')
     compileOnly("com.hollingsworth.ars_nouveau:ars_nouveau-1.21.1:${ars_version}") { transitive = false }
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

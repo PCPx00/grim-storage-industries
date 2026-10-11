@@ -67,9 +67,13 @@ public class CableBlock extends Block implements NetworkMember {
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext ctx) {
-        BlockState state = defaultBlockState();
+        return connected(defaultBlockState(), ctx.getLevel(), ctx.getClickedPos());
+    }
+
+    /** The cable's state with every side worked out from its neighbors. */
+    private static BlockState connected(BlockState state, BlockGetter level, BlockPos pos) {
         for (Direction d : Direction.values()) {
-            state = state.setValue(SIDES.get(d), connects(d, ctx.getLevel().getBlockState(ctx.getClickedPos().relative(d))));
+            state = state.setValue(SIDES.get(d), connects(d, level.getBlockState(pos.relative(d))));
         }
         return state;
     }
@@ -93,6 +97,13 @@ public class CableBlock extends Block implements NetworkMember {
     @Override
     protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean moved) {
         super.onPlace(state, level, pos, oldState, moved);
+        // Cable set by commands, structures or other mods skips getStateForPlacement; connect it up anyway.
+        if (!level.isClientSide && !oldState.is(this)) {
+            BlockState fixed = connected(state, level, pos);
+            if (fixed != state) {
+                level.setBlock(pos, fixed, Block.UPDATE_CLIENTS);
+            }
+        }
         NetworkMember.changed(state, oldState);
     }
 

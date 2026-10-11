@@ -88,4 +88,32 @@ public class NetworkDeviceBlock extends Block implements EntityBlock, NetworkMem
         NetworkMember.changed(state, newState);
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
+
+    /** Soul wisps drifting off the controller, quantum link and void filter. Client only, purely for looks. */
+    @Override
+    public void animateTick(BlockState state, Level level, BlockPos pos, net.minecraft.util.RandomSource random) {
+        boolean controller = this == com.xtri6.grimstorage.Registration.CONTROLLER.get();
+        boolean link = this == com.xtri6.grimstorage.Registration.QUANTUM_LINK.get();
+        boolean voids = this == com.xtri6.grimstorage.Registration.VOID_FILTER.get();
+        if (!(controller || link || voids) || random.nextInt(controller ? 3 : 2) != 0) {
+            return;
+        }
+        net.minecraft.core.Direction side = net.minecraft.core.Direction.getRandom(random);
+        BlockPos out = pos.relative(side);
+        if (level.getBlockState(out).isSolidRender(level, out)) {
+            return;
+        }
+        double x = pos.getX() + 0.5 + side.getStepX() * 0.55 + (side.getStepX() == 0 ? random.nextDouble() * 0.8 - 0.4 : 0);
+        double y = pos.getY() + 0.5 + side.getStepY() * 0.55 + (side.getStepY() == 0 ? random.nextDouble() * 0.8 - 0.4 : 0);
+        double z = pos.getZ() + 0.5 + side.getStepZ() * 0.55 + (side.getStepZ() == 0 ? random.nextDouble() * 0.8 - 0.4 : 0);
+        if (voids) {
+            // overflow being pulled into the void
+            level.addParticle(net.minecraft.core.particles.ParticleTypes.PORTAL, x, y, z,
+                    (pos.getX() + 0.5 - x) * 2, (pos.getY() + 0.5 - y) * 2, (pos.getZ() + 0.5 - z) * 2);
+        } else if (link) {
+            level.addParticle(net.minecraft.core.particles.ParticleTypes.REVERSE_PORTAL, x, y, z, side.getStepX() * 0.02, 0.02, side.getStepZ() * 0.02);
+        } else {
+            level.addParticle(net.minecraft.core.particles.ParticleTypes.SOUL_FIRE_FLAME, x, y, z, side.getStepX() * 0.01, 0.015, side.getStepZ() * 0.01);
+        }
+    }
 }

@@ -73,7 +73,10 @@
         },
         {
           "title": "Infused Soulite",
-          "text": "Made in the Soul Infuser. It unlocks the third tier: Diamond cells, Speed Upgrades, the Stock Keeper and wireless terminals.",
+          "text": [
+            "Made in the Soul Infuser. It unlocks the third tier: Diamond cells, Speed Upgrades, the Stock Keeper and wireless terminals.",
+            "With **JEI** installed, look up Infused Soulite (or click the arrow in the Soul Infuser) to see every infusing recipe."
+          ],
           "recipe": "grimstorage:infused_soulite"
         },
         {
@@ -114,7 +117,8 @@
         {
           "title": "Connecting things",
           "text": [
-            "Network blocks join just by touching. To reach further, use **Soul Cable**, or **Soulite Glass** if you want it to look nice. Both carry the network.",
+            "Network blocks join just by touching. To reach further, use **Soul Cable**, or **Soulite Glass** if you want it to look nice.",
+            "One cable carries **everything**: items, fluids, energy, XP, chemicals and Source all travel down the same line to every bus, interface and machine on the network.",
             "There is no limit on how many blocks a network can have."
           ],
           "recipe": "grimstorage:soul_cable",
@@ -201,6 +205,22 @@
           "recipe": "grimstorage:storage_cell_64k"
         },
         {
+          "title": "Telling tiers apart",
+          "text": [
+            "Every tier has its own **cap color** and **1 to 4 lights** down the right side: Copper, Gold, Diamond, Netherite.",
+            "- **Diamond** cells catch the light with a moving shine.",
+            "- **Netherite** cells glow with ember seams and shimmer like enchanted gear.",
+            "Names and tooltips get brighter colors at each tier, so you can spot your best cells at a glance."
+          ],
+          "items": [
+            "grimstorage:storage_cell_4k",
+            "grimstorage:storage_cell_64k",
+            "grimstorage:storage_cell_1m",
+            "grimstorage:storage_cell_64m",
+            "grimstorage:singularity_cell"
+          ]
+        },
+        {
           "title": "Singularity Cell",
           "text": [
             "Holds **one item type with no limit**. Great for cobblestone, dirt or anything you farm in huge amounts.",
@@ -261,7 +281,7 @@
         {
           "title": "Pipes and machines",
           "text": [
-            "The easy way: stick an **Import Bus** on a machine, tank or generator and everything in it flows into the network. An **Export Bus** sends things back out. See the Import & Export chapter.",
+            "The easy way: stick an **Import Bus** on a machine, tank or generator and everything in it flows into the network. An **Export Bus** sends things back out. Pipes from any mod can plug into either bus too. See the Buses chapter.",
             "Pipes can also push anything into a **Network Interface**. To let pipes **pull** from it, open it and turn on that resource's **Pull** switch."
           ],
           "recipe": "grimstorage:network_interface"
@@ -423,6 +443,20 @@
             "Example: an Export Bus on a furnace with coal in its filter keeps it fuelled."
           ],
           "recipe": "grimstorage:export_bus"
+        },
+        {
+          "title": "Pipes from any mod",
+          "text": [
+            "Pipes from any mod connect straight to a bus, on **any side**.",
+            "- Pipes **push into an Import Bus** and it all goes into the network.",
+            "- Pipes **pull out of an Export Bus**, but only what its filter and switches allow.",
+            "Works for items, fluids, energy, chemicals, Source and liquid XP. Run Soul Cable to the back of the bus and one line carries it all."
+          ],
+          "items": [
+            "grimstorage:import_bus",
+            "grimstorage:export_bus",
+            "grimstorage:soul_cable"
+          ]
         },
         {
           "title": "Filters",

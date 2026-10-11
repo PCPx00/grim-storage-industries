@@ -24,12 +24,13 @@ Lost it? Craft one from a book and a Soulite Ingot.
 | Network Controller | The heart of a network. Exactly one per network. Open it to see storage use and crafting jobs (and cancel them). |
 | Soul Drive | Holds 8 storage cells. Cells keep their contents when moved. |
 | Soul Terminal | Browse, search (`@mod` searches by mod), filter with the side tabs (ores, ingots, tools, armor, food, mob drops, farming, building, misc), take, store, order crafts, and craft by hand in the built-in 3x3 grid that refills itself from storage. |
-| Soul Cable / Soulite Glass | Connect network blocks. The glass is decorative and see-through. |
+| Soul Cable / Soulite Glass | Connect network blocks. One cable carries everything (items, fluids, energy, XP, chemicals, Source) to every bus, interface and machine on the network. The glass is decorative and see-through. |
 | Soul Assembler | Holds 9 Recipe Cards and runs them. Up to 4 Speed Upgrades, each doubling its speed. |
 | Processing Interface | Faces any machine (any mod). Sends Processing Card inputs in and pulls the outputs back. |
 | Stock Keeper | "Always keep N of this": up to 9 items it keeps crafted. |
 | Import Bus | Sticks onto the face of any block (chest, tank, furnace, generator, any modded machine) and pulls items, fluids, energy, XP, chemicals and Source from it into the network. Facing open air it picks up dropped items and XP orbs. 9-slot filter (whitelist/blacklist, exact or ignore-NBT) and an on/off switch per resource. |
 | Export Bus | The reverse: pushes from the network into the block it is on. Sends only the items you pick by default; switch on fluids, energy, XP, chemicals or Source to send those too. |
+| (both buses) | Pipes from any mod plug into a bus on any side: pipes push into an Import Bus, and pull out of an Export Bus (only what its filter and switches allow). Tested with Grim Pipe Industries omni pipes and hoppers. |
 | Network Interface | Lets pipes, hoppers and other mods use the network. Items, fluids, energy, XP, chemicals and Source can all be pushed in. Items can only be pulled out if you pick them in its 9 slots; the other resources each have a Pull switch (off by default). |
 | Void Filter | When storage is full, the items you pick are destroyed instead of backing up. |
 | Quantum Link | Joins two networks across any distance or dimension. Pair two links with a Soul Tether. Both sides must be loaded. |
@@ -122,16 +123,33 @@ its Pull switch for a resource to let pipes take it back out.
 - Filter: 9 ghost slots. Buckets and tanks filter their fluid or chemical. **Only these** (whitelist) or **All but these**
   (blacklist); **Exact match** or **Ignore NBT**. Energy, Source and XP have no types, so their switch alone decides.
 - Defaults: the Import Bus pulls everything; the Export Bus sends only what is in its filter.
+- Pipes: every side of a bus takes pipes from any mod (items, fluids, FE, Mekanism chemicals, Ars Source, liquid XP).
+  Pipes can push into an Import Bus, and pull out of an Export Bus whatever its filter and resource switches allow.
 - Speed: a busy bus runs every tick and moves up to 128 items, 32 buckets, 32,000 mB of chemicals, 10,000 XP or Source,
   and as much FE as the block allows. An idle bus backs off to checking about once a second and wakes as soon as a
   neighbour changes. Measured in the dev check: 255 buses cost about 0.1 ms per server tick in total.
+
+## Look and feel
+
+- Every network block is animated, with a glowing layer that stays bright in the dark: controller and quantum link rings
+  chase around their cores, drive LEDs blink, the terminal screen scans, the stock keeper's bars rise and fall, cable
+  pulses along its length, bus rings spin, and Soulite ore glints. The controller, quantum link and void filter give off
+  soul wisps.
+- Cells show their tier at a glance: a tier-colored cap, 1 to 4 lights down the side, a moving shine on Diamond, glowing
+  ember seams and the enchant glint on Netherite, and brighter name colors per tier (plus a colored tier line in the tooltip).
+- Encoded Recipe and Processing Cards glint, blank ones do not.
+
+## JEI
+
+With JEI installed, Soul Infuser recipes have their own page (click the arrow in the infuser, or look up Infused Soulite),
+and chemical or Source cells are hidden when Mekanism or Ars Nouveau is not installed.
 
 ## Known limits
 
 - Crafting jobs in progress are not saved when the world closes; restart the craft after loading.
   Stored items are always saved.
 - Quantum Links do not keep chunks loaded; the far side must be loaded (or chunk-loaded) to connect.
-- No JEI integration yet, so recipe cards are filled by clicking items in.
+- JEI shows Soul Infuser recipes, but has no "+" button for Recipe Cards or the terminal grid yet; fill those by clicking items in.
 - Autocrafting and Processing Cards work with items only; fluids, chemicals, energy, XP and Source are stored and moved, not crafted.
 - New Mekanism tanks and machines start with their chemical sides closed. Open the side the bus touches with a Configurator,
   the same as for any pipe.
@@ -146,7 +164,9 @@ Dev checks (never shipped in the release jar):
   stock keeping, voiding, pipe access, terminal clicks, card editing, a Nether Quantum Link, Import/Export Buses, XP, and
   the tick cost of 255 idle buses. Run it twice to
   also check that everything survives a restart.
-- `./gradlew runShots` opens the terminal on every filter tab in a real client on that world and saves screenshots.
+- `./gradlew runShots` opens screens, the guide and JEI in a real client on that world and saves screenshots.
+- Drop other mod jars into `libs-dev/` (ignored by git) to run them in dev. With Grim Pipe Industries there, the system
+  check also wires real omni pipes into an Import Bus and out of an Export Bus.
 
 ## License
 

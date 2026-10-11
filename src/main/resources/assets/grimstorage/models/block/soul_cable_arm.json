@@ -1,7 +1,8 @@
 {
   "textures": {
     "cable": "grimstorage:block/soul_cable",
-    "particle": "grimstorage:block/soul_cable"
+    "particle": "grimstorage:block/soul_cable",
+    "cable_glow": "grimstorage:block/soul_cable_glow"
   },
   "elements": [
     {
@@ -62,6 +63,73 @@
           ]
         }
       }
+    },
+    {
+      "from": [
+        5,
+        5,
+        0
+      ],
+      "to": [
+        11,
+        11,
+        5
+      ],
+      "shade": false,
+      "neoforge_data": {
+        "block_light": 15,
+        "sky_light": 15,
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "east": {
+          "texture": "#cable_glow",
+          "uv": [
+            0,
+            5,
+            5,
+            11
+          ]
+        },
+        "west": {
+          "texture": "#cable_glow",
+          "uv": [
+            0,
+            5,
+            5,
+            11
+          ]
+        },
+        "up": {
+          "texture": "#cable_glow",
+          "uv": [
+            5,
+            0,
+            11,
+            5
+          ]
+        },
+        "down": {
+          "texture": "#cable_glow",
+          "uv": [
+            5,
+            0,
+            11,
+            5
+          ]
+        },
+        "north": {
+          "texture": "#cable_glow",
+          "uv": [
+            5,
+            5,
+            11,
+            11
+          ]
+        }
+      }
     }
-  ]
+  ],
+  "render_type": "minecraft:cutout",
+  "parent": "minecraft:block/block"
 }
