@@ -61,17 +61,24 @@ public final class GrimStorage {
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, type, (be, side) -> be.pipeFluids());
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, type, (be, side) -> be.pipeEnergy());
             if (Compat.chemicals() != null) {
-                Compat.chemicals().registerCapabilities(event, type);
+                Compat.chemicals().registerCapabilities(event, type, (be, side) -> be);
             }
             if (Compat.source() != null) {
-                Compat.source().registerCapabilities(event, type);
+                Compat.source().registerCapabilities(event, type, (be, side) -> be);
             }
         }
+        // Buses on Soul Cable: each one takes pipes on the side it faces.
+        var cable = Registration.CABLE_BUS_ENTITY.get();
+        event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, cable, (be, side) -> be.part(side) == null ? null : be.part(side).pipeItems());
+        event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, cable, (be, side) -> be.part(side) == null ? null : be.part(side).pipeFluids());
+        event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, cable, (be, side) -> be.part(side) == null ? null : be.part(side).pipeEnergy());
         if (Compat.chemicals() != null) {
-            Compat.chemicals().registerCapabilities(event, Registration.INTERFACE_ENTITY.get());
+            Compat.chemicals().registerCapabilities(event, cable, (be, side) -> be.part(side));
+            Compat.chemicals().registerCapabilities(event, Registration.INTERFACE_ENTITY.get(), (be, side) -> be);
         }
         if (Compat.source() != null) {
-            Compat.source().registerCapabilities(event, Registration.INTERFACE_ENTITY.get());
+            Compat.source().registerCapabilities(event, cable, (be, side) -> be.part(side));
+            Compat.source().registerCapabilities(event, Registration.INTERFACE_ENTITY.get(), (be, side) -> be);
         }
     }
 }

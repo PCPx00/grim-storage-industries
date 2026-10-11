@@ -15,7 +15,8 @@ Lost it? Craft one from a book and a Soulite Ingot.
 2. Craft a **Network Controller**, a **Soul Drive** and a **Copper Storage Cell**. Put the cell in the drive.
 3. Place a **Soul Terminal** touching the network. Open it and start storing.
 4. Use **Soul Cable** or **Soulite Glass** to reach blocks that are not touching.
-5. Stick an **Import Bus** or **Export Bus** on any chest, tank or machine to move things in and out.
+5. Run cable up to any chest, tank or machine and use an **Import Bus** or **Export Bus** on it. The bus clips onto the
+   end of the cable and moves things in or out.
 
 ## Blocks
 
@@ -24,7 +25,7 @@ Lost it? Craft one from a book and a Soulite Ingot.
 | Network Controller | The heart of a network. Exactly one per network. Open it to see storage use and crafting jobs (and cancel them). |
 | Soul Drive | Holds 8 storage cells. Cells keep their contents when moved. |
 | Soul Terminal | Browse, search (`@mod` searches by mod), filter with the side tabs (ores, ingots, tools, armor, food, mob drops, farming, building, misc), take, store, order crafts, and craft by hand in the built-in 3x3 grid that refills itself from storage. |
-| Soul Cable / Soulite Glass | Connect network blocks. One cable carries everything (items, fluids, energy, XP, chemicals, Source) to every bus, interface and machine on the network. The glass is decorative and see-through. |
+| Soul Cable / Soulite Glass | Connect network blocks. Cable is 4 px thick and each of its sides can hold an Import or Export Bus. One cable carries everything (items, fluids, energy, XP, chemicals, Source) to every bus, interface and machine on the network. The glass is decorative and see-through. |
 | Soul Assembler | Holds 9 Recipe Cards and runs them. Up to 4 Speed Upgrades, each doubling its speed. |
 | Processing Interface | Faces any machine (any mod). Sends Processing Card inputs in and pulls the outputs back. |
 | Stock Keeper | "Always keep N of this": up to 9 items it keeps crafted. |
@@ -117,6 +118,11 @@ under a mob farm soaks up XP orbs and drops. You can also use pipes with a Netwo
 its Pull switch for a resource to let pipes take it back out.
 
 ## Import and Export Buses
+
+- **On cable:** run Soul Cable up to a chest or machine and use the bus on that block (or on the cable). The bus
+  goes onto that side of the cable, facing the block. Right-click it for its screen; break it to take just the bus off.
+  One bus per cable side, and the network never passes through a side with a bus.
+- **On its own:** use the bus on a block with no cable next to it and it places as its own block on that face.
 
 - Place against the block you want to use; the bus sticks to that face. Run cable to its back. The network never connects
   through a bus's front, so a bus facing another network's interface moves things between the two networks without merging them.

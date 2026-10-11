@@ -415,15 +415,31 @@
         {
           "title": "Buses",
           "text": [
-            "The fastest way to move things in and out. Place a bus **against any block**: a chest, furnace, tank, generator or any modded machine. It sticks to that face.",
+            "The fastest way to move things in and out. There are two ways to use a bus:",
+            "- **On cable:** run Soul Cable up to a chest or machine, then use the bus on it. The bus clips onto the end of the cable.",
+            "- **On its own:** use it on any block with no cable there and it sticks to that face. Run cable to its back.",
             "- **Import Bus:** pulls from the block into the network.",
-            "- **Export Bus:** pushes from the network into the block.",
-            "The bus must touch your network. Run Soul Cable to the back of it."
+            "- **Export Bus:** pushes from the network into the block."
           ],
           "items": [
             "grimstorage:import_bus",
             "grimstorage:export_bus",
             "grimstorage:soul_cable"
+          ]
+        },
+        {
+          "title": "Buses on cable",
+          "text": [
+            "Run **Soul Cable** from your drive, terminal, interface or any network block up to a chest or machine.",
+            "Then **use the bus on that chest** (or on the end of the cable). It goes onto the cable, facing the chest, and everything flows straight into the network.",
+            "- **Right-click** the bus to open its filter screen.",
+            "- **Break** the bus to take just the bus off. The cable stays.",
+            "Each side of a cable can hold one bus. The network never passes through a side with a bus on it."
+          ],
+          "items": [
+            "grimstorage:soul_cable",
+            "grimstorage:import_bus",
+            "grimstorage:export_bus"
           ]
         },
         {

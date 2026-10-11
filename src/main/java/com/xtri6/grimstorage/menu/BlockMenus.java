@@ -2,7 +2,7 @@ package com.xtri6.grimstorage.menu;
 
 import com.xtri6.grimstorage.Registration;
 import com.xtri6.grimstorage.block.entity.AssemblerBlockEntity;
-import com.xtri6.grimstorage.block.entity.BusBlockEntity;
+import com.xtri6.grimstorage.block.entity.BusLogic;
 import com.xtri6.grimstorage.block.entity.DriveBlockEntity;
 import com.xtri6.grimstorage.block.entity.FilterBlockEntity;
 import com.xtri6.grimstorage.block.entity.GhostContainer;
@@ -187,15 +187,15 @@ public final class BlockMenus {
     public static class Bus extends AtBlock {
         public static final int BLACKLIST = 0;
         public static final int MATCH_COMPONENTS = 1;
-        /** Buttons 10+ toggle one resource (see {@link BusBlockEntity#ITEMS_BIT}). */
+        /** Buttons 10+ toggle one resource (see {@link BusLogic#ITEMS_BIT}). */
         public static final int RESOURCE = 10;
 
         private final ContainerData data;
         @javax.annotation.Nullable
-        private final BusBlockEntity be;
+        private final BusLogic be;
 
         public Bus(int id, Inventory inv, GhostContainer filters, ContainerData data, ContainerLevelAccess access, Block block,
-                   @javax.annotation.Nullable BusBlockEntity be) {
+                   @javax.annotation.Nullable BusLogic be) {
             super(Registration.BUS_MENU.get(), id, access, block);
             this.data = data;
             this.be = be;
@@ -206,7 +206,8 @@ public final class BlockMenus {
             addPlayerInventory(inv, 8, 104);
         }
 
-        public static Bus server(int id, Inventory inv, BusBlockEntity be) {
+        /** A bus block, or a bus on one side of a cable ({@code block} is whatever block hosts it). */
+        public static Bus server(int id, Inventory inv, BusLogic be, ContainerLevelAccess access, Block block) {
             ContainerData data = new ContainerData() {
                 @Override
                 public int get(int index) {
@@ -225,8 +226,7 @@ public final class BlockMenus {
                     return 3;
                 }
             };
-            return new Bus(id, inv, be.filters(), data, ContainerLevelAccess.create(be.getLevel(), be.getBlockPos()),
-                    be.getBlockState().getBlock(), be);
+            return new Bus(id, inv, be.filters(), data, access, block, be);
         }
 
         public static Bus client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
@@ -250,10 +250,10 @@ public final class BlockMenus {
             return (data.get(1) & (1 << bit)) != 0;
         }
 
-        public BusBlockEntity.Status status() {
-            BusBlockEntity.Status[] all = BusBlockEntity.Status.values();
+        public BusLogic.Status status() {
+            BusLogic.Status[] all = BusLogic.Status.values();
             int i = data.get(2);
-            return i >= 0 && i < all.length ? all[i] : BusBlockEntity.Status.IDLE;
+            return i >= 0 && i < all.length ? all[i] : BusLogic.Status.IDLE;
         }
 
         /** Server: a button on the screen was pressed. */

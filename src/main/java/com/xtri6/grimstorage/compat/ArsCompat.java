@@ -27,8 +27,12 @@ final class ArsCompat implements Compat.Source {
     private static final BulkKey KEY = BulkKey.flat(BulkKind.SOURCE);
 
     @Override
-    public <T extends BlockEntity & PipePort> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type) {
-        event.registerBlockEntity(SOURCE, type, (be, side) -> new Cap(be));
+    public <T extends BlockEntity> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type,
+            java.util.function.BiFunction<T, Direction, PipePort> port) {
+        event.registerBlockEntity(SOURCE, type, (be, side) -> {
+            PipePort p = port.apply(be, side);
+            return p == null ? null : new Cap(p);
+        });
     }
 
     @Override

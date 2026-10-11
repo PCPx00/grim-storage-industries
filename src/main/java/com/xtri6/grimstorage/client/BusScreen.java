@@ -95,7 +95,7 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
         super.renderLabels(g, mouseX, mouseY);
         Theme t = t();
-        BusBlockEntity.Status s = menu.status();
+        com.xtri6.grimstorage.block.entity.BusLogic.Status s = menu.status();
         int color = switch (s) {
             case WORKING -> t.ok();
             case IDLE -> t.textDim();

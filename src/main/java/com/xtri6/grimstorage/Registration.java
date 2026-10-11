@@ -168,10 +168,15 @@ public final class Registration {
             () -> new NetworkDeviceBlock(machine(), Registration.STOCK_KEEPER_ENTITY, Menus::openStockKeeper));
     public static final DeferredBlock<NetworkDeviceBlock> VOID_FILTER = device("void_filter",
             () -> new NetworkDeviceBlock(machine(), Registration.VOID_FILTER_ENTITY, Menus::openFilter));
-    public static final DeferredBlock<NetworkDeviceBlock> IMPORT_BUS = device("import_bus",
+    public static final DeferredBlock<NetworkDeviceBlock> IMPORT_BUS = BLOCKS.register("import_bus",
             () -> new BusBlock(machine().noOcclusion(), Registration.IMPORT_BUS_ENTITY, Menus::openBus));
-    public static final DeferredBlock<NetworkDeviceBlock> EXPORT_BUS = device("export_bus",
+    public static final DeferredBlock<NetworkDeviceBlock> EXPORT_BUS = BLOCKS.register("export_bus",
             () -> new BusBlock(machine().noOcclusion(), Registration.EXPORT_BUS_ENTITY, Menus::openBus));
+    /** Bus items also go straight onto Soul Cable. */
+    public static final DeferredItem<com.xtri6.grimstorage.item.BusItem> IMPORT_BUS_ITEM = ITEMS.register("import_bus",
+            () -> new com.xtri6.grimstorage.item.BusItem(IMPORT_BUS.get(), false, new Item.Properties()));
+    public static final DeferredItem<com.xtri6.grimstorage.item.BusItem> EXPORT_BUS_ITEM = ITEMS.register("export_bus",
+            () -> new com.xtri6.grimstorage.item.BusItem(EXPORT_BUS.get(), true, new Item.Properties()));
     public static final DeferredBlock<NetworkDeviceBlock> QUANTUM_LINK = device("quantum_link",
             () -> new NetworkDeviceBlock(machine().lightLevel(s -> 9), Registration.QUANTUM_LINK_ENTITY, null));
     public static final DeferredBlock<CableBlock> CABLE = device("soul_cable",
@@ -206,6 +211,8 @@ public final class Registration {
             be("import_bus", BusBlockEntity::new, IMPORT_BUS);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<BusBlockEntity>> EXPORT_BUS_ENTITY =
             be("export_bus", BusBlockEntity::new, EXPORT_BUS);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.CableBusBlockEntity>> CABLE_BUS_ENTITY =
+            be("cable_bus", com.xtri6.grimstorage.block.entity.CableBusBlockEntity::new, CABLE);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<QuantumLinkBlockEntity>> QUANTUM_LINK_ENTITY =
             be("quantum_link", QuantumLinkBlockEntity::new, QUANTUM_LINK);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<SoulInfuserBlockEntity>> SOUL_INFUSER_ENTITY =

@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.7.0
+- Buses now go on Soul Cable. Run cable up to a chest or machine, then use an Import or Export Bus on that block
+  (or on the end of the cable): the bus clips onto the cable facing it, and items, fluids, energy, XP, chemicals and Source
+  flow straight into or out of the network. Right-click a cable bus for its filter screen; break it to take just the bus off.
+- Each cable side holds one bus. The network never passes through a side with a bus, so a cable bus can face another
+  network without merging them. Pipes from any mod can plug into a cable bus on the side it faces.
+- Soul Cable is thinner (4 px), the same size as a bus's neck.
+- Free-standing buses still work (use one on a block with no cable next to it). Existing buses keep their settings.
+- Guide: new "Buses on cable" page.
+
 ## 1.6.0
 - JEI: Soul Infuser recipes now show up (look up Infused Soulite, or click the arrow in the infuser). Chemical and Source
   cells are hidden in JEI when Mekanism or Ars Nouveau is not installed.
