@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.6.0
+- JEI: Soul Infuser recipes now show up (look up Infused Soulite, or click the arrow in the infuser). Chemical and Source
+  cells are hidden in JEI when Mekanism or Ars Nouveau is not installed.
+- Buses take pipes from any mod, on every side. Pipes push items, fluids, energy, chemicals, Source and liquid XP into an
+  Import Bus, and pull out of an Export Bus whatever its filter and switches allow. Tested with Grim Pipe Industries omni
+  pipes (items both ways, fluids out) and hoppers.
+- Soul Cable now connects itself up when placed by commands, structures or other mods, not only by players.
+- Every network block is animated with a full-bright glow layer: chasing rings, blinking drive LEDs, a scanning terminal,
+  rising stock bars, pulsing cable, spinning bus rings and glinting ore. Soulite blocks and glass shimmer. The controller,
+  quantum link and void filter give off soul wisps.
+- New cell art. Each tier has its own cap color and 1-4 tier lights; Diamond cells shine, Netherite cells have glowing
+  ember seams and the enchant glint. Name colors step up per tier (Gold yellow, Diamond aqua, Netherite purple) and
+  tooltips show the tier. New Recipe and Processing Card art.
+- Guide: new "Pipes from any mod" and "Telling tiers apart" pages; cable, pipes and Infused Soulite pages updated.
+
 ## 1.5.0
 - New: **Import Bus** and **Export Bus**. Place one against any block (chest, furnace, tank, generator, any modded machine) and
   it sticks to that face. One bus handles items, fluids, energy, XP, Mekanism chemicals and Ars Nouveau Source.

@@ -3,8 +3,8 @@ package com.xtri6.grimstorage.compat;
 import javax.annotation.Nullable;
 
 import com.xtri6.grimstorage.GrimStorage;
-import com.xtri6.grimstorage.block.entity.InterfaceBlockEntity;
 import com.xtri6.grimstorage.storage.BulkKey;
+import com.xtri6.grimstorage.storage.PipePort;
 import com.xtri6.grimstorage.storage.StorageNetwork;
 
 import java.util.function.BooleanSupplier;
@@ -15,6 +15,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.fml.ModList;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -37,7 +38,7 @@ public final class Compat {
     }
 
     public interface Chemicals {
-        void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<InterfaceBlockEntity> type);
+        <T extends BlockEntity & PipePort> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type);
 
         BulkLink link(ServerLevel level, BlockPos pos, Direction side, BooleanSupplier valid, Runnable invalidated);
 
@@ -50,7 +51,7 @@ public final class Compat {
     }
 
     public interface Source {
-        void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<InterfaceBlockEntity> type);
+        <T extends BlockEntity & PipePort> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type);
 
         BulkLink link(ServerLevel level, BlockPos pos, Direction side, BooleanSupplier valid, Runnable invalidated);
     }

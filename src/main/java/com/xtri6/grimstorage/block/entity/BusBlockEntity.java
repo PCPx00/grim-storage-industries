@@ -12,6 +12,7 @@ import com.xtri6.grimstorage.storage.BulkKey;
 import com.xtri6.grimstorage.storage.BulkKind;
 import com.xtri6.grimstorage.storage.Experience;
 import com.xtri6.grimstorage.storage.ItemKey;
+import com.xtri6.grimstorage.storage.PipePort;
 import com.xtri6.grimstorage.storage.StorageNetwork;
 
 import net.minecraft.core.BlockPos;
@@ -41,8 +42,11 @@ import net.neoforged.neoforge.items.IItemHandler;
  * change), a bus that moved something runs again next tick, and one that found nothing to do backs off up to once a
  * second until something nearby changes. Each run has a fixed budget, and big inventories are scanned a slice at a
  * time instead of all at once.
+ *
+ * <p>Any mod's pipes can also plug into a bus from any side: pipes push into an Import Bus and pull from an Export
+ * Bus, through the same filter and resource switches.
  */
-public class BusBlockEntity extends FilterBlockEntity implements Ticking {
+public class BusBlockEntity extends FilterBlockEntity implements Ticking, PipePort {
     /** Resource switches: bit 0 is items, then one bit per {@link BulkKind}. */
     public static final int ITEMS_BIT = 0;
     public static final int RESOURCES = 1 + BulkKind.values().length;
@@ -487,26 +491,7 @@ public class BusBlockEntity extends FilterBlockEntity implements Ticking {
         long moved = 0;
         int budget = FLUID_BUDGET;
         if (moves(BulkKind.FLUID)) {
-            List<BulkKey> keys = new ArrayList<>();
-            if (!blacklist) {
-                for (FluidStack f : fluidFilters()) {
-                    if (matchComponents) {
-                        keys.add(BulkKey.fluid(f));
-                    } else {
-                        for (BulkKey k : net.bulkContents(BulkKind.FLUID).keySet()) {
-                            if (k.fluid().getFluid().isSame(f.getFluid())) {
-                                keys.add(k);
-                            }
-                        }
-                    }
-                }
-            } else {
-                for (BulkKey k : net.bulkContents(BulkKind.FLUID).keySet()) {
-                    if (allowFluid(k.fluid())) {
-                        keys.add(k);
-                    }
-                }
-            }
+            List<BulkKey> keys = fluidExportKeys(net);
             for (BulkKey k : keys) {
                 if (budget <= 0) {
                     break;
@@ -547,6 +532,31 @@ public class BusBlockEntity extends FilterBlockEntity implements Ticking {
             }
         }
         return moved;
+    }
+
+    /** Stored fluids an Export Bus may send: the picked ones, or with a blacklist everything except them. */
+    private List<BulkKey> fluidExportKeys(StorageNetwork net) {
+        List<BulkKey> keys = new ArrayList<>();
+        if (!blacklist) {
+            for (FluidStack f : fluidFilters()) {
+                if (matchComponents) {
+                    keys.add(BulkKey.fluid(f));
+                } else {
+                    for (BulkKey k : net.bulkContents(BulkKind.FLUID).keySet()) {
+                        if (k.fluid().getFluid().isSame(f.getFluid())) {
+                            keys.add(k);
+                        }
+                    }
+                }
+            }
+        } else {
+            for (BulkKey k : net.bulkContents(BulkKind.FLUID).keySet()) {
+                if (allowFluid(k.fluid())) {
+                    keys.add(k);
+                }
+            }
+        }
+        return keys;
     }
 
     // ------------------------------------------------------------------ energy
@@ -634,6 +644,228 @@ public class BusBlockEntity extends FilterBlockEntity implements Ticking {
             return Math.max(1, orbCount.getInt(orb));
         } catch (ReflectiveOperationException | RuntimeException e) {
             return 1;
+        }
+    }
+
+    // ------------------------------------------------------------------ pipes from other mods
+
+    private final IItemHandler pipeItems = new PipeItems();
+    private final IFluidHandler pipeFluids = new PipeFluids();
+    private final IEnergyStorage pipeEnergy = new PipeEnergy();
+
+    public IItemHandler pipeItems() {
+        return pipeItems;
+    }
+
+    public IFluidHandler pipeFluids() {
+        return pipeFluids;
+    }
+
+    public IEnergyStorage pipeEnergy() {
+        return pipeEnergy;
+    }
+
+    private boolean allowBulk(BulkKey key) {
+        return switch (key.kind()) {
+            case FLUID -> allowFluid(key.fluid());
+            case CHEMICAL -> allowChemical(key);
+            default -> true;
+        };
+    }
+
+    @Override
+    public boolean pipeInsert(BulkKey key) {
+        return !export && key != null && moves(key.kind()) && allowBulk(key);
+    }
+
+    @Override
+    public boolean pipeExtract(BulkKey key) {
+        return export && key != null && moves(key.kind()) && allowBulk(key);
+    }
+
+    /** Pipes push items into an Import Bus, and pull the allowed items out of an Export Bus. */
+    private final class PipeItems implements IItemHandler {
+        private List<ItemKey> keys(StorageNetwork net) {
+            return net == null || !export || !moves(ITEMS_BIT) ? List.of() : exportKeys(net);
+        }
+
+        @Override
+        public int getSlots() {
+            return export ? Math.max(1, keys(network()).size()) : 1;
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            StorageNetwork net = network();
+            List<ItemKey> keys = keys(net);
+            if (slot < 0 || slot >= keys.size()) {
+                return ItemStack.EMPTY;
+            }
+            ItemKey key = keys.get(slot);
+            long n = Math.min(net.count(key), key.maxStackSize());
+            return n <= 0 ? ItemStack.EMPTY : key.toStack((int) n);
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            StorageNetwork net = network();
+            if (export || net == null || stack.isEmpty() || !moves(ITEMS_BIT) || !allowItem(stack)) {
+                return stack;
+            }
+            long in = net.insert(stack, simulate);
+            return in >= stack.getCount() ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - (int) in);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            StorageNetwork net = network();
+            List<ItemKey> keys = keys(net);
+            if (amount <= 0 || slot < 0 || slot >= keys.size()) {
+                return ItemStack.EMPTY;
+            }
+            ItemKey key = keys.get(slot);
+            long got = net.extract(key, Math.min(amount, key.maxStackSize()), simulate);
+            return got <= 0 ? ItemStack.EMPTY : key.toStack((int) got);
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return 64;
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return !export && moves(ITEMS_BIT) && allowItem(stack);
+        }
+    }
+
+    /** Fluids and liquid XP: pipes fill an Import Bus and drain an Export Bus. */
+    private final class PipeFluids implements IFluidHandler {
+        /** What an Export Bus offers, one tank each: allowed fluids, then stored XP as liquid XP. */
+        private List<FluidStack> tanks() {
+            StorageNetwork net = network();
+            if (net == null || !export) {
+                return List.of();
+            }
+            List<FluidStack> out = new ArrayList<>();
+            if (moves(BulkKind.FLUID)) {
+                for (BulkKey k : fluidExportKeys(net)) {
+                    long n = net.countBulk(k);
+                    if (n > 0) {
+                        out.add(k.fluid((int) Math.min(Integer.MAX_VALUE, n)));
+                    }
+                }
+            }
+            if (moves(BulkKind.EXPERIENCE)) {
+                long points = net.countBulk(Experience.KEY);
+                List<Fluid> xp = Experience.xpFluids();
+                if (points > 0 && !xp.isEmpty()) {
+                    out.add(new FluidStack(xp.get(0), (int) Math.min(Integer.MAX_VALUE, points * Experience.MB_PER_POINT)));
+                }
+            }
+            return out;
+        }
+
+        @Override
+        public int getTanks() {
+            return Math.max(1, tanks().size());
+        }
+
+        @Override
+        public FluidStack getFluidInTank(int tank) {
+            List<FluidStack> t = tanks();
+            return tank >= 0 && tank < t.size() ? t.get(tank) : FluidStack.EMPTY;
+        }
+
+        @Override
+        public int getTankCapacity(int tank) {
+            return Integer.MAX_VALUE;
+        }
+
+        @Override
+        public boolean isFluidValid(int tank, FluidStack stack) {
+            return !export;
+        }
+
+        @Override
+        public int fill(FluidStack resource, FluidAction action) {
+            StorageNetwork net = network();
+            if (export || net == null || resource.isEmpty()) {
+                return 0;
+            }
+            if (Experience.isXpFluid(resource) && moves(BulkKind.EXPERIENCE)) {
+                long points = net.insertBulk(Experience.KEY, resource.getAmount() / Experience.MB_PER_POINT, action.simulate());
+                if (points > 0) {
+                    return (int) (points * Experience.MB_PER_POINT);
+                }
+            }
+            BulkKey key = BulkKey.fluid(resource);
+            return pipeInsert(key) ? (int) net.insertBulk(key, resource.getAmount(), action.simulate()) : 0;
+        }
+
+        @Override
+        public FluidStack drain(FluidStack resource, FluidAction action) {
+            StorageNetwork net = network();
+            if (!export || net == null || resource.isEmpty()) {
+                return FluidStack.EMPTY;
+            }
+            BulkKey key = BulkKey.fluid(resource);
+            if (moves(BulkKind.FLUID) && fluidExportKeys(net).contains(key)) {
+                long got = net.extractBulk(key, resource.getAmount(), action.simulate());
+                if (got > 0) {
+                    return key.fluid((int) got);
+                }
+            }
+            if (Experience.isXpFluid(resource) && moves(BulkKind.EXPERIENCE)) {
+                long points = net.extractBulk(Experience.KEY, resource.getAmount() / Experience.MB_PER_POINT, action.simulate());
+                return points <= 0 ? FluidStack.EMPTY : resource.copyWithAmount((int) (points * Experience.MB_PER_POINT));
+            }
+            return FluidStack.EMPTY;
+        }
+
+        @Override
+        public FluidStack drain(int maxDrain, FluidAction action) {
+            List<FluidStack> t = tanks();
+            return maxDrain <= 0 || t.isEmpty() ? FluidStack.EMPTY : drain(t.get(0).copyWithAmount(maxDrain), action);
+        }
+    }
+
+    /** Energy: pipes and cables charge through an Import Bus and draw power from an Export Bus. */
+    private final class PipeEnergy implements IEnergyStorage {
+        private static final BulkKey KEY = BulkKey.flat(BulkKind.ENERGY);
+
+        @Override
+        public int receiveEnergy(int amount, boolean simulate) {
+            StorageNetwork net = network();
+            return net == null || !canReceive() ? 0 : (int) net.insertBulk(KEY, amount, simulate);
+        }
+
+        @Override
+        public int extractEnergy(int amount, boolean simulate) {
+            StorageNetwork net = network();
+            return net == null || !canExtract() ? 0 : (int) net.extractBulk(KEY, amount, simulate);
+        }
+
+        @Override
+        public int getEnergyStored() {
+            StorageNetwork net = network();
+            return net == null ? 0 : (int) Math.min(Integer.MAX_VALUE, net.countBulk(KEY));
+        }
+
+        @Override
+        public int getMaxEnergyStored() {
+            StorageNetwork net = network();
+            return net == null ? 0 : (int) Math.min(Integer.MAX_VALUE, net.bulkStats(BulkKind.ENERGY)[1]);
+        }
+
+        @Override
+        public boolean canExtract() {
+            return export && moves(BulkKind.ENERGY);
+        }
+
+        @Override
+        public boolean canReceive() {
+            return !export && moves(BulkKind.ENERGY);
         }
     }
 

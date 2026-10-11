@@ -1,6 +1,93 @@
 {
-  "parent": "minecraft:block/cube_all",
+  "parent": "minecraft:block/block",
+  "render_type": "minecraft:cutout",
   "textures": {
-    "all": "grimstorage:block/network_interface"
-  }
+    "all": "grimstorage:block/network_interface",
+    "particle": "grimstorage:block/network_interface",
+    "all_glow": "grimstorage:block/network_interface_glow"
+  },
+  "elements": [
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "faces": {
+        "north": {
+          "texture": "#all",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#all",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#all",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#all",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#all",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#all",
+          "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        0,
+        0,
+        0
+      ],
+      "to": [
+        16,
+        16,
+        16
+      ],
+      "shade": false,
+      "neoforge_data": {
+        "block_light": 15,
+        "sky_light": 15,
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#all_glow",
+          "cullface": "north"
+        },
+        "south": {
+          "texture": "#all_glow",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#all_glow",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#all_glow",
+          "cullface": "west"
+        },
+        "up": {
+          "texture": "#all_glow",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#all_glow",
+          "cullface": "down"
+        }
+      }
+    }
+  ]
 }

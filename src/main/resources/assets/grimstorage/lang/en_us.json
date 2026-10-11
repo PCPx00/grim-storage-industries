@@ -207,7 +207,7 @@
   "gui.grimstorage.kind.experience": "Experience",
   "gui.grimstorage.export.experience": "XP",
   "gui.grimstorage.xp.levels": "%s levels",
-  "gui.grimstorage.xp.hint1": "Click: take a level  \u00b7  Shift-click: take 10",
+  "gui.grimstorage.xp.hint1": "Click: take a level  ·  Shift-click: take 10",
   "gui.grimstorage.xp.hint2": "Right-click: store all of your XP",
   "gui.grimstorage.bus.whitelist": "Only these",
   "gui.grimstorage.bus.blacklist": "All but these",
@@ -227,5 +227,13 @@
   "gui.grimstorage.bus.status.nothing_attached": "Nothing attached",
   "gui.grimstorage.bus.status.own_network": "Faces its own network",
   "gui.grimstorage.bus.status.full": "Storage full",
-  "gui.grimstorage.chip.experience": "XP"
+  "gui.grimstorage.chip.experience": "XP",
+  "jei.grimstorage.infusing.time": "%s s",
+  "jei.grimstorage.infusing.any_order": "Any slot order",
+  "tooltip.grimstorage.cell.tier": "%s %s tier",
+  "tier.grimstorage.copper": "Copper",
+  "tier.grimstorage.gold": "Gold",
+  "tier.grimstorage.diamond": "Diamond",
+  "tier.grimstorage.netherite": "Netherite",
+  "tier.grimstorage.singularity": "Singularity"
 }

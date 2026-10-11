@@ -185,6 +185,31 @@ public final class SystemCheck {
                 .setValue(FacingDeviceBlock.All.FACING, Direction.UP);
     }
 
+    /** Places a Grim Pipe Industries omni pipe (found by reflection, it is only on the dev classpath). */
+    private static void grimPipe(BlockPos pos, @javax.annotation.Nullable Direction pullFrom) {
+        grimPipe(level, pos, pullFrom);
+    }
+
+    /** Places a Grim Pipe Industries omni pipe in any level (also used by the screenshot check). */
+    static void grimPipe(ServerLevel level, BlockPos pos, @javax.annotation.Nullable Direction pullFrom) {
+        try {
+            level.setBlockAndUpdate(pos, net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                    .get(ResourceLocation.fromNamespaceAndPath("grimpipes", "reaper_pipe")).defaultBlockState());
+            Object be = level.getBlockEntity(pos);
+            ClassLoader cl = be.getClass().getClassLoader();
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            Enum omni = Enum.valueOf((Class) Class.forName("com.xtri6.grimpipes.pipe.PipeType", true, cl), "OMNI");
+            be.getClass().getMethod("addType", omni.getClass()).invoke(be, omni);
+            if (pullFrom != null) {
+                @SuppressWarnings({"unchecked", "rawtypes"})
+                Enum input = Enum.valueOf((Class) Class.forName("com.xtri6.grimpipes.pipe.ConnectionMode", true, cl), "INPUT");
+                be.getClass().getMethod("setMode", int.class, Direction.class, input.getClass()).invoke(be, omni.ordinal(), pullFrom, input);
+            }
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static double avgTickMs() {
         long[] t = server.getTickTimesNanos();
         long sum = 0;
@@ -197,11 +222,16 @@ public final class SystemCheck {
     /** Sets every chemical side of a Mekanism machine, like a player with a Configurator (new tanks start closed). */
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static void mekanismSidesTo(BlockPos pos, String dataType) {
+        mekanismSidesTo(pos, "CHEMICAL", dataType);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static void mekanismSidesTo(BlockPos pos, String transmission, String dataType) {
         try {
             Object be = level.getBlockEntity(pos);
             Object config = be.getClass().getMethod("getConfig").invoke(be);
             Class tt = Class.forName("mekanism.common.lib.transmitter.TransmissionType");
-            Object infoObj = config.getClass().getMethod("getConfig", tt).invoke(config, Enum.valueOf(tt, "CHEMICAL"));
+            Object infoObj = config.getClass().getMethod("getConfig", tt).invoke(config, Enum.valueOf(tt, transmission));
             Class dt = Class.forName("mekanism.common.tile.component.config.DataType");
             Class rs = Class.forName("mekanism.api.RelativeSide");
             java.lang.reflect.Method set = infoObj.getClass().getMethod("setDataType", dt, rs);
@@ -215,6 +245,19 @@ public final class SystemCheck {
     }
 
     private static void buildSteps() {
+        STEPS.add(new Step("cable placed by a command connects to blocks that were already there", 0, () -> {
+            BlockPos o = at(0, 30, 40);
+            level.setBlockAndUpdate(o, Registration.CONTROLLER.get().defaultBlockState());
+            level.setBlockAndUpdate(o.east(), Registration.CABLE.get().defaultBlockState());
+            level.setBlockAndUpdate(o.east(2), Registration.IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
+            net.minecraft.world.level.block.state.BlockState c = level.getBlockState(o.east());
+            info("cable state {}", c);
+            boolean ok = c.getValue(net.minecraft.world.level.block.PipeBlock.WEST) && c.getValue(net.minecraft.world.level.block.PipeBlock.EAST);
+            level.removeBlock(o.east(2), false);
+            level.removeBlock(o.east(), false);
+            level.removeBlock(o, false);
+            return ok;
+        }));
         STEPS.add(new Step("network forms with 3 drives' worth of cells across dimensions", 5, () -> {
             StorageNetwork n = net();
             if (n == null) {
@@ -533,6 +576,126 @@ public final class SystemCheck {
             info("export defaults ok={} energy saved={} filter saved={} import defaults to blacklist={}", defaults, copy.moves(BulkKind.ENERGY),
                     copy.filters().getItem(0).getItem(), importDefaults);
             return defaults && copy.moves(BulkKind.ENERGY) && copy.filters().getItem(0).is(Items.APPLE) && importDefaults;
+        }));
+        final int[] pipe = {0};
+        final long[] pipeBefore = new long[2];
+        STEPS.add(new Step("pipes: any mod's pipes push into an Import Bus and pull from an Export Bus", 80, () -> {
+            com.xtri6.grimstorage.block.entity.BusBlockEntity exp = (com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(at(4, 1, 0));
+            if (pipe[0] == 0) {
+                pipe[0] = 1;
+                pipeBefore[0] = count(Items.GOLD_NUGGET);
+                // A hopper pointing into the side of the Import Bus stands in for any item pipe.
+                level.setBlockAndUpdate(at(3, 1, 1), Blocks.HOPPER.defaultBlockState()
+                        .setValue(net.minecraft.world.level.block.HopperBlock.FACING, Direction.NORTH));
+                level.getCapability(Capabilities.ItemHandler.BLOCK, at(3, 1, 1), Direction.UP).insertItem(0, new ItemStack(Items.GOLD_NUGGET, 4), false);
+                return false;
+            }
+            if (count(Items.GOLD_NUGGET) - pipeBefore[0] < 4) {
+                return false;
+            }
+            Direction side = Direction.SOUTH;
+            // Items: an Export Bus offers only its filtered items to pipes, an Import Bus offers nothing.
+            net().insert(new ItemStack(Items.APPLE, 5), false);
+            IItemHandler outItems = level.getCapability(Capabilities.ItemHandler.BLOCK, at(4, 1, 0), side);
+            IItemHandler inItems = level.getCapability(Capabilities.ItemHandler.BLOCK, at(3, 1, 0), side);
+            ItemStack pulled = ItemStack.EMPTY;
+            for (int i = 0; i < outItems.getSlots(); i++) {
+                ItemStack st = outItems.extractItem(i, 64, false);
+                if (!st.isEmpty()) {
+                    pulled = st;
+                    break;
+                }
+            }
+            ItemStack fromImport = inItems.extractItem(0, 64, true);
+            ItemStack intoExport = outItems.insertItem(0, new ItemStack(Items.STONE), true);
+            // Fluids.
+            IFluidHandler inFluid = level.getCapability(Capabilities.FluidHandler.BLOCK, at(3, 1, 0), side);
+            IFluidHandler outFluid = level.getCapability(Capabilities.FluidHandler.BLOCK, at(4, 1, 0), side);
+            BulkKey water = BulkKey.fluid(new FluidStack(Fluids.WATER, 1));
+            long w0 = net().countBulk(water);
+            int filled = inFluid.fill(new FluidStack(Fluids.WATER, 500), IFluidHandler.FluidAction.EXECUTE);
+            int drainedOff = outFluid.drain(new FluidStack(Fluids.WATER, 300), IFluidHandler.FluidAction.EXECUTE).getAmount();
+            exp.toggleResource(1 + BulkKind.FLUID.ordinal());
+            exp.filters().setItem(1, new ItemStack(Items.WATER_BUCKET));
+            int drainedOn = outFluid.drain(300, IFluidHandler.FluidAction.EXECUTE).getAmount();
+            exp.filters().setItem(1, ItemStack.EMPTY);
+            exp.toggleResource(1 + BulkKind.FLUID.ordinal());
+            long w1 = net().countBulk(water);
+            // Energy.
+            IEnergyStorage inE = level.getCapability(Capabilities.EnergyStorage.BLOCK, at(3, 1, 0), side);
+            IEnergyStorage outE = level.getCapability(Capabilities.EnergyStorage.BLOCK, at(4, 1, 0), side);
+            int eIn = inE.receiveEnergy(1000, false);
+            int eOff = outE.extractEnergy(400, false);
+            exp.toggleResource(1 + BulkKind.ENERGY.ordinal());
+            int eOn = outE.extractEnergy(400, false);
+            exp.toggleResource(1 + BulkKind.ENERGY.ordinal());
+            // Chemicals.
+            BlockCapability<IChemicalHandler, Direction> cap = BlockCapability.createSided(
+                    ResourceLocation.fromNamespaceAndPath("mekanism", "chemical_handler"), IChemicalHandler.class);
+            IChemicalHandler chem = level.getCapability(cap, at(3, 1, 0), side);
+            BulkKey h2 = BulkKey.chemical(ResourceLocation.fromNamespaceAndPath("mekanism", "hydrogen"));
+            long c0 = net().countBulk(h2);
+            Chemical hydrogen = MekanismAPI.CHEMICAL_REGISTRY.get(ResourceLocation.fromNamespaceAndPath("mekanism", "hydrogen"));
+            ChemicalStack cLeft = chem == null ? null : chem.insertChemical(new ChemicalStack(hydrogen, 100), Action.EXECUTE);
+            long cIn = net().countBulk(h2) - c0;
+            level.removeBlock(at(3, 1, 1), false);
+            info("hopper pushed nuggets in={} | export pulled={} import offered={} export accepts stone={} | water filled={} drained off={} on={} net change={}"
+                    + " | energy in={} out off={} on={} | hydrogen in={}", count(Items.GOLD_NUGGET) - pipeBefore[0], pulled, fromImport,
+                    intoExport.isEmpty(), filled, drainedOff, drainedOn, w1 - w0, eIn, eOff, eOn, cIn);
+            return pulled.is(Items.APPLE) && pulled.getCount() == 5 && fromImport.isEmpty() && !intoExport.isEmpty()
+                    && filled == 500 && drainedOff == 0 && drainedOn == 300 && w1 - w0 == 200
+                    && eIn == 1000 && eOff == 0 && eOn == 400 && cLeft != null && cLeft.isEmpty() && cIn == 100;
+        }));
+        final int[] gp = {0};
+        final long[] gpBefore = new long[1];
+        STEPS.add(new Step("Grim Pipe Industries: omni pipes feed an Import Bus and drain an Export Bus", 200, () -> {
+            if (!net.neoforged.fml.ModList.get().isLoaded("grimpipes")) {
+                info("Grim Pipe Industries not in libs-dev, skipped");
+                return true;
+            }
+            if (gp[0] == 0) {
+                gp[0] = 1;
+                gpBefore[0] = count(Items.REDSTONE);
+                level.setBlockAndUpdate(at(0, -2, 0), Registration.CABLE.get().defaultBlockState());
+                level.setBlockAndUpdate(at(0, -3, 0), Registration.CABLE.get().defaultBlockState());
+                // Barrel of redstone -> pipe (pulling) -> pipe -> side of an Import Bus.
+                level.setBlockAndUpdate(at(1, -3, 0), Registration.IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
+                level.setBlockAndUpdate(at(2, -3, 0), Blocks.STONE.defaultBlockState());
+                level.setBlockAndUpdate(at(1, -3, 3), Blocks.BARREL.defaultBlockState());
+                level.getCapability(Capabilities.ItemHandler.BLOCK, at(1, -3, 3), Direction.NORTH).insertItem(0, new ItemStack(Items.REDSTONE, 32), false);
+                grimPipe(at(1, -3, 1), null);
+                grimPipe(at(1, -3, 2), Direction.SOUTH);
+                // Export Bus (coal and water) -> pipe (pulling from the bus) -> pipe -> barrel and cauldron.
+                level.setBlockAndUpdate(at(-1, -3, 0), Registration.EXPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.WEST));
+                level.setBlockAndUpdate(at(-2, -3, 0), Blocks.STONE.defaultBlockState());
+                com.xtri6.grimstorage.block.entity.BusBlockEntity exp = (com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(at(-1, -3, 0));
+                exp.filters().setItem(0, new ItemStack(Items.COAL));
+                exp.filters().setItem(1, new ItemStack(Items.WATER_BUCKET));
+                exp.toggleResource(1 + BulkKind.FLUID.ordinal());
+                net().insert(new ItemStack(Items.COAL, 24), false);
+                net().insertBulk(BulkKey.fluid(new FluidStack(Fluids.WATER, 1)), 2000, false);
+                level.setBlockAndUpdate(at(-1, -3, 3), Blocks.BARREL.defaultBlockState());
+                // Pipes deliver fluid a little at a time, so the sink is a Mekanism tank (a cauldron only takes whole buckets).
+                level.setBlockAndUpdate(at(-2, -3, 2), net.minecraft.core.registries.BuiltInRegistries.BLOCK
+                        .get(ResourceLocation.fromNamespaceAndPath("mekanism", "basic_fluid_tank")).defaultBlockState());
+                grimPipe(at(-1, -3, 1), Direction.NORTH);
+                grimPipe(at(-1, -3, 2), null);
+                return false;
+            }
+            long redstone = count(Items.REDSTONE) - gpBefore[0];
+            IItemHandler out = level.getCapability(Capabilities.ItemHandler.BLOCK, at(-1, -3, 3), Direction.NORTH);
+            int coal = 0;
+            for (int i = 0; i < out.getSlots(); i++) {
+                coal += out.getStackInSlot(i).is(Items.COAL) ? out.getStackInSlot(i).getCount() : 0;
+            }
+            IFluidHandler tank = level.getCapability(Capabilities.FluidHandler.BLOCK, at(-2, -3, 2), Direction.EAST);
+            int tankWater = tank == null ? -1 : tank.getFluidInTank(0).getAmount();
+            long waterLeft = net().countBulk(BulkKey.fluid(new FluidStack(Fluids.WATER, 1)));
+            boolean water = tankWater >= 2000 && waterLeft == 0;
+            if (gp[0]++ % 20 == 1) {
+                info("redstone piped into the network={} coal piped out={} water in tank={} water left in network={}", redstone, coal, tankWater, waterLeft);
+            }
+            return redstone == 32 && coal == 24 && count(Items.COAL) == 0 && water;
         }));
         STEPS.add(new Step("terminal: store and take XP", 0, () -> {
             FakePlayer fp = FakePlayerFactory.getMinecraft(level);

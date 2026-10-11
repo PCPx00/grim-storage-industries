@@ -5,7 +5,10 @@
     "back": "grimstorage:block/import_bus_back",
     "edge": "grimstorage:block/import_bus_edge",
     "side": "grimstorage:block/machine_side",
-    "cable": "grimstorage:block/soul_cable"
+    "cable": "grimstorage:block/soul_cable",
+    "back_glow": "grimstorage:block/import_bus_back_glow",
+    "edge_glow": "grimstorage:block/import_bus_edge_glow",
+    "cable_glow": "grimstorage:block/soul_cable_glow"
   },
   "elements": [
     {
@@ -197,6 +200,149 @@
           "rotation": 90
         }
       }
+    },
+    {
+      "from": [
+        1,
+        1,
+        0
+      ],
+      "to": [
+        15,
+        15,
+        2
+      ],
+      "shade": false,
+      "neoforge_data": {
+        "block_light": 15,
+        "sky_light": 15,
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#back_glow",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        },
+        "south": {
+          "texture": "#back_glow",
+          "uv": [
+            1,
+            1,
+            15,
+            15
+          ]
+        },
+        "east": {
+          "texture": "#edge_glow",
+          "uv": [
+            0,
+            7,
+            16,
+            9
+          ]
+        },
+        "west": {
+          "texture": "#edge_glow",
+          "uv": [
+            0,
+            7,
+            16,
+            9
+          ]
+        },
+        "up": {
+          "texture": "#edge_glow",
+          "uv": [
+            0,
+            7,
+            16,
+            9
+          ]
+        },
+        "down": {
+          "texture": "#edge_glow",
+          "uv": [
+            0,
+            7,
+            16,
+            9
+          ]
+        }
+      }
+    },
+    {
+      "from": [
+        6,
+        6,
+        5
+      ],
+      "to": [
+        10,
+        10,
+        16
+      ],
+      "shade": false,
+      "neoforge_data": {
+        "block_light": 15,
+        "sky_light": 15,
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "south": {
+          "texture": "#cable_glow",
+          "uv": [
+            6,
+            6,
+            10,
+            10
+          ],
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#cable_glow",
+          "uv": [
+            0,
+            6,
+            11,
+            10
+          ],
+          "rotation": 0
+        },
+        "west": {
+          "texture": "#cable_glow",
+          "uv": [
+            0,
+            6,
+            11,
+            10
+          ]
+        },
+        "up": {
+          "texture": "#cable_glow",
+          "uv": [
+            6,
+            0,
+            10,
+            11
+          ],
+          "rotation": 90
+        },
+        "down": {
+          "texture": "#cable_glow",
+          "uv": [
+            6,
+            0,
+            10,
+            11
+          ],
+          "rotation": 90
+        }
+      }
     }
   ],
   "display": {
@@ -275,5 +421,6 @@
         0.25
       ]
     }
-  }
+  },
+  "render_type": "minecraft:cutout"
 }

@@ -7,9 +7,9 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
-import com.xtri6.grimstorage.block.entity.InterfaceBlockEntity;
 import com.xtri6.grimstorage.storage.BulkKey;
 import com.xtri6.grimstorage.storage.BulkKind;
+import com.xtri6.grimstorage.storage.PipePort;
 import com.xtri6.grimstorage.storage.StorageNetwork;
 
 import mekanism.api.Action;
@@ -24,6 +24,7 @@ import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.ItemCapability;
@@ -51,7 +52,7 @@ final class MekanismCompat implements Compat.Chemicals {
     }
 
     @Override
-    public void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<InterfaceBlockEntity> type) {
+    public <T extends BlockEntity & PipePort> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type) {
         event.registerBlockEntity(CHEMICAL_BLOCK, type, (be, side) -> new Handler(be));
     }
 
@@ -184,16 +185,26 @@ final class MekanismCompat implements Compat.Chemicals {
         return carried;
     }
 
-    /** The interface's chemical side: anything can be pushed in, pulling is allowed only when switched on. */
+    /** Chemical side of a pipe port (interface or bus): what pipes may push in and pull out is up to the port. */
     private static final class Handler implements IChemicalHandler {
-        private final InterfaceBlockEntity be;
+        private final PipePort be;
 
-        Handler(InterfaceBlockEntity be) {
+        Handler(PipePort be) {
             this.be = be;
         }
 
+        /** The chemicals pipes may pull here, one tank each, plus an empty tank to push into. */
         private List<BulkKey> keys(StorageNetwork net) {
-            return net == null ? List.of() : new ArrayList<>(net.bulkContents(BulkKind.CHEMICAL).keySet());
+            if (net == null) {
+                return List.of();
+            }
+            List<BulkKey> out = new ArrayList<>();
+            for (BulkKey k : net.bulkContents(BulkKind.CHEMICAL).keySet()) {
+                if (be.pipeLists(k)) {
+                    out.add(k);
+                }
+            }
+            return out;
         }
 
         @Override
@@ -224,21 +235,22 @@ final class MekanismCompat implements Compat.Chemicals {
         @Override
         public ChemicalStack insertChemical(int tank, ChemicalStack stack, Action action) {
             StorageNetwork net = be.network();
-            if (net == null || stack.isEmpty()) {
+            BulkKey k = key(stack);
+            if (net == null || k == null || !be.pipeInsert(k)) {
                 return stack;
             }
-            long in = net.insertBulk(key(stack), stack.getAmount(), action.simulate());
+            long in = net.insertBulk(k, stack.getAmount(), action.simulate());
             return in >= stack.getAmount() ? ChemicalStack.EMPTY : stack.copyWithAmount(stack.getAmount() - in);
         }
 
         @Override
         public ChemicalStack extractChemical(int tank, long amount, Action action) {
             StorageNetwork net = be.network();
-            if (net == null || !be.exports(BulkKind.CHEMICAL)) {
+            if (net == null) {
                 return ChemicalStack.EMPTY;
             }
             List<BulkKey> keys = keys(net);
-            if (tank < 0 || tank >= keys.size()) {
+            if (tank < 0 || tank >= keys.size() || !be.pipeExtract(keys.get(tank))) {
                 return ChemicalStack.EMPTY;
             }
             return stack(keys.get(tank), net.extractBulk(keys.get(tank), amount, action.simulate()));

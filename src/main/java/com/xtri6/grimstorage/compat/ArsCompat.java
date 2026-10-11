@@ -1,9 +1,9 @@
 package com.xtri6.grimstorage.compat;
 
 import com.hollingsworth.arsnouveau.api.source.ISourceCap;
-import com.xtri6.grimstorage.block.entity.InterfaceBlockEntity;
 import com.xtri6.grimstorage.storage.BulkKey;
 import com.xtri6.grimstorage.storage.BulkKind;
+import com.xtri6.grimstorage.storage.PipePort;
 import com.xtri6.grimstorage.storage.StorageNetwork;
 
 import java.util.function.BooleanSupplier;
@@ -14,6 +14,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
@@ -26,7 +27,7 @@ final class ArsCompat implements Compat.Source {
     private static final BulkKey KEY = BulkKey.flat(BulkKind.SOURCE);
 
     @Override
-    public void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<InterfaceBlockEntity> type) {
+    public <T extends BlockEntity & PipePort> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type) {
         event.registerBlockEntity(SOURCE, type, (be, side) -> new Cap(be));
     }
 
@@ -73,11 +74,11 @@ final class ArsCompat implements Compat.Source {
         };
     }
 
-    /** The interface as a Source container: anything can add Source, taking it is allowed when switched on. */
+    /** A pipe port (interface or bus) as a Source container; the port decides whether Source may go in or out. */
     private static final class Cap implements ISourceCap {
-        private final InterfaceBlockEntity be;
+        private final PipePort be;
 
-        Cap(InterfaceBlockEntity be) {
+        Cap(PipePort be) {
             this.be = be;
         }
 
@@ -93,22 +94,22 @@ final class ArsCompat implements Compat.Source {
 
         @Override
         public boolean canAcceptSource(int amount) {
-            return capacity() - stored() >= amount;
+            return be.pipeInsert(KEY) && capacity() - stored() >= amount;
         }
 
         @Override
         public boolean canProvideSource(int amount) {
-            return be.exports(BulkKind.SOURCE) && stored() >= amount;
+            return be.pipeExtract(KEY) && stored() >= amount;
         }
 
         @Override
         public int getMaxExtract() {
-            return be.exports(BulkKind.SOURCE) ? Integer.MAX_VALUE : 0;
+            return be.pipeExtract(KEY) ? Integer.MAX_VALUE : 0;
         }
 
         @Override
         public int getMaxReceive() {
-            return Integer.MAX_VALUE;
+            return be.pipeInsert(KEY) ? Integer.MAX_VALUE : 0;
         }
 
         @Override
@@ -130,13 +131,13 @@ final class ArsCompat implements Compat.Source {
         @Override
         public int receiveSource(int amount, boolean simulate) {
             StorageNetwork net = be.network();
-            return net == null ? 0 : (int) net.insertBulk(KEY, amount, simulate);
+            return net == null || !be.pipeInsert(KEY) ? 0 : (int) net.insertBulk(KEY, amount, simulate);
         }
 
         @Override
         public int extractSource(int amount, boolean simulate) {
             StorageNetwork net = be.network();
-            return net == null || !be.exports(BulkKind.SOURCE) ? 0 : (int) net.extractBulk(KEY, amount, simulate);
+            return net == null || !be.pipeExtract(KEY) ? 0 : (int) net.extractBulk(KEY, amount, simulate);
         }
     }
 }

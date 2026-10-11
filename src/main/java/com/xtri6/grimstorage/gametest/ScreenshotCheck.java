@@ -59,32 +59,107 @@ public final class ScreenshotCheck {
     public static void register(IEventBus modBus) {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> onTick());
         Runnable none = () -> {};
-        SHOTS.add(new Shot("b03_terminal_xp", true, sp -> Menus.openTerminal(sp, BASE.offset(5, 0, 0)), () -> {}));
-        SHOTS.add(new Shot("b01_import_bus_dark", true, sp -> Menus.openBus(sp, BASE.offset(3, 1, 0)), none));
-        SHOTS.add(new Shot("b02_export_bus_light", false, sp -> Menus.openBus(sp, BASE.offset(4, 1, 0)), none));
-        SHOTS.add(new Shot("b04_interface", true, sp -> Menus.openFilter(sp, BASE.offset(-1, 0, 0)), none));
-        SHOTS.add(new Shot("b05_controller", true, sp -> Menus.openController(sp, BASE), none));
-        SHOTS.add(new Shot("b11_terminal_xp", true, sp -> Menus.openTerminal(sp, BASE.offset(5, 0, 0)), () -> {}));
-        SHOTS.add(new Shot("b06_guide_buses", true, sp -> {}, () -> book(9, 0)));
-        SHOTS.add(new Shot("b07_guide_filters", true, sp -> {}, () -> book(9, 3)));
-        SHOTS.add(new Shot("b08_guide_xp", true, sp -> {}, () -> book(5, 4)));
-        SHOTS.add(new Shot("b10_guide_import_recipe", false, sp -> {}, () -> book(9, 1)));
-        SHOTS.add(new Shot("b12_showcase", true, sp -> {
-            BlockPos s0 = BASE.offset(20, 6, -6);
-            var lvl = sp.serverLevel();
-            var dir = com.xtri6.grimstorage.block.FacingDeviceBlock.All.FACING;
-            lvl.setBlockAndUpdate(s0, net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState());
-            lvl.setBlockAndUpdate(s0.east(), com.xtri6.grimstorage.Registration.IMPORT_BUS.get().defaultBlockState().setValue(dir, net.minecraft.core.Direction.WEST));
-            lvl.setBlockAndUpdate(s0.east(2), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
-            lvl.setBlockAndUpdate(s0.east(3), com.xtri6.grimstorage.Registration.EXPORT_BUS.get().defaultBlockState().setValue(dir, net.minecraft.core.Direction.EAST));
-            lvl.setBlockAndUpdate(s0.east(4), net.minecraft.world.level.block.Blocks.FURNACE.defaultBlockState());
-            lvl.setBlockAndUpdate(s0.east(2).below(), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
-            lvl.setBlockAndUpdate(s0.east(2).below(2), com.xtri6.grimstorage.Registration.CONTROLLER.get().defaultBlockState());
-            lvl.setBlockAndUpdate(s0.east(2).above(), com.xtri6.grimstorage.Registration.IMPORT_BUS.get().defaultBlockState().setValue(dir, net.minecraft.core.Direction.UP));
-            lvl.setBlockAndUpdate(s0.east(2).above(2), net.minecraft.world.level.block.Blocks.CAULDRON.defaultBlockState());
-            sp.teleportTo(lvl, s0.getX() + 2.5, s0.getY() - 0.4, s0.getZ() + 3.6, 180f, 8f);
-        }, none));
-        SHOTS.add(new Shot("b09_world", true, sp -> sp.teleportTo(sp.serverLevel(), 14.5, 221.0, 9.5, 155f, 12f), none));
+        SHOTS.add(new Shot("c01_gallery_night", true, ScreenshotCheck::gallery, none));
+        SHOTS.add(new Shot("c02_gallery_night_later", true, sp -> {}, none));
+        SHOTS.add(new Shot("c03_pipes_loading", true, ScreenshotCheck::pipes, none));
+        SHOTS.add(new Shot("c03_pipes", true, sp -> {}, () -> {
+            BlockPos o = BASE.offset(-40, 14, 40);
+            var cl = Minecraft.getInstance().level;
+            GrimStorage.LOGGER.info("[Shots] client cable east {} west {}", cl.getBlockState(o.east()), cl.getBlockState(o.west()));
+        }));
+        SHOTS.add(new Shot("c04_cells_inventory", true, sp -> {
+            sp.setGameMode(GameType.SURVIVAL);
+            sp.getAbilities().mayfly = true;
+            sp.getAbilities().flying = true;
+            sp.onUpdateAbilities();
+            sp.getInventory().clearContent();
+            int slot = 9;
+            for (var tier : com.xtri6.grimstorage.storage.CellTier.values()) {
+                sp.getInventory().setItem(slot++, new ItemStack(com.xtri6.grimstorage.Registration.CELLS.get(tier).get()));
+            }
+            for (var kind : BulkKind.values()) {
+                int col = 0;
+                for (var tier : BulkKind.TIERS) {
+                    sp.getInventory().setItem(18 + (kind.ordinal() / 2) * 9 + (kind.ordinal() % 2) * 4 + col++,
+                            new ItemStack(com.xtri6.grimstorage.Registration.BULK_CELLS.get(kind).get(tier).get()));
+                }
+            }
+            ItemStack card = new ItemStack(com.xtri6.grimstorage.Registration.RECIPE_CARD.get());
+            sp.getInventory().setItem(0, card);
+            sp.getInventory().setItem(1, new ItemStack(com.xtri6.grimstorage.Registration.PROCESSING_CARD.get()));
+        }, () -> Minecraft.getInstance().setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(Minecraft.getInstance().player))));
+        SHOTS.add(new Shot("c05_jei_infusing", true, sp -> sp.setGameMode(GameType.CREATIVE), () -> {
+            if (com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.runtime != null) {
+                com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.runtime.getRecipesGui()
+                        .showTypes(List.of(com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.INFUSING));
+            }
+        }));
+        SHOTS.add(new Shot("c06_guide_tiers", true, sp -> {}, () -> book(4, 2)));
+        SHOTS.add(new Shot("c07_guide_pipes", false, sp -> {}, () -> book(9, 3)));
+        SHOTS.add(new Shot("c08_guide_cable", true, sp -> {}, () -> book(2, 3)));
+    }
+
+    /** Sets a block's "facing" property toward the camera, whatever kind of facing it uses. */
+    private static net.minecraft.world.level.block.state.BlockState facingSouth(net.minecraft.world.level.block.Block block) {
+        var st = block.defaultBlockState();
+        for (var prop : st.getProperties()) {
+            if (prop.getName().equals("facing") && prop.getPossibleValues().contains(net.minecraft.core.Direction.SOUTH)) {
+                @SuppressWarnings("unchecked")
+                var dp = (net.minecraft.world.level.block.state.properties.Property<net.minecraft.core.Direction>) prop;
+                return st.setValue(dp, net.minecraft.core.Direction.SOUTH);
+            }
+        }
+        return st;
+    }
+
+    private static void gallery(ServerPlayer sp) {
+        var lvl = sp.serverLevel();
+        lvl.setDayTime(18000);
+        BlockPos o = BASE.offset(30, 10, -10);
+        net.minecraft.world.level.block.Block[] row1 = {com.xtri6.grimstorage.Registration.CONTROLLER.get(), com.xtri6.grimstorage.Registration.DRIVE.get(),
+                com.xtri6.grimstorage.Registration.TERMINAL.get(), com.xtri6.grimstorage.Registration.ASSEMBLER.get(),
+                com.xtri6.grimstorage.Registration.STOCK_KEEPER.get(), com.xtri6.grimstorage.Registration.VOID_FILTER.get(),
+                com.xtri6.grimstorage.Registration.QUANTUM_LINK.get()};
+        net.minecraft.world.level.block.Block[] row2 = {com.xtri6.grimstorage.Registration.INTERFACE.get(), com.xtri6.grimstorage.Registration.SOUL_INFUSER.get(),
+                com.xtri6.grimstorage.Registration.PROCESSING_INTERFACE.get(), com.xtri6.grimstorage.Registration.SOULITE_BLOCK.get(),
+                com.xtri6.grimstorage.Registration.SOUL_GLASS.get(), com.xtri6.grimstorage.Registration.SOULITE_ORE.get(),
+                com.xtri6.grimstorage.Registration.ECHO_SOULITE_ORE.get()};
+        for (int i = 0; i < row1.length; i++) {
+            lvl.setBlockAndUpdate(o.offset(i, 0, 0), facingSouth(row1[i]));
+            lvl.setBlockAndUpdate(o.offset(i, 1, 0), facingSouth(row2[i]));
+            lvl.setBlockAndUpdate(o.offset(i, -1, 0), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
+        }
+        sp.teleportTo(lvl, o.getX() + 3.5, o.getY() - 0.2, o.getZ() + 5.2, 180f, 6f);
+    }
+
+    private static void pipes(ServerPlayer sp) {
+        var lvl = sp.serverLevel();
+        lvl.setDayTime(6000);
+        BlockPos o = BASE.offset(-40, 14, 40);
+        var dir = com.xtri6.grimstorage.block.FacingDeviceBlock.All.FACING;
+        var pipe = net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("grimpipes", "reaper_pipe"));
+        for (int dx = -3; dx <= 3; dx++) {
+            for (int dz = -1; dz <= 3; dz++) {
+                lvl.removeBlock(o.offset(dx, 0, dz), false);
+            }
+        }
+        lvl.setBlockAndUpdate(o, com.xtri6.grimstorage.Registration.CONTROLLER.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.east(), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.west(), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.east(2), com.xtri6.grimstorage.Registration.IMPORT_BUS.get().defaultBlockState().setValue(dir, net.minecraft.core.Direction.EAST));
+        lvl.setBlockAndUpdate(o.west(2), com.xtri6.grimstorage.Registration.EXPORT_BUS.get().defaultBlockState().setValue(dir, net.minecraft.core.Direction.WEST));
+        lvl.setBlockAndUpdate(o.east(3), net.minecraft.world.level.block.Blocks.FURNACE.defaultBlockState());
+        lvl.setBlockAndUpdate(o.west(3), net.minecraft.world.level.block.Blocks.BLAST_FURNACE.defaultBlockState());
+        lvl.setBlockAndUpdate(o.below(), com.xtri6.grimstorage.Registration.DRIVE.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.east(2).south(3), net.minecraft.world.level.block.Blocks.BARREL.defaultBlockState());
+        lvl.setBlockAndUpdate(o.west(2).south(3), net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState());
+        if (pipe != net.minecraft.world.level.block.Blocks.AIR) {
+            SystemCheck.grimPipe(lvl, o.east(2).south(1), null);
+            SystemCheck.grimPipe(lvl, o.east(2).south(2), net.minecraft.core.Direction.SOUTH);
+            SystemCheck.grimPipe(lvl, o.west(2).south(1), net.minecraft.core.Direction.NORTH);
+            SystemCheck.grimPipe(lvl, o.west(2).south(2), null);
+        }
+        sp.teleportTo(lvl, o.getX() + 0.5, o.getY() + 5.5, o.getZ() + 6.5, 180f, 48f);
     }
 
     private static void book(int chapter, int page) {
