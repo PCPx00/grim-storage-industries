@@ -147,6 +147,20 @@ public final class SimpleScreens {
         }
     }
 
+    /** Two small hint lines under a card editor's slots. */
+    static void smallHints(GuiGraphics g, String first, String second) {
+        net.minecraft.client.gui.Font font = net.minecraft.client.Minecraft.getInstance().font;
+        String[] keys = {first, second};
+        for (int i = 0; i < 2; i++) {
+            g.pose().pushPose();
+            g.pose().translate(64, 65 + i * 8, 0);
+            g.pose().scale(0.75f, 0.75f, 1f);
+            g.drawString(font, Component.translatable(keys[i]), 0, 0, i == 0 ? com.xtri6.grimstorage.client.ui.Theme.get().textFaint()
+                    : com.xtri6.grimstorage.client.ui.Theme.get().accent(), false);
+            g.pose().popPose();
+        }
+    }
+
     public static class RecipeCard extends GrimScreen<CardMenus.Recipe> {
         public RecipeCard(CardMenus.Recipe menu, Inventory inv, Component title) {
             super(menu, inv, title, 176, 166);
@@ -160,7 +174,7 @@ public final class SimpleScreens {
         @Override
         protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
             super.renderLabels(g, mouseX, mouseY);
-            hint(g, Component.translatable("gui.grimstorage.card.hint"), 64, 72);
+            smallHints(g, "gui.grimstorage.card.hint", "gui.grimstorage.card.jei_hint");
         }
     }
 
@@ -177,7 +191,7 @@ public final class SimpleScreens {
         @Override
         protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
             super.renderLabels(g, mouseX, mouseY);
-            hint(g, Component.translatable("gui.grimstorage.processing_card.hint"), 64, 72);
+            smallHints(g, "gui.grimstorage.processing_card.hint", "gui.grimstorage.processing_card.jei_hint");
         }
     }
 }

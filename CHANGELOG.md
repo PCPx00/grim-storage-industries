@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.12.0
+- Write cards without having the items:
+  - Recipe Card: open it, find the recipe in JEI and press +. The card is written.
+  - Processing Card: press + on a recipe of any mod (Mekanism, Create, Thermal, anything JEI shows). What goes in
+    and what comes out are filled in, with amounts. Fluids and chemicals are left out, since cards hold items.
+  - Drag items from JEI's list onto any card slot or filter slot (buses, Stock Keeper, Void Filter, cells).
+- Terminal: JEI's + on a crafting recipe fills the crafting grid from the network (and your inventory), picking
+  the ingredient you have most of. Missing ones are marked red in JEI, and the rest still go in.
+- Terminal: new pencil button next to the crafting grid writes the grid's recipe onto a Recipe Card you carry
+  (a blank one first). The items stay in the grid.
+- Card screens tell you about JEI's + button.
+
 ## 1.11.0
 - Machine Bus works with machines from big mods, no cards needed. It learns every item recipe of:
   - Mekanism: Enrichment Chamber, Crusher, Precision Sawmill, Combiner, Energized Smelter, and all their factories.

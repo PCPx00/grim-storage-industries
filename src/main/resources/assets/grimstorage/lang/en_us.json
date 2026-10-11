@@ -111,8 +111,8 @@
   "gui.grimstorage.interface.hint2": "Anything can be pushed in",
   "gui.grimstorage.stock.amount": "Amount to keep",
   "gui.grimstorage.stock.set": "Set",
-  "gui.grimstorage.card.hint": "Click items in",
-  "gui.grimstorage.processing_card.hint": "Right-click: one more",
+  "gui.grimstorage.card.hint": "Click or drag items in",
+  "gui.grimstorage.processing_card.hint": "Right-click a slot: one more",
   "key.categories.grimstorage": "Grim Storage Industries",
   "key.grimstorage.dump": "Dump inventory into network",
   "gui.grimstorage.job.full": "Storage full",
@@ -303,5 +303,14 @@
   "gui.grimstorage.size.tall": "Tall",
   "gui.grimstorage.size.taller": "Taller",
   "gui.grimstorage.on": "On",
-  "gui.grimstorage.off": "Off"
+  "gui.grimstorage.off": "Off",
+  "gui.grimstorage.card.jei_hint": "JEI: press + on any recipe",
+  "gui.grimstorage.processing_card.jei_hint": "JEI: press + on any recipe",
+  "gui.grimstorage.write_card": "Write this recipe on a Recipe Card from your inventory (a blank one first). The items stay in the grid.",
+  "gui.grimstorage.write_card.done": "Recipe Card written: %s",
+  "gui.grimstorage.write_card.no_card": "Carry a Recipe Card to write the recipe on",
+  "gui.grimstorage.write_card.no_recipe": "That isn't a crafting recipe",
+  "jei.grimstorage.processing.items_only": "Processing Cards hold items only: this recipe has no item going in or coming out",
+  "jei.grimstorage.terminal.fill": "Fill the crafting grid from the network",
+  "jei.grimstorage.terminal.missing": "%s ingredient(s) not in the network or your inventory"
 }

@@ -167,6 +167,10 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                 b -> PacketDistributor.sendToServer(new Payloads.ClearGrid(menu.containerId)));
         clear.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.craft.clear")));
         addRenderableWidget(clear);
+        GrimButton write = new GrimButton(leftPos + RIGHT_X + 47, topPos + 17, 11, 10, Component.literal("\u270e"),
+                b -> PacketDistributor.sendToServer(new Payloads.WriteCard(menu.containerId)));
+        write.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.write_card")));
+        addRenderableWidget(write);
 
         craftAmount = new EditBox(font, 0, 0, 100, 9, Component.translatable("gui.grimstorage.craft.amount"));
         craftAmount.setMaxLength(7);

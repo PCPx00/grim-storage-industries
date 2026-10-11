@@ -1180,6 +1180,65 @@ public final class SystemCheck {
             info("hydrogen pulled from the Mekanism tank={} left in tank={}", got, left);
             return mekHeld[0] > 0 && got == mekHeld[0] && left == 0;
         }));
+        STEPS.add(new Step("JEI recipe button writes a Recipe Card without holding any of the items", 0, () -> {
+            FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+            fp.getInventory().clearContent();
+            fp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Registration.RECIPE_CARD.get()));
+            CardMenus.Recipe menu = new CardMenus.Recipe(993, fp.getInventory(), InteractionHand.MAIN_HAND);
+            // what JEI's + on the torch recipe sends: coal over a stick, in grid order
+            menu.setGhosts(true, List.of(1, 4, 0), List.of(new ItemStack(Items.COAL, 5), new ItemStack(Items.STICK), ItemStack.EMPTY));
+            CardData.Recipe data = fp.getMainHandItem().get(Registration.RECIPE_CARD_DATA.get());
+            // a ghost update can never touch a real slot
+            int realSlot = menu.slots.size() - 1;
+            menu.setGhosts(false, List.of(realSlot), List.of(new ItemStack(Items.DIAMOND, 64)));
+            boolean noDiamonds = !fp.getInventory().contains(new ItemStack(Items.DIAMOND));
+            info("card result={} grid coal count={} real slot untouched={}", data == null ? "none" : data.result(),
+                    data == null ? -1 : data.grid().get(1).getCount(), noDiamonds);
+            fp.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            return data != null && data.result().is(Items.TORCH) && data.grid().get(1).getCount() == 1 && noDiamonds;
+        }));
+        STEPS.add(new Step("JEI recipe button writes a Processing Card from any recipe", 0, () -> {
+            FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+            fp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(Registration.PROCESSING_CARD.get()));
+            CardMenus.Processing menu = new CardMenus.Processing(992, fp.getInventory(), InteractionHand.MAIN_HAND);
+            menu.setGhosts(true, List.of(0, 1, 9), List.of(new ItemStack(Items.RAW_GOLD, 3), new ItemStack(Items.COAL), new ItemStack(Items.GOLD_INGOT, 4)));
+            CardData.Processing data = fp.getMainHandItem().get(Registration.PROCESSING_CARD_DATA.get());
+            fp.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
+            info("processing card in={} out={}", data == null ? "none" : data.inputs(), data == null ? "none" : data.outputs());
+            return data != null && data.inputs().get(0).is(Items.RAW_GOLD) && data.inputs().get(0).getCount() == 3
+                    && data.outputs().get(0).is(Items.GOLD_INGOT) && data.outputs().get(0).getCount() == 4;
+        }));
+        STEPS.add(new Step("JEI + on the terminal fills the crafting grid from the network, then a card is written from it", 0, () -> {
+            FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+            fp.getInventory().clearContent();
+            StorageNetwork n = net();
+            n.insert(key(Items.OAK_PLANKS), 8, false);
+            long planksBefore = count(Items.OAK_PLANKS);
+            TerminalMenu menu = new TerminalMenu(991, fp.getInventory(), () -> NetworkManager.get(level, at(5, 0, 0)), p -> true);
+            List<List<ItemStack>> opts = new ArrayList<>();
+            for (int i = 0; i < 9; i++) {
+                opts.add(i == 0 || i == 3 ? List.of(new ItemStack(Items.BIRCH_PLANKS), new ItemStack(Items.OAK_PLANKS)) : List.of());
+            }
+            menu.fillGrid(fp, opts);
+            ItemStack result = menu.getSlot(menu.resultIndex).getItem().copy();
+            long during = count(Items.OAK_PLANKS);
+            fp.getInventory().add(new ItemStack(Registration.RECIPE_CARD.get(), 2));
+            boolean wrote = menu.writeCard(fp);
+            ItemStack written = ItemStack.EMPTY;
+            for (ItemStack st : fp.getInventory().items) {
+                if (st.has(Registration.RECIPE_CARD_DATA.get())) {
+                    written = st;
+                }
+            }
+            CardData.Recipe data = written.get(Registration.RECIPE_CARD_DATA.get());
+            boolean gridKept = menu.getSlot(menu.gridStart).getItem().is(Items.OAK_PLANKS);
+            menu.clearGrid(fp);
+            info("grid result={} planks {} -> {} -> {} wrote={} card={} grid kept={}", result, planksBefore, during, count(Items.OAK_PLANKS), wrote,
+                    data == null ? "none" : data.result(), gridKept);
+            fp.getInventory().clearContent();
+            return result.is(Items.STICK) && during == planksBefore - 2 && count(Items.OAK_PLANKS) == planksBefore && wrote && data != null
+                    && data.result().is(Items.STICK) && gridKept;
+        }));
         STEPS.add(new Step("void filter destroys overflow only", 0, () -> {
             VoidFilterBlockEntity v = (VoidFilterBlockEntity) level.getBlockEntity(at(0, -1, 0));
             v.filters().setItem(0, new ItemStack(Items.DIRT));

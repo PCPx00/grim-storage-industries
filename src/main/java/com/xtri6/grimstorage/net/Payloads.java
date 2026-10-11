@@ -55,6 +55,9 @@ public final class Payloads {
         r.playToServer(TerminalBulkClick.TYPE, TerminalBulkClick.CODEC, Payloads::onTerminalBulkClick);
         r.playToServer(TerminalXp.TYPE, TerminalXp.CODEC, Payloads::onTerminalXp);
         r.playToServer(BusSetting.TYPE, BusSetting.CODEC, Payloads::onBusSetting);
+        r.playToServer(SetGhosts.TYPE, SetGhosts.CODEC, Payloads::onSetGhosts);
+        r.playToServer(FillGrid.TYPE, FillGrid.CODEC, Payloads::onFillGrid);
+        r.playToServer(WriteCard.TYPE, WriteCard.CODEC, Payloads::onWriteCard);
     }
 
     // ------------------------------------------------------------------ server -> client
@@ -342,6 +345,63 @@ public final class Payloads {
         if (ctx.player() instanceof ServerPlayer sp && sp.containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()
                 && p.kind() >= 0 && p.kind() < BulkKind.values().length) {
             m.handleBulkClick(sp, BulkKind.values()[p.kind()], p.key().orElse(null));
+        }
+    }
+
+    /** JEI: set ghost slots (filters, card editors). */
+    public record SetGhosts(int containerId, boolean clear, List<Integer> slots, List<ItemStack> stacks) implements CustomPacketPayload {
+        public static final Type<SetGhosts> TYPE = id("set_ghosts");
+        public static final StreamCodec<RegistryFriendlyByteBuf, SetGhosts> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, SetGhosts::containerId, ByteBufCodecs.BOOL, SetGhosts::clear,
+                ByteBufCodecs.VAR_INT.apply(ByteBufCodecs.list(64)), SetGhosts::slots,
+                ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list(64)), SetGhosts::stacks, SetGhosts::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** JEI's + button on the terminal: fill the crafting grid; each slot lists the items that would do. */
+    public record FillGrid(int containerId, List<List<ItemStack>> options) implements CustomPacketPayload {
+        public static final Type<FillGrid> TYPE = id("fill_grid");
+        public static final StreamCodec<RegistryFriendlyByteBuf, FillGrid> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, FillGrid::containerId,
+                ItemStack.OPTIONAL_STREAM_CODEC.apply(ByteBufCodecs.list(64)).apply(ByteBufCodecs.list(9)), FillGrid::options, FillGrid::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** Terminal: write the crafting grid's recipe onto a Recipe Card from the player's inventory. */
+    public record WriteCard(int containerId) implements CustomPacketPayload {
+        public static final Type<WriteCard> TYPE = id("write_card");
+        public static final StreamCodec<RegistryFriendlyByteBuf, WriteCard> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, WriteCard::containerId, WriteCard::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    private static void onSetGhosts(SetGhosts p, IPayloadContext ctx) {
+        if (ctx.player().containerMenu instanceof com.xtri6.grimstorage.menu.GrimMenu m && m.containerId == p.containerId()) {
+            m.setGhosts(p.clear(), p.slots(), p.stacks());
+        }
+    }
+
+    private static void onFillGrid(FillGrid p, IPayloadContext ctx) {
+        if (ctx.player() instanceof ServerPlayer sp && sp.containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
+            m.fillGrid(sp, p.options());
+        }
+    }
+
+    private static void onWriteCard(WriteCard p, IPayloadContext ctx) {
+        if (ctx.player() instanceof ServerPlayer sp && sp.containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
+            m.writeCard(sp);
         }
     }
 
