@@ -1,3 +1,5 @@
+<p align="center"><img src="media/banner.gif" alt="Grim Storage Industries" width="100%"></p>
+
 # Grim Storage Industries
 
 Dead-simple storage for NeoForge 1.21.1 that still scales to end game, with autocrafting built in.
@@ -5,6 +7,8 @@ No channels, no byte/type limits, no cable rules: anything touching the network 
 Part of the Grim Industries family with **Grim Soul Industries** and **Grim Pipe Industries**.
 
 Made by **xTri6** for the Nine Craft modpack.
+
+<p align="center"><img src="media/showcase.gif" alt="Showcase" width="800"></p>
 
 ## Getting started
 
