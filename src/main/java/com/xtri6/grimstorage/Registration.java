@@ -253,6 +253,8 @@ public final class Registration {
             () -> new RecipeCardItem(new Item.Properties().stacksTo(16)));
     public static final DeferredItem<ProcessingCardItem> PROCESSING_CARD = ITEMS.register("processing_card",
             () -> new ProcessingCardItem(new Item.Properties().stacksTo(16)));
+    public static final DeferredItem<com.xtri6.grimstorage.item.SoulWrenchItem> SOUL_WRENCH = ITEMS.register("soul_wrench",
+            () -> new com.xtri6.grimstorage.item.SoulWrenchItem(new Item.Properties()));
     public static final DeferredItem<Item> SPEED_UPGRADE = item("speed_upgrade", new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON));
     public static final DeferredItem<WirelessTerminalItem> WIRELESS_TERMINAL = ITEMS.register("wireless_terminal",
             () -> new WirelessTerminalItem(false, new Item.Properties().rarity(Rarity.UNCOMMON)));
@@ -338,7 +340,7 @@ public final class Registration {
                                 }
                             }
                         }
-                        order.addAll(List.of(RECIPE_CARD, PROCESSING_CARD, SPEED_UPGRADE, WIRELESS_TERMINAL, SINGULARITY_TERMINAL, SOUL_TETHER));
+                        order.addAll(List.of(SOUL_WRENCH, RECIPE_CARD, PROCESSING_CARD, SPEED_UPGRADE, WIRELESS_TERMINAL, SINGULARITY_TERMINAL, SOUL_TETHER));
                         order.forEach(entry -> output.accept(entry.get()));
                     })
                     .build());

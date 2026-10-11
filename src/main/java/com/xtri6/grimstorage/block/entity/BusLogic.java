@@ -79,6 +79,8 @@ public final class BusLogic implements PipePort {
     private static final long SOURCE_BUDGET = 10_000;
     private static final long XP_BUDGET = 10_000;
     private static final int MAX_SLEEP = 20;
+    /** Speed Upgrades a bus can hold. Each one adds the base speed again, so 8 make it 9x as fast. */
+    public static final int UPGRADE_SLOTS = 8;
 
     /** NO_FILTER: an Export Bus with nothing picked to send. */
     public enum Status { WORKING, IDLE, NO_NETWORK, NOTHING_ATTACHED, OWN_NETWORK, FULL, NO_FILTER }
@@ -123,6 +125,60 @@ public final class BusLogic implements PipePort {
 
     public GhostContainer filters() {
         return filters;
+    }
+
+    /** Speed Upgrades, one per slot. */
+    final net.neoforged.neoforge.items.ItemStackHandler upgrades = new net.neoforged.neoforge.items.ItemStackHandler(UPGRADE_SLOTS) {
+        @Override
+        protected void onContentsChanged(int slot) {
+            speedCache = -1;
+            changed();
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return stack.is(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get());
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return 1;
+        }
+    };
+    private int speedCache = -1;
+
+    public net.neoforged.neoforge.items.ItemStackHandler upgrades() {
+        return upgrades;
+    }
+
+    /** How many Speed Upgrades are in. */
+    public int upgradeCount() {
+        if (speedCache < 0) {
+            int n = 0;
+            for (int i = 0; i < UPGRADE_SLOTS; i++) {
+                n += upgrades.getStackInSlot(i).isEmpty() ? 0 : 1;
+            }
+            speedCache = n;
+        }
+        return speedCache;
+    }
+
+    /** Budget multiplier: 1 with no upgrades, up to 9 with all 8. */
+    public int speed() {
+        return 1 + upgradeCount();
+    }
+
+    /** The upgrades, for dropping when the bus is broken or taken off its cable. */
+    public java.util.List<ItemStack> takeUpgrades() {
+        java.util.List<ItemStack> out = new java.util.ArrayList<>();
+        for (int i = 0; i < UPGRADE_SLOTS; i++) {
+            ItemStack st = upgrades.getStackInSlot(i);
+            if (!st.isEmpty()) {
+                out.add(st.copy());
+                upgrades.setStackInSlot(i, ItemStack.EMPTY);
+            }
+        }
+        return out;
     }
 
     private boolean filtersEmpty() {
@@ -279,7 +335,7 @@ public final class BusLogic implements PipePort {
         if (moved) {
             sleep = 0;
         } else {
-            sleep = sleep == 0 ? 1 : Math.min(MAX_SLEEP, sleep * 2);
+            sleep = sleep == 0 ? 1 : Math.min(Math.max(2, MAX_SLEEP / (1 + upgradeCount() / 2)), sleep * 2);
         }
         wait = sleep;
     }
@@ -325,12 +381,13 @@ public final class BusLogic implements PipePort {
             }
         }
         if (moves(BulkKind.CHEMICAL) && chemicals != null) {
-            long n = export ? chemicals.push(net, CHEMICAL_BUDGET, chemicalCandidates(net)) : chemicals.pull(net, CHEMICAL_BUDGET, this::allowChemical);
+            long n = export ? chemicals.push(net, CHEMICAL_BUDGET * speed(), chemicalCandidates(net))
+                    : chemicals.pull(net, CHEMICAL_BUDGET * speed(), this::allowChemical);
             attached |= n >= 0;
             moved += Math.max(0, n);
         }
         if (moves(BulkKind.SOURCE) && source != null) {
-            long n = export ? source.push(net, SOURCE_BUDGET, List.of()) : source.pull(net, SOURCE_BUDGET, k -> true);
+            long n = export ? source.push(net, SOURCE_BUDGET * speed(), List.of()) : source.pull(net, SOURCE_BUDGET * speed(), k -> true);
             attached |= n >= 0;
             moved += Math.max(0, n);
         }
@@ -339,7 +396,10 @@ public final class BusLogic implements PipePort {
             attached = true;
             moved += vacuum(level, net, target);
         }
-        status = !attached ? Status.NOTHING_ATTACHED : moved > 0 ? Status.WORKING : full ? Status.FULL
+        // A pipe feeding the bus (or pulling from it) counts as working even if the block in front offers nothing itself.
+        boolean piped = pipeMovedSinceRun > 0;
+        pipeMovedSinceRun = 0;
+        status = moved > 0 || piped ? Status.WORKING : !attached ? Status.NOTHING_ATTACHED : full ? Status.FULL
                 : needsFilter() ? Status.NO_FILTER : Status.IDLE;
         return moved > 0;
     }
@@ -417,9 +477,10 @@ public final class BusLogic implements PipePort {
         if (slots <= 0) {
             return 0;
         }
-        int budget = ITEM_BUDGET;
+        int full = ITEM_BUDGET * speed();
+        int budget = full;
         boolean blocked = false;
-        int scan = Math.min(slots, SLOTS_PER_RUN);
+        int scan = Math.min(slots, SLOTS_PER_RUN * Math.min(3, speed()));
         for (int n = 0; n < scan && budget > 0; n++) {
             int slot = (slotCursor + n) % slots;
             ItemStack peek = h.extractItem(slot, Math.min(budget, 64), true);
@@ -441,7 +502,7 @@ public final class BusLogic implements PipePort {
             }
         }
         slotCursor = (slotCursor + scan) % slots;
-        int moved = ITEM_BUDGET - budget;
+        int moved = full - budget;
         return moved == 0 && blocked ? -1 : moved;
     }
 
@@ -450,8 +511,9 @@ public final class BusLogic implements PipePort {
         if (keys.isEmpty()) {
             return 0;
         }
-        int budget = ITEM_BUDGET;
-        int tries = Math.min(keys.size(), 16);
+        int full = ITEM_BUDGET * speed();
+        int budget = full;
+        int tries = Math.min(keys.size(), 16 * Math.min(4, speed()));
         for (int n = 0; n < tries && budget > 0; n++) {
             ItemKey key = keys.get((keyCursor + n) % keys.size());
             int want = (int) net.extract(key, Math.min(budget, key.maxStackSize()), true);
@@ -470,7 +532,7 @@ public final class BusLogic implements PipePort {
             budget -= got - left.getCount();
         }
         keyCursor = (keyCursor + tries) % keys.size();
-        return ITEM_BUDGET - budget;
+        return full - budget;
     }
 
     private static ItemStack insert(IItemHandler h, ItemStack stack, boolean simulate) {
@@ -510,7 +572,7 @@ public final class BusLogic implements PipePort {
 
     private long importFluids(StorageNetwork net, IFluidHandler h) {
         long moved = 0;
-        int budget = FLUID_BUDGET;
+        int budget = FLUID_BUDGET * speed();
         for (int t = 0; t < Math.min(h.getTanks(), 16) && budget > 0; t++) {
             FluidStack inside = h.getFluidInTank(t);
             if (inside.isEmpty()) {
@@ -556,7 +618,7 @@ public final class BusLogic implements PipePort {
 
     private long exportFluids(StorageNetwork net, IFluidHandler h) {
         long moved = 0;
-        int budget = FLUID_BUDGET;
+        int budget = FLUID_BUDGET * speed();
         if (moves(BulkKind.FLUID)) {
             List<BulkKey> keys = fluidExportKeys(net);
             for (BulkKey k : keys) {
@@ -579,7 +641,7 @@ public final class BusLogic implements PipePort {
         }
         if (moves(BulkKind.EXPERIENCE) && budget > 0) {
             // Stored XP goes out as whichever liquid XP the tank accepts.
-            long have = net.extractBulk(Experience.KEY, Math.min(XP_BUDGET, budget / Experience.MB_PER_POINT), true);
+            long have = net.extractBulk(Experience.KEY, Math.min(XP_BUDGET * speed(), budget / Experience.MB_PER_POINT), true);
             if (have > 0) {
                 for (Fluid f : Experience.xpFluids()) {
                     int accepted = h.fill(new FluidStack(f, (int) (have * Experience.MB_PER_POINT)), IFluidHandler.FluidAction.SIMULATE);
@@ -680,7 +742,7 @@ public final class BusLogic implements PipePort {
                         e.setItem(stack.copyWithCount(stack.getCount() - (int) in));
                     }
                 }
-                if (moved >= ITEM_BUDGET * 4L) {
+                if (moved >= ITEM_BUDGET * 4L * speed()) {
                     break;
                 }
             }
@@ -740,6 +802,16 @@ public final class BusLogic implements PipePort {
         };
     }
 
+    /** Things moved by pipes plugged into this bus since its last run, so its status can say it is working. */
+    private long pipeMovedSinceRun;
+
+    @Override
+    public void pipeMoved(long amount) {
+        if (amount > 0) {
+            pipeMovedSinceRun += amount;
+        }
+    }
+
     @Override
     public boolean pipeInsert(BulkKey key) {
         return !export && key != null && moves(key.kind()) && allowBulk(key);
@@ -780,6 +852,9 @@ public final class BusLogic implements PipePort {
                 return stack;
             }
             long in = net.insert(stack, simulate);
+            if (!simulate) {
+                pipeMoved(in);
+            }
             return in >= stack.getCount() ? ItemStack.EMPTY : stack.copyWithCount(stack.getCount() - (int) in);
         }
 
@@ -792,6 +867,9 @@ public final class BusLogic implements PipePort {
             }
             ItemKey key = keys.get(slot);
             long got = net.extract(key, Math.min(amount, key.maxStackSize()), simulate);
+            if (!simulate) {
+                pipeMoved(got);
+            }
             return got <= 0 ? ItemStack.EMPTY : key.toStack((int) got);
         }
 
@@ -862,12 +940,19 @@ public final class BusLogic implements PipePort {
             }
             if (Experience.isXpFluid(resource) && moves(BulkKind.EXPERIENCE)) {
                 long points = net.insertBulk(Experience.KEY, resource.getAmount() / Experience.MB_PER_POINT, action.simulate());
+                if (action.execute()) {
+                    pipeMoved(points);
+                }
                 if (points > 0) {
                     return (int) (points * Experience.MB_PER_POINT);
                 }
             }
             BulkKey key = BulkKey.fluid(resource);
-            return pipeInsert(key) ? (int) net.insertBulk(key, resource.getAmount(), action.simulate()) : 0;
+            int in = pipeInsert(key) ? (int) net.insertBulk(key, resource.getAmount(), action.simulate()) : 0;
+            if (action.execute()) {
+                pipeMoved(in);
+            }
+            return in;
         }
 
         @Override
@@ -879,12 +964,18 @@ public final class BusLogic implements PipePort {
             BulkKey key = BulkKey.fluid(resource);
             if (moves(BulkKind.FLUID) && fluidExportKeys(net).contains(key)) {
                 long got = net.extractBulk(key, resource.getAmount(), action.simulate());
+                if (action.execute()) {
+                    pipeMoved(got);
+                }
                 if (got > 0) {
                     return key.fluid((int) got);
                 }
             }
             if (Experience.isXpFluid(resource) && moves(BulkKind.EXPERIENCE)) {
                 long points = net.extractBulk(Experience.KEY, resource.getAmount() / Experience.MB_PER_POINT, action.simulate());
+                if (action.execute()) {
+                    pipeMoved(points);
+                }
                 return points <= 0 ? FluidStack.EMPTY : resource.copyWithAmount((int) (points * Experience.MB_PER_POINT));
             }
             return FluidStack.EMPTY;
@@ -904,13 +995,21 @@ public final class BusLogic implements PipePort {
         @Override
         public int receiveEnergy(int amount, boolean simulate) {
             StorageNetwork net = network();
-            return net == null || !canReceive() ? 0 : (int) net.insertBulk(KEY, amount, simulate);
+            int in = net == null || !canReceive() ? 0 : (int) net.insertBulk(KEY, amount, simulate);
+            if (!simulate) {
+                pipeMoved(in);
+            }
+            return in;
         }
 
         @Override
         public int extractEnergy(int amount, boolean simulate) {
             StorageNetwork net = network();
-            return net == null || !canExtract() ? 0 : (int) net.extractBulk(KEY, amount, simulate);
+            int got = net == null || !canExtract() ? 0 : (int) net.extractBulk(KEY, amount, simulate);
+            if (!simulate) {
+                pipeMoved(got);
+            }
+            return got;
         }
 
         @Override
@@ -946,6 +1045,7 @@ public final class BusLogic implements PipePort {
         tag.putBoolean("blacklist", blacklist);
         tag.putBoolean("matchComponents", matchComponents);
         tag.putInt("resources", resources);
+        tag.put("upgrades", upgrades.serializeNBT(registries));
     }
 
     public void load(CompoundTag tag, HolderLookup.Provider registries) {
@@ -958,5 +1058,9 @@ public final class BusLogic implements PipePort {
             matchComponents = tag.getBoolean("matchComponents");
             resources = tag.getInt("resources");
         }
+        if (tag.contains("upgrades")) {
+            upgrades.deserializeNBT(registries, tag.getCompound("upgrades"));
+        }
+        speedCache = -1;
     }
 }

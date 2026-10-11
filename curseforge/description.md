@@ -10,7 +10,8 @@
 - **No limits to learn:** cells count items, not types. No channels, no cable rules, no network size cap.
 - **Full autocrafting:** whole crafting trees, sub-recipes, machine steps from any mod, and a clear list of anything missing.
 - **Import and Export Buses** that clip onto cable, with filters, and pipes from any mod can plug into them.
-- **A terminal you'll actually like:** search, `@mod` search, category tabs, a built-in crafting grid that refills itself, and dark mode by default.
+- **A terminal you'll actually like:** an Everything tab that shows every item and resource in one list, search, `@mod` search, category tabs, a built-in crafting grid that refills itself, and dark mode by default.
+- **Soul Wrench:** cut or rejoin cable connections, take buses off cable, turn machines, and pick up your blocks.
 - **Wireless access** within 128 blocks, or anywhere in any dimension with the Singularity Terminal.
 - **Its own ore, Soulite,** and a five-tier progression up to the Singularity Core.
 - **Animated, glowing blocks** and cells whose tier you can see at a glance.
@@ -63,6 +64,7 @@ The **Grim Storage Guide** you get when you first join explains every block and 
 - Run Soul Cable up to a block and use the bus on it. The bus clips onto the end of the cable, facing the block.
 - **Filters:** 9 slots, "Only these" or "All but these", exact match or ignore NBT, and an on/off switch for each resource.
 - Placed the wrong one? One button in its screen switches a bus between Import and Export.
+- **Speed Upgrades:** up to 8 per bus. Each one adds the base speed again, so a fully upgraded bus is 9x as fast.
 - **Pipes from any mod** can push into an Import Bus or pull from an Export Bus. The **Network Interface** works with pipes and hoppers too.
 
 <img src="https://raw.githubusercontent.com/PCPx00/grim-storage-industries/main/media/section-wireless.gif" alt="Wireless and quantum" width="1200">

@@ -126,6 +126,17 @@
             "grimstorage:soul_cable",
             "grimstorage:soulite_glass"
           ]
+        },
+        {
+          "title": "Soul Wrench",
+          "text": [
+            "A handy tool for tidying up your network.",
+            "- **Click a cable connection** to cut it, so two cables (or a cable and a block) stop joining. Click the same side again to join it back.",
+            "- **Click a bus on a cable** to take the bus off.",
+            "- **Click a machine** to turn it to face the side you clicked. Works on most machines from other mods too.",
+            "- **Sneak-click** any Grim Storage block to pick it up."
+          ],
+          "recipe": "grimstorage:soul_wrench"
         }
       ]
     },
@@ -163,8 +174,10 @@
         {
           "title": "Resource tabs",
           "text": [
-            "The tabs **along the top** switch between Items, Fluids, Chemicals, Energy, Source and Experience. See the chapter on fluids, energy and more.",
-            "The panel on the right shows how full that kind of storage is."
+            "The tabs **along the top** switch what the terminal shows.",
+            "- **Everything** (the drive icon, first tab): items, fluids, chemicals, energy, Source and XP all in one list. Click them just like in their own tabs.",
+            "- **Items**, then one tab each for **Fluids, Chemicals, Energy, Source and Experience**.",
+            "See the chapter on fluids, energy and more for how to fill and empty buckets and tanks."
           ]
         },
         {
@@ -322,7 +335,7 @@
         },
         {
           "title": "Speed Upgrade",
-          "text": "Made with Infused Soulite, glowstone and redstone.",
+          "text": "Made with Infused Soulite, glowstone and redstone. Speeds up a Soul Assembler (doubling each time, up to 4) and Import and Export Buses (up to 8).",
           "recipe": "grimstorage:speed_upgrade"
         },
         {
@@ -465,7 +478,8 @@
             "Pipes from any mod connect straight to a bus, on **any side**.",
             "- Pipes **push into an Import Bus** and it all goes into the network.",
             "- Pipes **pull out of an Export Bus**, but only what its filter and switches allow.",
-            "Works for items, fluids, energy, chemicals, Source and liquid XP. Run Soul Cable to the back of the bus and one line carries it all."
+            "Works for items, fluids, energy, chemicals, Source and liquid XP. Run Soul Cable to the back of the bus and one line carries it all.",
+            "If a bus faces straight into a pipe, set that pipe end to **pull** (in your pipe mod) to take from an Export Bus. Pipes push into an Import Bus as normal."
           ],
           "items": [
             "grimstorage:import_bus",
@@ -488,6 +502,15 @@
             "The icons in the middle turn each resource **on or off** for that bus: Items, Fluids, Chemicals, Energy, Source and XP. A green line means it is on.",
             "The top right shows what the bus is doing: **Working**, **Idle**, **Storage full**, **No network** or **Nothing attached**."
           ]
+        },
+        {
+          "title": "Speed Upgrades",
+          "text": [
+            "Put **Speed Upgrades** in the slots on the right of a bus's screen, up to **8**.",
+            "Each one adds the bus's base speed again: **1 upgrade = 2x**, **8 upgrades = 9x**. A fully upgraded bus moves over **1,000 items** or **288 buckets** every tick.",
+            "Upgrades stay with the bus, and drop when you take it off."
+          ],
+          "recipe": "grimstorage:speed_upgrade"
         },
         {
           "title": "Fast and light",

@@ -26,7 +26,7 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
     private final List<Toggle> toggles = new ArrayList<>();
 
     public BusScreen(BlockMenus.Bus menu, Inventory inv, Component title) {
-        super(menu, inv, title, 176, 186);
+        super(menu, inv, title, 222, 186);
     }
 
     private record Toggle(GrimButton button, int bit) {}
@@ -111,13 +111,23 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
         int x = imageWidth - 22 - w;
         g.fill(x - 7, 9, x - 3, 13, color);
         g.drawString(font, text, x, 7, color, false);
+        int n = 0;
+        for (int i = 0; i < com.xtri6.grimstorage.block.entity.BusLogic.UPGRADE_SLOTS; i++) {
+            n += menu.getSlot(9 + i).hasItem() ? 1 : 0;
+        }
+        Component speed = Component.translatable("gui.grimstorage.bus.speed", 1 + n);
+        g.drawString(font, speed, BlockMenus.Bus.UPGRADE_X + 36 - font.width(speed), BlockMenus.Bus.UPGRADE_Y + 76, n > 0 ? t.accent() : t.textDim(), false);
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
-        if (hoveredSlot instanceof net.minecraft.world.inventory.Slot slot && slot.index < 9 && !slot.hasItem() && menu.getCarried().isEmpty()) {
-            g.renderTooltip(font, Component.translatable("gui.grimstorage.bus.slot"), mouseX, mouseY);
+        if (hoveredSlot instanceof net.minecraft.world.inventory.Slot slot && !slot.hasItem() && menu.getCarried().isEmpty()) {
+            if (slot.index < 9) {
+                g.renderTooltip(font, Component.translatable("gui.grimstorage.bus.slot"), mouseX, mouseY);
+            } else if (slot.index < 9 + com.xtri6.grimstorage.block.entity.BusLogic.UPGRADE_SLOTS) {
+                g.renderTooltip(font, Component.translatable("gui.grimstorage.bus.upgrade_slot"), mouseX, mouseY);
+            }
         }
     }
 }
