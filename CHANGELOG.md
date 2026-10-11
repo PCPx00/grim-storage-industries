@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.8.1
+- Fix: an Import or Export Bus next to Soul Cable now visibly connects to it from any side (not only its back). The bus
+  draws a cable arm toward every side that touches cable or another network block, the same way cable does, and its
+  neck only runs to its back when something is there.
+
 ## 1.8.0
 - Speed Upgrades now go in Import and Export Buses: up to 8 per bus, each adding the base speed again (8 = 9x, over
   1,000 items or 288 buckets a tick). Upgrade slots are on the right of the bus screen, and upgrades drop with the bus.
