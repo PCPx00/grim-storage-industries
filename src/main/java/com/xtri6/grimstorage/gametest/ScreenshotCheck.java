@@ -62,7 +62,6 @@ public final class ScreenshotCheck {
         BlockPos mb = new BlockPos(24, 230, 0);
         SHOTS.add(new Shot("m01_loading", true, sp -> {
             sp.serverLevel().setDayTime(6000);
-            sp.serverLevel().setBlockAndUpdate(mb.above(), com.xtri6.grimstorage.Registration.TERMINAL.get().defaultBlockState());
             StorageNetwork n = NetworkManager.get(sp.serverLevel(), mb);
             if (n != null) {
                 for (Item i : new Item[] {Items.RAW_IRON, Items.RAW_GOLD, Items.COAL, Items.SAND, Items.COBBLESTONE, Items.OAK_LOG, Items.BEEF}) {
@@ -71,53 +70,13 @@ public final class ScreenshotCheck {
             }
             sp.teleportTo(sp.serverLevel(), mb.getX() + 4.5, mb.getY() + 2.6, mb.getZ() + 4.5, 135f, 28f);
         }, none));
-        SHOTS.add(new Shot("n01_jobs_tab", true, sp -> {
-            StorageNetwork n = NetworkManager.get(sp.serverLevel(), mb);
-            if (n != null) {
-                n.insert(ItemKey.of(new ItemStack(Items.RAW_IRON)), 64, false);
-                n.insert(ItemKey.of(new ItemStack(Items.COAL)), 16, false);
-                n.insert(ItemKey.of(new ItemStack(Items.BIRCH_LOG)), 8, false);
-                n.request(ItemKey.of(new ItemStack(Items.IRON_INGOT)), 48, sp.getName().getString());
-                n.request(ItemKey.of(new ItemStack(Items.CHARCOAL)), 8, sp.getName().getString());
-            }
-            setStatic(TerminalScreen.class, "lastJobs", true);
-            Menus.openTerminal(sp, mb.above());
+        SHOTS.add(new Shot("p01_mekanism_scene", true, sp -> {
+            sp.teleportTo(sp.serverLevel(), mb.getX() + 3.5, mb.getY() + 2.2, mb.getZ() + 3.8, 140f, 12f);
         }, none));
-        SHOTS.add(new Shot("n02_jobs_tab_light", false, sp -> Menus.openTerminal(sp, mb.above()), none));
-        SHOTS.add(new Shot("n03_settings", true, sp -> {
-            setStatic(TerminalScreen.class, "lastJobs", false);
-            Menus.openTerminal(sp, mb.above());
-        }, ScreenshotCheck::openSettings));
-        SHOTS.add(new Shot("n04_taller", true, sp -> {
-            ClientConfig.setTerminalSize(ClientConfig.TerminalSize.TALLER);
-            Menus.openTerminal(sp, mb.above());
-        }, () -> guiScale(2)));
-        SHOTS.add(new Shot("n05_tall_jobs", true, sp -> {
-            ClientConfig.setTerminalSize(ClientConfig.TerminalSize.TALL);
-            setStatic(TerminalScreen.class, "lastJobs", true);
-            Menus.openTerminal(sp, mb.above());
-        }, () -> {}));
-        SHOTS.add(new Shot("n06_auto_scale2", true, sp -> {
-            ClientConfig.setTerminalSize(ClientConfig.TerminalSize.AUTO);
-            setStatic(TerminalScreen.class, "lastJobs", false);
-            Menus.openTerminal(sp, mb.above());
-        }, () -> {}));
-        SHOTS.add(new Shot("n08_jei_sync_from_terminal", true, sp -> Menus.openTerminal(sp, mb.above()), () -> {
-            if (Minecraft.getInstance().screen instanceof TerminalScreen ts) {
-                try {
-                    java.lang.reflect.Field f = TerminalScreen.class.getDeclaredField("search");
-                    f.setAccessible(true);
-                    ((net.minecraft.client.gui.components.EditBox) f.get(ts)).setValue("raw");
-                } catch (ReflectiveOperationException ex) {
-                    GrimStorage.LOGGER.error("[Shots] could not type", ex);
-                }
-            }
-        }));
-        SHOTS.add(new Shot("n09_jei_sync_from_jei", true, sp -> Menus.openTerminal(sp, mb.above()), () ->
-                com.xtri6.grimstorage.client.RecipeViewerSearch.set("coal")));
-        SHOTS.add(new Shot("n10_guide_jobs", true, sp -> {}, () -> book(3, 4)));
-        SHOTS.add(new Shot("n11_guide_settings", true, sp -> {}, () -> book(3, 5)));
-        SHOTS.add(new Shot("n07_auto_scale3", true, sp -> Menus.openTerminal(sp, mb.above()), () -> guiScale(3)));
+        SHOTS.add(new Shot("p02_bus_on_enrichment_chamber", true, sp -> Menus.openMachineBus(sp, mb.above()), none));
+        SHOTS.add(new Shot("p04_guide_modded", true, sp -> {}, () -> book(7, 4)));
+        SHOTS.add(new Shot("p05_guide_good_to_know", true, sp -> {}, () -> book(7, 5)));
+        SHOTS.add(new Shot("p03_bus_on_sawmill_light", false, sp -> Menus.openMachineBus(sp, mb.below()), none));
     }
 
     /** A Soul Infuser with buses on two faces: one fed by cable from its side, one from its back. */

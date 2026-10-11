@@ -1,0 +1,29 @@
+{
+  "entries": [
+    {
+      "machines": [
+        "enderio:alloy_smelter",
+        "enderio:primitive_alloy_smelter"
+      ],
+      "recipe_types": [
+        "enderio:alloy_smelting"
+      ]
+    },
+    {
+      "machines": [
+        "enderio:sag_mill"
+      ],
+      "recipe_types": [
+        "enderio:sag_milling"
+      ]
+    },
+    {
+      "machines": [
+        "enderio:slice_and_splice"
+      ],
+      "recipe_types": [
+        "enderio:slicing"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "entries": [
+    {
+      "machines": [
+        "modern_industrialization:bronze_macerator",
+        "modern_industrialization:steel_macerator",
+        "modern_industrialization:electric_macerator"
+      ],
+      "recipe_types": [
+        "modern_industrialization:macerator"
+      ]
+    },
+    {
+      "machines": [
+        "modern_industrialization:bronze_compressor",
+        "modern_industrialization:steel_compressor",
+        "modern_industrialization:electric_compressor"
+      ],
+      "recipe_types": [
+        "modern_industrialization:compressor"
+      ]
+    },
+    {
+      "machines": [
+        "modern_industrialization:bronze_furnace",
+        "modern_industrialization:steel_furnace",
+        "modern_industrialization:electric_furnace"
+      ],
+      "recipe_types": [
+        "minecraft:smelting"
+      ]
+    }
+  ]
+}

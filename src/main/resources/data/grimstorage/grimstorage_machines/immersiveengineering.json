@@ -1,0 +1,53 @@
+{
+  "entries": [
+    {
+      "machines": [
+        "immersiveengineering:alloy_smelter"
+      ],
+      "recipe_types": [
+        "immersiveengineering:alloy"
+      ]
+    },
+    {
+      "machines": [
+        "immersiveengineering:coke_oven"
+      ],
+      "recipe_types": [
+        "immersiveengineering:coke_oven"
+      ]
+    },
+    {
+      "machines": [
+        "immersiveengineering:blast_furnace",
+        "immersiveengineering:advanced_blast_furnace"
+      ],
+      "recipe_types": [
+        "immersiveengineering:blast_furnace"
+      ]
+    },
+    {
+      "machines": [
+        "immersiveengineering:crusher"
+      ],
+      "recipe_types": [
+        "immersiveengineering:crusher"
+      ]
+    },
+    {
+      "machines": [
+        "immersiveengineering:sawmill"
+      ],
+      "recipe_types": [
+        "immersiveengineering:sawmill"
+      ]
+    },
+    {
+      "machines": [
+        "immersiveengineering:arc_furnace"
+      ],
+      "recipe_types": [
+        "immersiveengineering:arc_furnace"
+      ]
+    }
+  ]
+}

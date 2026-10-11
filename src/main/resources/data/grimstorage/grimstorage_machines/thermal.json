@@ -1,0 +1,53 @@
+{
+  "entries": [
+    {
+      "machines": [
+        "thermal:machine_furnace"
+      ],
+      "recipe_types": [
+        "thermal:furnace",
+        "minecraft:smelting"
+      ]
+    },
+    {
+      "machines": [
+        "thermal:machine_pulverizer"
+      ],
+      "recipe_types": [
+        "thermal:pulverizer"
+      ]
+    },
+    {
+      "machines": [
+        "thermal:machine_sawmill"
+      ],
+      "recipe_types": [
+        "thermal:sawmill"
+      ]
+    },
+    {
+      "machines": [
+        "thermal:machine_smelter"
+      ],
+      "recipe_types": [
+        "thermal:smelter"
+      ]
+    },
+    {
+      "machines": [
+        "thermal:machine_press"
+      ],
+      "recipe_types": [
+        "thermal:press"
+      ]
+    },
+    {
+      "machines": [
+        "thermal:machine_centrifuge"
+      ],
+      "recipe_types": [
+        "thermal:centrifuge"
+      ]
+    }
+  ]
+}

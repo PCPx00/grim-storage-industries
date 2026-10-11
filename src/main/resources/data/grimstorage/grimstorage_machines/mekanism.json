@@ -1,0 +1,64 @@
+{
+  "entries": [
+    {
+      "machines": [
+        "mekanism:enrichment_chamber",
+        "mekanism:basic_enriching_factory",
+        "mekanism:advanced_enriching_factory",
+        "mekanism:elite_enriching_factory",
+        "mekanism:ultimate_enriching_factory"
+      ],
+      "recipe_types": [
+        "mekanism:enriching"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:crusher",
+        "mekanism:basic_crushing_factory",
+        "mekanism:advanced_crushing_factory",
+        "mekanism:elite_crushing_factory",
+        "mekanism:ultimate_crushing_factory"
+      ],
+      "recipe_types": [
+        "mekanism:crushing"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:precision_sawmill",
+        "mekanism:basic_sawing_factory",
+        "mekanism:advanced_sawing_factory",
+        "mekanism:elite_sawing_factory",
+        "mekanism:ultimate_sawing_factory"
+      ],
+      "recipe_types": [
+        "mekanism:sawing"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:combiner",
+        "mekanism:basic_combining_factory",
+        "mekanism:advanced_combining_factory",
+        "mekanism:elite_combining_factory",
+        "mekanism:ultimate_combining_factory"
+      ],
+      "recipe_types": [
+        "mekanism:combining"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:energized_smelter",
+        "mekanism:basic_smelting_factory",
+        "mekanism:advanced_smelting_factory",
+        "mekanism:elite_smelting_factory",
+        "mekanism:ultimate_smelting_factory"
+      ],
+      "recipe_types": [
+        "minecraft:smelting"
+      ]
+    }
+  ]
+}

@@ -32,6 +32,8 @@ public final class GrimStorage {
         modBus.addListener(Payloads::register);
         modBus.addListener(GrimStorage::registerCapabilities);
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent e) -> NetworkManager.clearAll());
+        NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.AddReloadListenerEvent e) ->
+                e.addListener(com.xtri6.grimstorage.storage.MachineRecipes.INSTANCE));
 
         if (FMLEnvironment.dist.isClient()) {
             com.xtri6.grimstorage.client.GrimStorageClient.init(modBus, container);

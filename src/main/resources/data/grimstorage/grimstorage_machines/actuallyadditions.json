@@ -1,0 +1,21 @@
+{
+  "entries": [
+    {
+      "machines": [
+        "actuallyadditions:crusher",
+        "actuallyadditions:crusher_double"
+      ],
+      "recipe_types": [
+        "actuallyadditions:crushing"
+      ]
+    },
+    {
+      "machines": [
+        "actuallyadditions:powered_furnace"
+      ],
+      "recipe_types": [
+        "minecraft:smelting"
+      ]
+    }
+  ]
+}
