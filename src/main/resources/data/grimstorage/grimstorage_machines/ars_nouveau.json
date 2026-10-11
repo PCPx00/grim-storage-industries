@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "machines": [
+        "ars_nouveau:imbuement_chamber"
+      ],
+      "recipe_types": [
+        "ars_nouveau:imbuement"
+      ]
+    }
+  ]
+}

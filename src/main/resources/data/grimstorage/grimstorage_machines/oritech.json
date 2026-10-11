@@ -1,0 +1,36 @@
+{
+  "entries": [
+    {
+      "machines": [
+        "oritech:pulverizer_block"
+      ],
+      "recipe_types": [
+        "oritech:pulverizer"
+      ]
+    },
+    {
+      "machines": [
+        "oritech:grinder_block"
+      ],
+      "recipe_types": [
+        "oritech:grinder"
+      ]
+    },
+    {
+      "machines": [
+        "oritech:assembler_block"
+      ],
+      "recipe_types": [
+        "oritech:assembler"
+      ]
+    },
+    {
+      "machines": [
+        "oritech:powered_furnace_block"
+      ],
+      "recipe_types": [
+        "minecraft:smelting"
+      ]
+    }
+  ]
+}

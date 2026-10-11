@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "machines": [
+        "powah:energizing_orb"
+      ],
+      "recipe_types": [
+        "powah:energizing"
+      ]
+    }
+  ]
+}

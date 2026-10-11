@@ -399,18 +399,34 @@
           "title": "Machine Bus",
           "text": [
             "The **Machine Bus** clips onto a machine, like an Import Bus. The network then uses that machine for autocrafting.",
-            "On a **furnace, blast furnace or smoker** it needs no cards at all: it learns every recipe the machine can cook. They show up in the **Craftable** tab."
+            "It needs no cards on **furnaces, smokers and blast furnaces** or on **machines from big mods**: it learns every recipe the machine can make. They show up in the **Craftable** tab."
           ],
           "recipe": "grimstorage:machine_bus"
         },
         {
           "title": "Machine Bus tricks",
           "text": [
-            "- **Keeps furnaces fuelled** with coal, charcoal, blaze rods or dried kelp from your network, one piece at a time.",
-            "- Takes results only from the **output slot**.",
+            "- **Keeps machines going:** furnaces get fuel and powered machines get energy from your network.",
+            "- Takes back everything a machine makes, extras like **sawdust** too, so it never clogs.",
             "- **Several buses on several furnaces share big jobs**: 64 ore on 4 furnaces cooks 4 times as fast.",
             "- Holds 9 Processing Cards for **any other machine**.",
             "- Buttons in its screen turn learning and fuelling off."
+          ]
+        },
+        {
+          "title": "Modded machines",
+          "text": [
+            "The Machine Bus learns recipes from **Mekanism** (Enrichment Chamber, Crusher, Precision Sawmill, Combiner, Energized Smelter and their factories), **Thermal**, **Ender IO**, **Immersive Engineering**, **Create** (Millstone), **Ars Nouveau** (Imbuement Chamber), **Powah**, **Modern Industrialization**, **Oritech** and **Actually Additions**.",
+            "Other mods' machines often work too when the machine's name matches its recipes (a crusher crushes).",
+            "On Mekanism machines it opens the side it touches for items and power by itself. No Configurator needed."
+          ]
+        },
+        {
+          "title": "Good to know",
+          "text": [
+            "- Only **item recipes** are learned. A recipe that also needs a fluid or a chemical is left out, so a job never waits on something the bus can't give.",
+            "- **Pack makers:** add any machine in a datapack: `data/<pack>/grimstorage_machines/<name>.json` with `\"machines\"` and `\"recipe_types\"` lists.",
+            "- Need something special? A **Processing Card** in the bus still works for any machine."
           ]
         },
         {

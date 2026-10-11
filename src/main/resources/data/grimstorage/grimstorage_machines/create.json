@@ -1,0 +1,12 @@
+{
+  "entries": [
+    {
+      "machines": [
+        "create:millstone"
+      ],
+      "recipe_types": [
+        "create:milling"
+      ]
+    }
+  ]
+}

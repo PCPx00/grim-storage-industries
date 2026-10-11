@@ -119,6 +119,13 @@ public final class Pattern {
         return new Pattern(Kind.PROCESSING, in, outs, List.of(), null, machine, true);
     }
 
+    /** A machine recipe a Machine Bus learned, with any number of inputs. */
+    public static Pattern learned(Map<ItemKey, Long> inputs, ItemKey output, long outCount, MachineLink machine) {
+        Map<ItemKey, Long> outs = new LinkedHashMap<>();
+        outs.put(output, outCount);
+        return new Pattern(Kind.PROCESSING, new LinkedHashMap<>(inputs), outs, List.of(), null, machine, true);
+    }
+
     public boolean learned() {
         return learned;
     }

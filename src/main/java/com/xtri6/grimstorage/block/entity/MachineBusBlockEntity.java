@@ -148,8 +148,101 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
             IItemHandler all = machineAll();
             return all == null ? null : new OneSlot(all, FURNACE_INPUT);
         }
-        Direction f = facing();
-        return level.getCapability(Capabilities.ItemHandler.BLOCK, target(), f.getOpposite());
+        List<IItemHandler> sides = sideHandlers();
+        if (sides.isEmpty()) {
+            return null;
+        }
+        // machines with side settings (Mekanism, Thermal and friends) often don't take items on every face: try the
+        // face we touch first, then the machine's other sides, so it works whatever its sides are set to
+        return sides.size() == 1 ? sides.get(0) : new EitherInput(sides);
+    }
+
+    /** The machine's inventory as seen from each side, the face we touch first, then the rest, then no side. */
+    private List<IItemHandler> sideHandlers() {
+        List<IItemHandler> out = new ArrayList<>(7);
+        if (level == null) {
+            return out;
+        }
+        Direction f = facing().getOpposite();
+        List<Direction> order = new ArrayList<>();
+        order.add(f);
+        for (Direction d : Direction.values()) {
+            if (d != f) {
+                order.add(d);
+            }
+        }
+        order.add(null);
+        for (Direction d : order) {
+            IItemHandler h = level.getCapability(Capabilities.ItemHandler.BLOCK, target(), d);
+            if (h != null && h.getSlots() > 0 && out.stream().noneMatch(o -> o == h)) {
+                out.add(h);
+            }
+        }
+        return out;
+    }
+
+    /** Several views of one machine, in order: an item goes in through the first that takes it. */
+    private static final class EitherInput implements IItemHandler {
+        private final List<IItemHandler> parts;
+        private final int[] starts;
+        private final int slots;
+
+        EitherInput(List<IItemHandler> parts) {
+            this.parts = parts;
+            this.starts = new int[parts.size()];
+            int n = 0;
+            for (int i = 0; i < parts.size(); i++) {
+                starts[i] = n;
+                n += parts.get(i).getSlots();
+            }
+            this.slots = n;
+        }
+
+        @Override
+        public int getSlots() {
+            return slots;
+        }
+
+        private int part(int slot) {
+            int p = 0;
+            while (p + 1 < starts.length && slot >= starts[p + 1]) {
+                p++;
+            }
+            return p;
+        }
+
+        private IItemHandler of(int slot) {
+            return parts.get(part(slot));
+        }
+
+        private int local(int slot) {
+            return slot - starts[part(slot)];
+        }
+
+        @Override
+        public ItemStack getStackInSlot(int slot) {
+            return of(slot).getStackInSlot(local(slot));
+        }
+
+        @Override
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            return of(slot).insertItem(local(slot), stack, simulate);
+        }
+
+        @Override
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            return ItemStack.EMPTY;
+        }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            return of(slot).getSlotLimit(local(slot));
+        }
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return of(slot).isItemValid(local(slot), stack);
+        }
     }
 
     // ------------------------------------------------------------------ learning
@@ -160,11 +253,22 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
         return learned;
     }
 
+    private static final boolean MEKANISM = net.neoforged.fml.ModList.get() != null && net.neoforged.fml.ModList.get().isLoaded("mekanism");
+    private int sideChecks;
+
+    /** Most patterns one bus offers, so a machine with a huge recipe list can't slow the network down. */
+    private static final int MAX_LEARNED = 4000;
+
     private List<Pattern> learn() {
         AbstractFurnaceBlockEntity f = furnace();
-        if (f == null || level == null) {
-            machineName = level == null ? null : level.getBlockState(target()).getBlock().getName();
+        if (level == null) {
             return List.of();
+        }
+        if (f == null) {
+            BlockState st = level.getBlockState(target());
+            machineName = st.getBlock().getName();
+            lastMachine = st.getBlock();
+            return st.isAir() ? List.of() : learnFromRecipes(st);
         }
         machineName = f.getBlockState().getBlock().getName();
         lastMachine = f.getBlockState().getBlock();
@@ -188,6 +292,49 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
                 ItemKey inKey = ItemKey.of(in);
                 if (inKey != null && seen.add(inKey + ">" + outKey)) {
                     out.add(Pattern.learned(inKey, 1, outKey, result.getCount(), this));
+                }
+            }
+        }
+        return out;
+    }
+
+    /**
+     * Any other machine: its recipe types come from the datapack table (Mekanism, Thermal, Ender IO, Immersive
+     * Engineering, Create, Ars Nouveau and more ship with the mod) or a matching name, and each recipe is read by
+     * {@link com.xtri6.grimstorage.storage.RecipeReader}.
+     */
+    private List<Pattern> learnFromRecipes(BlockState st) {
+        List<Pattern> out = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (RecipeType<?> type : com.xtri6.grimstorage.storage.MachineRecipes.INSTANCE.typesFor(st)) {
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            List<RecipeHolder<?>> recipes = (List) level.getRecipeManager().getAllRecipesFor((RecipeType) type);
+            for (RecipeHolder<?> holder : recipes) {
+                com.xtri6.grimstorage.storage.RecipeReader.Read read =
+                        com.xtri6.grimstorage.storage.RecipeReader.read(holder.value(), level.registryAccess());
+                if (read == null) {
+                    continue;
+                }
+                // one pattern per choice of the ingredient with the most choices ("any log"), the rest take their first
+                int vary = 0;
+                for (int i = 1; i < read.inputs().size(); i++) {
+                    if (read.inputs().get(i).options().size() > read.inputs().get(vary).options().size()) {
+                        vary = i;
+                    }
+                }
+                for (ItemKey choice : read.inputs().get(vary).options()) {
+                    java.util.Map<ItemKey, Long> in = new java.util.LinkedHashMap<>();
+                    for (int i = 0; i < read.inputs().size(); i++) {
+                        com.xtri6.grimstorage.storage.RecipeReader.Input input = read.inputs().get(i);
+                        in.merge(i == vary ? choice : input.options().get(0), input.count(), Long::sum);
+                    }
+                    if (in.containsKey(read.output()) || !seen.add(in + ">" + read.output() + "x" + read.outCount())) {
+                        continue;
+                    }
+                    out.add(Pattern.learned(in, read.output(), read.outCount(), this));
+                    if (out.size() >= MAX_LEARNED) {
+                        return out;
+                    }
                 }
             }
         }
@@ -226,8 +373,14 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
 
     @Override
     public void pullOutputs(StorageNetwork network) {
+        if (MEKANISM && level != null && (++sideChecks & 7) == 0) {
+            com.xtri6.grimstorage.compat.MekanismSides.open(level, target(), facing().getOpposite());
+        }
         IItemHandler machine = machineAll();
         if (machine == null) {
+            if (fuel) {
+                power(network);
+            }
             return;
         }
         if (furnace() != null) {
@@ -237,6 +390,14 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
                 refuel(network, machine);
             }
             return;
+        }
+        if (fuel) {
+            power(network);
+        }
+        if (learn && !learned.isEmpty()) {
+            for (IItemHandler side : sideHandlers()) {
+                pullFinished(network, side);
+            }
         }
         Set<ItemKey> wanted = new HashSet<>();
         for (ItemStack card : cards()) {
@@ -253,10 +414,74 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
         if (wanted.isEmpty()) {
             return;
         }
-        for (int slot = 0; slot < machine.getSlots(); slot++) {
-            pull(network, machine, slot, wanted);
+        for (IItemHandler side : sideHandlers()) {
+            for (int slot = 0; slot < side.getSlots(); slot++) {
+                pull(network, side, slot, wanted);
+            }
         }
     }
+
+    /**
+     * A machine whose recipes were learned: everything in its output slots comes back, results and extras alike
+     * (sawdust, slag, a chance output) so nothing clogs it. Slots that still take items are its inputs and are left
+     * alone, even when they hold something another recipe makes.
+     */
+    private static void pullFinished(StorageNetwork network, IItemHandler machine) {
+        for (int slot = 0; slot < machine.getSlots(); slot++) {
+            ItemStack in = machine.getStackInSlot(slot);
+            if (in.isEmpty()) {
+                continue;
+            }
+            boolean full = in.getCount() >= Math.min(machine.getSlotLimit(slot), in.getMaxStackSize());
+            boolean takesMore = !full && machine.insertItem(slot, in.copyWithCount(1), true).isEmpty();
+            boolean inputSlot = takesMore || (full && machine.isItemValid(slot, in));
+            if (!inputSlot) {
+                pull(network, machine, slot, null);
+            }
+        }
+    }
+
+    /** Machines that run on power get it from the network's energy cells, so a job never stalls on an empty buffer. */
+    private void power(StorageNetwork network) {
+        if (level == null) {
+            return;
+        }
+        net.neoforged.neoforge.energy.IEnergyStorage energy = null;
+        Direction face = facing().getOpposite();
+        List<Direction> order = new ArrayList<>();
+        order.add(face);
+        for (Direction d : Direction.values()) {
+            if (d != face) {
+                order.add(d);
+            }
+        }
+        order.add(null);
+        for (Direction d : order) {
+            net.neoforged.neoforge.energy.IEnergyStorage e = level.getCapability(Capabilities.EnergyStorage.BLOCK, target(), d);
+            if (e != null && e.canReceive()) {
+                energy = e;
+                break;
+            }
+        }
+        if (energy == null) {
+            return;
+        }
+        int want = energy.receiveEnergy(MAX_POWER, true);
+        if (want <= 0) {
+            return;
+        }
+        com.xtri6.grimstorage.storage.BulkKey fe = com.xtri6.grimstorage.storage.BulkKey.flat(com.xtri6.grimstorage.storage.BulkKind.ENERGY);
+        long got = network.extractBulk(fe, want, false);
+        if (got > 0) {
+            int took = energy.receiveEnergy((int) got, false);
+            if (took < got) {
+                network.insertBulk(fe, got - took, false);
+            }
+        }
+    }
+
+    /** Energy a Machine Bus can hand its machine each time it checks (every 5 ticks). */
+    private static final int MAX_POWER = 200_000;
 
     private static void pull(StorageNetwork network, IItemHandler machine, int slot, @Nullable Set<ItemKey> wanted) {
         if (slot >= machine.getSlots()) {

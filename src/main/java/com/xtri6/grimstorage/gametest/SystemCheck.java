@@ -1326,6 +1326,90 @@ public final class SystemCheck {
             info("diamonds pulled={} dirt left in chest={}", diamonds, chest.getStackInSlot(1).getCount());
             return diamonds == 3 && chest.getStackInSlot(1).getCount() == 5;
         }));
+        final Object[] mek = new Object[3];
+        STEPS.add(new Step("machine bus learns Mekanism machines (enrichment chamber, sawmill) by itself", 60, () -> {
+            if (mek[0] == null) {
+                mek[0] = true;
+                ((DriveBlockEntity) level.getBlockEntity(MB.west())).cells().setStackInSlot(1,
+                        new ItemStack(Registration.BULK_CELLS.get(BulkKind.ENERGY).get(CellTier.COPPER).get()));
+                level.setBlockAndUpdate(MB.above(2), BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("mekanism", "enrichment_chamber")).defaultBlockState());
+                level.setBlockAndUpdate(MB.below(2), BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("mekanism", "precision_sawmill")).defaultBlockState());
+                level.setBlockAndUpdate(MB.above(), Registration.MACHINE_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.UP));
+                level.setBlockAndUpdate(MB.below(), Registration.MACHINE_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.DOWN));
+                NetworkManager.markDirty();
+                return false;
+            }
+            StorageNetwork n = mbNet();
+            n.insertBulk(BulkKey.flat(BulkKind.ENERGY), 2_000_000, false);
+            int up = machineBus(Direction.UP).recipeCount(), down = machineBus(Direction.DOWN).recipeCount();
+            info("enrichment chamber recipes={} sawmill recipes={} energy={}", up, down, n.bulkStats(BulkKind.ENERGY)[0]);
+            return up > 5 && down > 5 && n.bulkStats(BulkKind.ENERGY)[0] > 0;
+        }));
+        STEPS.add(new Step("order something only the enrichment chamber makes", 0, () -> {
+            StorageNetwork n = mbNet();
+            for (com.xtri6.grimstorage.storage.Pattern p : machineBus(Direction.UP).learnedPatterns()) {
+                boolean vanilla = p.inputs().keySet().stream().allMatch(k -> BuiltInRegistries.ITEM.getKey(k.item()).getNamespace().equals("minecraft"));
+                if (!vanilla) {
+                    continue;
+                }
+                p.inputs().forEach((k, c) -> n.insert(k, c * 2, false));
+                long before = n.count(p.primary());
+                CraftingPlanner.Plan plan = n.request(p.primary(), p.outputCount(p.primary()), "test");
+                info("enrich {} -> {} x{}: plan ok={} missing={}", p.inputs(), p.primary().item(), p.outputCount(p.primary()), plan.ok(), plan.missing());
+                mek[1] = p;
+                mek[2] = before;
+                return plan.ok();
+            }
+            return false;
+        }));
+        STEPS.add(new Step("enrichment chamber was powered from the network and its result came back", 600, () -> {
+            com.xtri6.grimstorage.storage.Pattern p = (com.xtri6.grimstorage.storage.Pattern) mek[1];
+            StorageNetwork n = mbNet();
+            long now = n.count(p.primary());
+            info("enriched {}: {} -> {} jobs={}", p.primary().item(), mek[2], now, n.jobs().isEmpty() ? "none" : n.jobs().get(0).status().getString());
+            return now >= (Long) mek[2] + p.outputCount(p.primary()) && n.jobs().isEmpty();
+        }));
+        STEPS.add(new Step("order planks from the precision sawmill (4 logs)", 0, () -> {
+            StorageNetwork n = mbNet();
+            n.insert(key(Items.OAK_LOG), 4, false);
+            mek[2] = n.count(key(Items.OAK_PLANKS));
+            CraftingPlanner.Plan plan = n.request(key(Items.OAK_PLANKS), 24, "test");
+            info("sawmill plan ok={} missing={} steps={}", plan.ok(), plan.missing(), plan.steps().size());
+            return plan.ok();
+        }));
+        STEPS.add(new Step("planks came back and the sawmill's extra output (sawdust) did not clog it", 900, () -> {
+            StorageNetwork n = mbNet();
+            IItemHandler saw = level.getCapability(Capabilities.ItemHandler.BLOCK, MB.below(2), null);
+            int left = 0;
+            for (int i = 0; saw != null && i < saw.getSlots(); i++) {
+                left += saw.getStackInSlot(i).getCount();
+            }
+            long planks = n.count(key(Items.OAK_PLANKS)) - (Long) mek[2];
+            long sawdust = n.count(ItemKey.of(new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("mekanism", "sawdust")))));
+            info("planks gained={} sawdust in network={} items left in sawmill={} jobs={}", planks, sawdust, left,
+                    n.jobs().isEmpty() ? "none" : n.jobs().get(0).status().getString());
+            return planks >= 24 && left == 0 && n.jobs().isEmpty();
+        }));
+        STEPS.add(new Step("machine table: datapack entries, name matching, and chemical recipes left out", 0, () -> {
+            com.xtri6.grimstorage.storage.MachineRecipes mr = com.xtri6.grimstorage.storage.MachineRecipes.INSTANCE;
+            java.util.function.Function<String, List<String>> types = id -> mr.typesFor(BuiltInRegistries.BLOCK.get(ResourceLocation.parse(id)).defaultBlockState())
+                    .stream().map(t -> BuiltInRegistries.RECIPE_TYPE.getKey(t).toString()).toList();
+            List<String> crusher = types.apply("mekanism:crusher"), factory = types.apply("mekanism:elite_crushing_factory"),
+                    compressor = types.apply("mekanism:osmium_compressor"), chest = types.apply("minecraft:chest");
+            boolean stems = com.xtri6.grimstorage.storage.MachineRecipes.stem("crusher").equals(com.xtri6.grimstorage.storage.MachineRecipes.stem("crushing"))
+                    && com.xtri6.grimstorage.storage.MachineRecipes.stem("sag_mill").equals(com.xtri6.grimstorage.storage.MachineRecipes.stem("sag_milling"))
+                    && com.xtri6.grimstorage.storage.MachineRecipes.stem("machine_pulverizer").equals(com.xtri6.grimstorage.storage.MachineRecipes.stem("pulverizer"));
+            // the osmium compressor is found by name, but every one of its recipes needs a chemical, so none are learned
+            long learnable = 0;
+            for (var t : mr.typesFor(BuiltInRegistries.BLOCK.get(ResourceLocation.parse("mekanism:osmium_compressor")).defaultBlockState())) {
+                @SuppressWarnings({"unchecked", "rawtypes"})
+                List<net.minecraft.world.item.crafting.RecipeHolder<?>> rs = (List) level.getRecipeManager().getAllRecipesFor((net.minecraft.world.item.crafting.RecipeType) t);
+                learnable += rs.stream().filter(h -> com.xtri6.grimstorage.storage.RecipeReader.read(h.value(), level.registryAccess()) != null).count();
+            }
+            info("crusher={} elite factory={} compressor={} (learnable {}) chest={} stems ok={}", crusher, factory, compressor, learnable, chest, stems);
+            return crusher.contains("mekanism:crushing") && factory.contains("mekanism:crushing") && compressor.contains("mekanism:compressing")
+                    && learnable == 0 && chest.isEmpty() && stems;
+        }));
         STEPS.add(new Step("machine bus fuel switch saves and stops refuelling", 0, () -> {
             com.xtri6.grimstorage.block.entity.MachineBusBlockEntity bus = machineBus(Direction.EAST);
             bus.toggleFuel();

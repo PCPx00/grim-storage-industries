@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.11.0
+- Machine Bus works with machines from big mods, no cards needed. It learns every item recipe of:
+  - Mekanism: Enrichment Chamber, Crusher, Precision Sawmill, Combiner, Energized Smelter, and all their factories.
+  - Thermal, Ender IO, Immersive Engineering, Create (Millstone), Ars Nouveau (Imbuement Chamber), Powah, Modern
+    Industrialization, Oritech and Actually Additions.
+  - Other mods' machines too, when the machine's name matches its mod's recipes (a "crusher" runs "crushing").
+- Machine Bus: keeps powered machines charged from the network's energy cells ("Fuel & power").
+- Machine Bus: takes back everything a learned machine makes, extras like Mekanism sawdust included, so outputs
+  never clog. Input slots are left alone.
+- Machine Bus: finds the machine side that takes items, so it works with machines that have side settings. On
+  Mekanism machines it opens the side it touches for items and power by itself (no Configurator needed); sides
+  you already set are left alone.
+- Recipes that also need a fluid or chemical are left out, so jobs never wait on something the bus can't give.
+- Pack makers: add any machine with a datapack file, `data/<pack>/grimstorage_machines/<name>.json`:
+  `{"entries": [{"machines": ["mod:machine", "#mod:machine_tag"], "recipe_types": ["mod:recipe_type"]}]}`.
+- Machine Bus screen: long machine names shrink to fit.
+
 ## 1.10.0
 - Terminal: new Crafting jobs tab (last along the top, with a count of running jobs). Every job shows its progress
   and what it is waiting for, and under it every step: which machine makes it (for example "Furnace x2"), how many

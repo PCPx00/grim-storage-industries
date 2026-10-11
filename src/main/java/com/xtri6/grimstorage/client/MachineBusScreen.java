@@ -65,7 +65,14 @@ public class MachineBusScreen extends GrimScreen<BlockMenus.MachineBus> {
             }
         }
         g.drawString(font, Component.translatable("gui.grimstorage.machine_bus.on"), 70, 22, t.textDim(), false);
-        g.drawString(font, font.plainSubstrByWidth(machine.getString(), 98), 70, 32, t.accent(), false);
+        // long names (Enrichment Chamber, Precision Sawmill) shrink to fit rather than get cut off
+        String name = machine.getString();
+        float scale = Math.max(0.6f, Math.min(1f, 98f / Math.max(1, font.width(name))));
+        g.pose().pushPose();
+        g.pose().translate(70, 32 + (1 - scale) * 4, 0);
+        g.pose().scale(scale, scale, 1f);
+        g.drawString(font, font.plainSubstrByWidth(name, (int) (98 / scale)), 0, 0, t.accent(), false);
+        g.pose().popPose();
         Component recipes = Component.translatable("gui.grimstorage.machine_bus.recipes", menu.recipes());
         g.drawString(font, recipes, 70, 41, menu.recipes() > 0 ? t.ok() : t.textFaint(), false);
     }
