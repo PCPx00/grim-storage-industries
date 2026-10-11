@@ -235,5 +235,14 @@
   "tier.grimstorage.gold": "Gold",
   "tier.grimstorage.diamond": "Diamond",
   "tier.grimstorage.netherite": "Netherite",
-  "tier.grimstorage.singularity": "Singularity"
+  "tier.grimstorage.singularity": "Singularity",
+  "gui.grimstorage.bus.direction.import": "↓ Import: INTO the network",
+  "gui.grimstorage.bus.direction.export": "↑ Export: OUT of the network",
+  "gui.grimstorage.bus.direction.tooltip": "Click to switch this bus between Import (takes things from the block into your network) and Export (sends things from your network into the block).",
+  "gui.grimstorage.bus.status.no_filter": "Pick items",
+  "tooltip.grimstorage.import_bus": "Takes everything out of the block it faces and puts it in your network.",
+  "tooltip.grimstorage.export_bus": "Sends things FROM your network INTO the block it faces. Pick what to send in its screen.",
+  "tooltip.grimstorage.bus.how": "Use it on a chest or machine your Soul Cable runs up to, and it goes onto the cable.",
+  "tooltip.grimstorage.bus.switch": "Wrong one? Right-click the bus and switch it in its screen.",
+  "message.grimstorage.export_bus.placed": "Export Bus: sends from your network into this block. To pull items into the network, use an Import Bus or switch it in its screen."
 }

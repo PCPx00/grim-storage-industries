@@ -123,6 +123,8 @@ its Pull switch for a resource to let pipes take it back out.
   goes onto that side of the cable, facing the block. Right-click it for its screen; break it to take just the bus off.
   One bus per cable side, and the network never passes through a side with a bus.
 - **On its own:** use the bus on a block with no cable next to it and it places as its own block on that face.
+- **Import Bus (cyan)** takes things out of the block into the network; **Export Bus (orange)** sends things from the
+  network into the block, only what you pick. Placed the wrong one? The direction button in its screen switches it.
 
 - Place against the block you want to use; the bus sticks to that face. Run cable to its back. The network never connects
   through a bus's front, so a bus facing another network's interface moves things between the two networks without merging them.

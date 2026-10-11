@@ -59,15 +59,11 @@ public final class ScreenshotCheck {
     public static void register(IEventBus modBus) {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> onTick());
         Runnable none = () -> {};
-        SHOTS.add(new Shot("d01_cable_buses_loading", true, ScreenshotCheck::cableBuses, none));
-        SHOTS.add(new Shot("d02_cable_buses", true, sp -> {}, none));
-        SHOTS.add(new Shot("d03_cable_buses_close", true, sp -> {
-            BlockPos o = BASE.offset(-40, 14, -40);
-            sp.teleportTo(sp.serverLevel(), o.getX() + 3.6, o.getY() + 1.4, o.getZ() + 2.4, 160f, 30f);
-        }, none));
-        SHOTS.add(new Shot("d04_cable_bus_screen", true, sp -> Menus.openCableBus(sp, BASE.offset(-40, 14, -40).east(3), net.minecraft.core.Direction.EAST), none));
-        SHOTS.add(new Shot("d05_guide_cable_buses", true, sp -> {}, () -> book(9, 1)));
-        SHOTS.add(new Shot("d06_guide_buses", false, sp -> {}, () -> book(9, 0)));
+        SHOTS.add(new Shot("e01_scene", true, ScreenshotCheck::cableBuses, none));
+        SHOTS.add(new Shot("e02_export_bus_screen", true, sp -> Menus.openCableBus(sp, BASE.offset(-40, 14, -40).east(2).above(2), net.minecraft.core.Direction.NORTH), none));
+        SHOTS.add(new Shot("e05_guide_cable", true, sp -> {}, () -> book(9, 1)));
+        SHOTS.add(new Shot("e03_import_bus_screen_light", false, sp -> Menus.openCableBus(sp, BASE.offset(-40, 14, -40).east(3), net.minecraft.core.Direction.EAST), none));
+        SHOTS.add(new Shot("e04_guide_buses", true, sp -> {}, () -> book(9, 0)));
     }
 
     private static void cableBuses(ServerPlayer sp) {

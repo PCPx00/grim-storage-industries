@@ -780,6 +780,68 @@ public final class SystemCheck {
             level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(cable).inflate(1.5)).forEach(e -> e.discard());
             return em == 40 && count(Items.EMERALD) == 0 && west != null && north == null && saved && off && dropped == 1;
         }));
+        final int[] cf = {0};
+        final long[] cfBefore = new long[1];
+        STEPS.add(new Step("wrong bus: an Export Bus on a full double chest says so, and one click turns it into an Import Bus", 80, () -> {
+            BlockPos cable = at(1, 3, 0);
+            BlockPos chest = at(1, 3, -1);
+            FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+            if (cf[0] == 0) {
+                cf[0] = 1;
+                cfBefore[0] = count(Items.IRON_NUGGET);
+                level.setBlockAndUpdate(cable, Registration.CABLE.get().defaultBlockState());
+                var cs = Blocks.CHEST.defaultBlockState().setValue(net.minecraft.world.level.block.ChestBlock.FACING, Direction.SOUTH);
+                level.setBlockAndUpdate(chest, cs.setValue(net.minecraft.world.level.block.ChestBlock.TYPE, net.minecraft.world.level.block.state.properties.ChestType.RIGHT));
+                level.setBlockAndUpdate(chest.east(), cs.setValue(net.minecraft.world.level.block.ChestBlock.TYPE, net.minecraft.world.level.block.state.properties.ChestType.LEFT));
+                IItemHandler inv = level.getCapability(Capabilities.ItemHandler.BLOCK, chest, Direction.SOUTH);
+                info("double chest slots={}", inv.getSlots());
+                inv.insertItem(0, new ItemStack(Items.IRON_NUGGET, 64), false);
+                inv.insertItem(40, new ItemStack(Items.IRON_NUGGET, 64), false);
+                ItemStack held = new ItemStack(Registration.EXPORT_BUS_ITEM.get());
+                fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, held);
+                var hit = new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(chest).add(0, 0, 0.5), Direction.SOUTH, chest, false);
+                held.useOn(new net.minecraft.world.item.context.UseOnContext(fp, net.minecraft.world.InteractionHand.MAIN_HAND, hit));
+                return false;
+            }
+            var be = (com.xtri6.grimstorage.block.entity.CableBusBlockEntity) level.getBlockEntity(cable);
+            var bus = be.part(Direction.NORTH);
+            if (cf[0] == 1) {
+                if (cf[0]++ == 1) {
+                    return false;
+                }
+            }
+            if (cf[0] < 25) {
+                cf[0]++;
+                return false;
+            }
+            if (cf[0] == 25) {
+                cf[0]++;
+                long moved = count(Items.IRON_NUGGET) - cfBefore[0];
+                info("as an Export Bus: nuggets moved={} status={}", moved, bus.status());
+                if (moved != 0 || bus.status() != com.xtri6.grimstorage.block.entity.BusLogic.Status.NO_FILTER) {
+                    return false;
+                }
+                var menu = com.xtri6.grimstorage.menu.BlockMenus.Bus.server(989, fp.getInventory(), bus,
+                        net.minecraft.world.inventory.ContainerLevelAccess.create(level, cable), level.getBlockState(cable).getBlock());
+                menu.press(com.xtri6.grimstorage.menu.BlockMenus.Bus.DIRECTION, fp);
+                info("after the direction button: cable side={} bus export={} blacklist={}", com.xtri6.grimstorage.block.CableBlock.side(level.getBlockState(cable), Direction.NORTH),
+                        bus.isExport(), bus.blacklist());
+                // a free-standing bus switches too, keeping its facing
+                level.setBlockAndUpdate(at(1, 4, 0), Registration.EXPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.UP));
+                ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(at(1, 4, 0))).switchDirection(fp);
+                var st = level.getBlockState(at(1, 4, 0));
+                info("free-standing bus after switching: {}", st);
+                boolean standalone = st.is(Registration.IMPORT_BUS.get()) && st.getValue(FacingDeviceBlock.All.FACING) == Direction.UP
+                        && level.getBlockEntity(at(1, 4, 0)) instanceof com.xtri6.grimstorage.block.entity.BusBlockEntity nb && !nb.isExport();
+                level.removeBlock(at(1, 4, 0), false);
+                return false;
+            }
+            long moved = count(Items.IRON_NUGGET) - cfBefore[0];
+            if (cf[0]++ % 10 == 0) {
+                info("as an Import Bus: nuggets into the network={}", moved);
+            }
+            return moved == 128 && !bus.isExport();
+        }));
         STEPS.add(new Step("terminal: store and take XP", 0, () -> {
             FakePlayer fp = FakePlayerFactory.getMinecraft(level);
             TerminalMenu menu = new TerminalMenu(995, fp.getInventory(), () -> NetworkManager.get(level, at(5, 0, 0)), p -> true);

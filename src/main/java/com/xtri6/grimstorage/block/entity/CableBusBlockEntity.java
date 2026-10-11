@@ -93,6 +93,20 @@ public class CableBusBlockEntity extends NetworkBlockEntity implements Ticking {
         public boolean removed() {
             return isRemoved() || buses[side.ordinal()] == null;
         }
+
+        @Override
+        public void switchDirection(net.minecraft.server.level.ServerPlayer player) {
+            BusLogic bus = buses[side.ordinal()];
+            if (bus == null || level == null || level.isClientSide) {
+                return;
+            }
+            bus.flipDirection();
+            BlockState state = level.getBlockState(worldPosition);
+            level.setBlock(worldPosition, state.setValue(com.xtri6.grimstorage.block.CableBlock.SIDES.get(side),
+                    bus.isExport() ? com.xtri6.grimstorage.block.CableBlock.Side.EXPORT : com.xtri6.grimstorage.block.CableBlock.Side.IMPORT),
+                    net.minecraft.world.level.block.Block.UPDATE_ALL);
+            com.xtri6.grimstorage.menu.Menus.openCableBus(player, worldPosition, side);
+        }
     }
 
     @Override

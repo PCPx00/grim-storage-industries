@@ -187,6 +187,7 @@ public final class BlockMenus {
     public static class Bus extends AtBlock {
         public static final int BLACKLIST = 0;
         public static final int MATCH_COMPONENTS = 1;
+        public static final int DIRECTION = 2;
         /** Buttons 10+ toggle one resource (see {@link BusLogic#ITEMS_BIT}). */
         public static final int RESOURCE = 10;
 
@@ -257,11 +258,13 @@ public final class BlockMenus {
         }
 
         /** Server: a button on the screen was pressed. */
-        public void press(int button) {
+        public void press(int button, net.minecraft.server.level.ServerPlayer player) {
             if (be == null) {
                 return;
             }
-            if (button == BLACKLIST) {
+            if (button == DIRECTION) {
+                be.switchDirection(player);
+            } else if (button == BLACKLIST) {
                 be.toggleBlacklist();
             } else if (button == MATCH_COMPONENTS) {
                 be.toggleMatchComponents();

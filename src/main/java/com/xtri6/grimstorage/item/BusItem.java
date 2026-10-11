@@ -12,6 +12,10 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 
 /**
  * Import / Export Bus item. Use it on the block your cable runs up to (or on the cable itself) and
@@ -43,7 +47,11 @@ public class BusItem extends BlockItem {
             cable = clicked.relative(face);
             side = face.getOpposite();
         } else {
-            return super.useOn(ctx);
+            InteractionResult placed = super.useOn(ctx);
+            if (placed.consumesAction()) {
+                hint(ctx);
+            }
+            return placed;
         }
         if (!CableBlock.attachBus(level, cable, side, export)) {
             return InteractionResult.FAIL;
@@ -54,6 +62,22 @@ public class BusItem extends BlockItem {
                 ctx.getItemInHand().shrink(1);
             }
         }
+        hint(ctx);
         return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    /** Export Buses are easy to mix up with Import Buses, so say which way this one goes when it is placed. */
+    private void hint(UseOnContext ctx) {
+        if (export && !ctx.getLevel().isClientSide && ctx.getPlayer() != null) {
+            ctx.getPlayer().displayClientMessage(Component.translatable("message.grimstorage.export_bus.placed").withStyle(ChatFormatting.GOLD), true);
+        }
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, TooltipContext ctx, java.util.List<Component> tooltip, TooltipFlag flag) {
+        tooltip.add(Component.translatable(export ? "tooltip.grimstorage.export_bus" : "tooltip.grimstorage.import_bus")
+                .withStyle(export ? ChatFormatting.GOLD : ChatFormatting.AQUA));
+        tooltip.add(Component.translatable("tooltip.grimstorage.bus.how").withStyle(ChatFormatting.GRAY));
+        tooltip.add(Component.translatable("tooltip.grimstorage.bus.switch").withStyle(ChatFormatting.DARK_GRAY));
     }
 }

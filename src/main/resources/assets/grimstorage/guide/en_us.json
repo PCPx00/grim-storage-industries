@@ -415,11 +415,10 @@
         {
           "title": "Buses",
           "text": [
-            "The fastest way to move things in and out. There are two ways to use a bus:",
-            "- **On cable:** run Soul Cable up to a chest or machine, then use the bus on it. The bus clips onto the end of the cable.",
-            "- **On its own:** use it on any block with no cable there and it sticks to that face. Run cable to its back.",
-            "- **Import Bus:** pulls from the block into the network.",
-            "- **Export Bus:** pushes from the network into the block."
+            "- **Import Bus** (cyan): takes things **out of the block, into your network**. Use it to empty a chest.",
+            "- **Export Bus** (orange): sends things **from your network into the block**, only what you pick.",
+            "Put one on the end of a Soul Cable (next page), or on any block by itself with cable to its back.",
+            "Wrong one? Right-click it and click the direction button to switch."
           ],
           "items": [
             "grimstorage:import_bus",

@@ -62,6 +62,9 @@ public final class BusLogic implements PipePort {
         void markChanged();
 
         boolean removed();
+
+        /** Turn this bus from Import into Export or back (the block or cable side changes with it), then reopen its screen. */
+        default void switchDirection(net.minecraft.server.level.ServerPlayer player) {}
     }
 
     /** Resource switches: bit 0 is items, then one bit per {@link BulkKind}. */
@@ -77,9 +80,10 @@ public final class BusLogic implements PipePort {
     private static final long XP_BUDGET = 10_000;
     private static final int MAX_SLEEP = 20;
 
-    public enum Status { WORKING, IDLE, NO_NETWORK, NOTHING_ATTACHED, OWN_NETWORK, FULL }
+    /** NO_FILTER: an Export Bus with nothing picked to send. */
+    public enum Status { WORKING, IDLE, NO_NETWORK, NOTHING_ATTACHED, OWN_NETWORK, FULL, NO_FILTER }
 
-    private final boolean export;
+    private boolean export;
     private boolean blacklist;
     private boolean matchComponents = true;
     private int resources;
@@ -119,6 +123,41 @@ public final class BusLogic implements PipePort {
 
     public GhostContainer filters() {
         return filters;
+    }
+
+    private boolean filtersEmpty() {
+        for (ItemStack f : filters.items()) {
+            if (!f.isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** An Export Bus set to "only these" with nothing picked, and no filter-free resource (energy, Source, XP) on. */
+    private boolean needsFilter() {
+        return export && !blacklist && filtersEmpty() && !moves(BulkKind.ENERGY) && !moves(BulkKind.SOURCE) && !moves(BulkKind.EXPERIENCE);
+    }
+
+    /**
+     * Import becomes Export or the other way round. With nothing in the filter it also takes the new direction's
+     * defaults (an Import Bus pulls everything); with a filter set, the filter and switches are kept as they are.
+     */
+    public void flipDirection() {
+        boolean fresh = filtersEmpty();
+        export = !export;
+        if (fresh) {
+            blacklist = !export;
+            resources = export ? 1 << ITEMS_BIT : (1 << RESOURCES) - 1;
+        }
+        slotCursor = 0;
+        keyCursor = 0;
+        exportSnapshot = List.of();
+        changed();
+    }
+
+    public void switchDirection(net.minecraft.server.level.ServerPlayer player) {
+        host.switchDirection(player);
     }
 
     @Override
@@ -300,7 +339,8 @@ public final class BusLogic implements PipePort {
             attached = true;
             moved += vacuum(level, net, target);
         }
-        status = !attached ? Status.NOTHING_ATTACHED : moved > 0 ? Status.WORKING : full ? Status.FULL : Status.IDLE;
+        status = !attached ? Status.NOTHING_ATTACHED : moved > 0 ? Status.WORKING : full ? Status.FULL
+                : needsFilter() ? Status.NO_FILTER : Status.IDLE;
         return moved > 0;
     }
 

@@ -289,7 +289,7 @@ public final class Payloads {
 
     private static void onBusSetting(BusSetting p, IPayloadContext ctx) {
         if (ctx.player().containerMenu instanceof BlockMenus.Bus m && m.containerId == p.containerId()) {
-            m.press(p.button());
+            m.press(p.button(), (net.minecraft.server.level.ServerPlayer) ctx.player());
         }
     }
 
