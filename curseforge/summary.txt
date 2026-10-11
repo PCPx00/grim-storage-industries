@@ -1,0 +1,1 @@
+Simple storage that scales to the end game: one network for items, fluids, energy and XP, full autocrafting, buses and its own ore.

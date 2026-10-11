@@ -59,11 +59,29 @@ public final class ScreenshotCheck {
     public static void register(IEventBus modBus) {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> onTick());
         Runnable none = () -> {};
-        SHOTS.add(new Shot("e01_scene", true, ScreenshotCheck::cableBuses, none));
-        SHOTS.add(new Shot("e02_export_bus_screen", true, sp -> Menus.openCableBus(sp, BASE.offset(-40, 14, -40).east(2).above(2), net.minecraft.core.Direction.NORTH), none));
-        SHOTS.add(new Shot("e05_guide_cable", true, sp -> {}, () -> book(9, 1)));
-        SHOTS.add(new Shot("e03_import_bus_screen_light", false, sp -> Menus.openCableBus(sp, BASE.offset(-40, 14, -40).east(3), net.minecraft.core.Direction.EAST), none));
-        SHOTS.add(new Shot("e04_guide_buses", true, sp -> {}, () -> book(9, 0)));
+        SHOTS.add(new Shot("s00_gallery_loading", true, ScreenshotCheck::gallery, none));
+        SHOTS.add(new Shot("s01_gallery_night", true, sp -> {}, none));
+        SHOTS.add(new Shot("s02_terminal", true, sp -> Menus.openTerminal(sp, BASE.offset(5, 0, 0)), none));
+        SHOTS.add(new Shot("s03_cable_loading", true, ScreenshotCheck::cableBuses, none));
+        SHOTS.add(new Shot("s04_cable_buses", true, sp -> {
+            BlockPos o = BASE.offset(-40, 14, -40);
+            sp.teleportTo(sp.serverLevel(), o.getX() + 3.6, o.getY() + 1.4, o.getZ() + 2.4, 160f, 30f);
+        }, none));
+        SHOTS.add(new Shot("s05_bus_screen", true, sp -> Menus.openCableBus(sp, BASE.offset(-40, 14, -40).east(3), net.minecraft.core.Direction.EAST), none));
+        SHOTS.add(new Shot("s06_cells", true, sp -> {
+            sp.setGameMode(GameType.SURVIVAL);
+            sp.getAbilities().mayfly = true;
+            sp.getAbilities().flying = true;
+            sp.onUpdateAbilities();
+        }, () -> Minecraft.getInstance().setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(Minecraft.getInstance().player))));
+        SHOTS.add(new Shot("s07_guide", true, sp -> sp.setGameMode(GameType.CREATIVE), () -> book(0, 0)));
+        SHOTS.add(new Shot("s08_jei", true, sp -> {}, () -> {
+            if (com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.runtime != null) {
+                com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.runtime.getRecipesGui()
+                        .showTypes(List.of(com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.INFUSING));
+            }
+        }));
+        SHOTS.add(new Shot("s09_controller", true, sp -> Menus.openController(sp, BASE), none));
     }
 
     private static void cableBuses(ServerPlayer sp) {
