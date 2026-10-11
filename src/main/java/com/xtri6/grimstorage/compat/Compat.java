@@ -38,7 +38,8 @@ public final class Compat {
     }
 
     public interface Chemicals {
-        <T extends BlockEntity & PipePort> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type);
+        <T extends BlockEntity> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type,
+                java.util.function.BiFunction<T, Direction, PipePort> port);
 
         BulkLink link(ServerLevel level, BlockPos pos, Direction side, BooleanSupplier valid, Runnable invalidated);
 
@@ -51,7 +52,8 @@ public final class Compat {
     }
 
     public interface Source {
-        <T extends BlockEntity & PipePort> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type);
+        <T extends BlockEntity> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type,
+                java.util.function.BiFunction<T, Direction, PipePort> port);
 
         BulkLink link(ServerLevel level, BlockPos pos, Direction side, BooleanSupplier valid, Runnable invalidated);
     }

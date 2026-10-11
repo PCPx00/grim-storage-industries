@@ -52,8 +52,12 @@ final class MekanismCompat implements Compat.Chemicals {
     }
 
     @Override
-    public <T extends BlockEntity & PipePort> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type) {
-        event.registerBlockEntity(CHEMICAL_BLOCK, type, (be, side) -> new Handler(be));
+    public <T extends BlockEntity> void registerCapabilities(RegisterCapabilitiesEvent event, BlockEntityType<T> type,
+            java.util.function.BiFunction<T, Direction, PipePort> port) {
+        event.registerBlockEntity(CHEMICAL_BLOCK, type, (be, side) -> {
+            PipePort p = port.apply(be, side);
+            return p == null ? null : new Handler(p);
+        });
     }
 
     @Nullable

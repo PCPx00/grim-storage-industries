@@ -59,44 +59,47 @@ public final class ScreenshotCheck {
     public static void register(IEventBus modBus) {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> onTick());
         Runnable none = () -> {};
-        SHOTS.add(new Shot("c01_gallery_night", true, ScreenshotCheck::gallery, none));
-        SHOTS.add(new Shot("c02_gallery_night_later", true, sp -> {}, none));
-        SHOTS.add(new Shot("c03_pipes_loading", true, ScreenshotCheck::pipes, none));
-        SHOTS.add(new Shot("c03_pipes", true, sp -> {}, () -> {
-            BlockPos o = BASE.offset(-40, 14, 40);
-            var cl = Minecraft.getInstance().level;
-            GrimStorage.LOGGER.info("[Shots] client cable east {} west {}", cl.getBlockState(o.east()), cl.getBlockState(o.west()));
-        }));
-        SHOTS.add(new Shot("c04_cells_inventory", true, sp -> {
-            sp.setGameMode(GameType.SURVIVAL);
-            sp.getAbilities().mayfly = true;
-            sp.getAbilities().flying = true;
-            sp.onUpdateAbilities();
-            sp.getInventory().clearContent();
-            int slot = 9;
-            for (var tier : com.xtri6.grimstorage.storage.CellTier.values()) {
-                sp.getInventory().setItem(slot++, new ItemStack(com.xtri6.grimstorage.Registration.CELLS.get(tier).get()));
-            }
-            for (var kind : BulkKind.values()) {
-                int col = 0;
-                for (var tier : BulkKind.TIERS) {
-                    sp.getInventory().setItem(18 + (kind.ordinal() / 2) * 9 + (kind.ordinal() % 2) * 4 + col++,
-                            new ItemStack(com.xtri6.grimstorage.Registration.BULK_CELLS.get(kind).get(tier).get()));
+        SHOTS.add(new Shot("d01_cable_buses_loading", true, ScreenshotCheck::cableBuses, none));
+        SHOTS.add(new Shot("d02_cable_buses", true, sp -> {}, none));
+        SHOTS.add(new Shot("d03_cable_buses_close", true, sp -> {
+            BlockPos o = BASE.offset(-40, 14, -40);
+            sp.teleportTo(sp.serverLevel(), o.getX() + 3.6, o.getY() + 1.4, o.getZ() + 2.4, 160f, 30f);
+        }, none));
+        SHOTS.add(new Shot("d04_cable_bus_screen", true, sp -> Menus.openCableBus(sp, BASE.offset(-40, 14, -40).east(3), net.minecraft.core.Direction.EAST), none));
+        SHOTS.add(new Shot("d05_guide_cable_buses", true, sp -> {}, () -> book(9, 1)));
+        SHOTS.add(new Shot("d06_guide_buses", false, sp -> {}, () -> book(9, 0)));
+    }
+
+    private static void cableBuses(ServerPlayer sp) {
+        var lvl = sp.serverLevel();
+        lvl.setDayTime(6000);
+        BlockPos o = BASE.offset(-40, 14, -40);
+        for (int dx = -3; dx <= 5; dx++) {
+            for (int dy = 0; dy <= 3; dy++) {
+                for (int dz = -2; dz <= 2; dz++) {
+                    lvl.removeBlock(o.offset(dx, dy, dz), false);
                 }
             }
-            ItemStack card = new ItemStack(com.xtri6.grimstorage.Registration.RECIPE_CARD.get());
-            sp.getInventory().setItem(0, card);
-            sp.getInventory().setItem(1, new ItemStack(com.xtri6.grimstorage.Registration.PROCESSING_CARD.get()));
-        }, () -> Minecraft.getInstance().setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(Minecraft.getInstance().player))));
-        SHOTS.add(new Shot("c05_jei_infusing", true, sp -> sp.setGameMode(GameType.CREATIVE), () -> {
-            if (com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.runtime != null) {
-                com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.runtime.getRecipesGui()
-                        .showTypes(List.of(com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.INFUSING));
-            }
-        }));
-        SHOTS.add(new Shot("c06_guide_tiers", true, sp -> {}, () -> book(4, 2)));
-        SHOTS.add(new Shot("c07_guide_pipes", false, sp -> {}, () -> book(9, 3)));
-        SHOTS.add(new Shot("c08_guide_cable", true, sp -> {}, () -> book(2, 3)));
+        }
+        var R = com.xtri6.grimstorage.Registration.CABLE;
+        lvl.setBlockAndUpdate(o.west(), com.xtri6.grimstorage.Registration.CONTROLLER.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.west(2), facingSouth(com.xtri6.grimstorage.Registration.DRIVE.get()));
+        lvl.setBlockAndUpdate(o, facingSouth(com.xtri6.grimstorage.Registration.TERMINAL.get()));
+        for (int i = 1; i <= 3; i++) {
+            lvl.setBlockAndUpdate(o.east(i), R.get().defaultBlockState());
+        }
+        // chest at the end of the cable, with an Import Bus clipped onto the cable facing it
+        lvl.setBlockAndUpdate(o.east(4), net.minecraft.world.level.block.Blocks.CHEST.defaultBlockState()
+                .setValue(net.minecraft.world.level.block.ChestBlock.FACING, net.minecraft.core.Direction.SOUTH));
+        com.xtri6.grimstorage.block.CableBlock.attachBus(lvl, o.east(3), net.minecraft.core.Direction.EAST, false);
+        // cable up to a furnace, with an Export Bus feeding it
+        lvl.setBlockAndUpdate(o.east(2).above(), R.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.east(2).above(2), R.get().defaultBlockState());
+        lvl.setBlockAndUpdate(o.east(2).above(2).north(), net.minecraft.world.level.block.Blocks.FURNACE.defaultBlockState());
+        com.xtri6.grimstorage.block.CableBlock.attachBus(lvl, o.east(2).above(2), net.minecraft.core.Direction.NORTH, true);
+        // and a free-standing bus for comparison
+        lvl.setBlockAndUpdate(o.east(1).below(), net.minecraft.world.level.block.Blocks.BARREL.defaultBlockState());
+        sp.teleportTo(lvl, o.getX() + 1.5, o.getY() + 2.5, o.getZ() + 5.5, 180f, 18f);
     }
 
     /** Sets a block's "facing" property toward the camera, whatever kind of facing it uses. */

@@ -252,7 +252,7 @@ public final class SystemCheck {
             level.setBlockAndUpdate(o.east(2), Registration.IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
             net.minecraft.world.level.block.state.BlockState c = level.getBlockState(o.east());
             info("cable state {}", c);
-            boolean ok = c.getValue(net.minecraft.world.level.block.PipeBlock.WEST) && c.getValue(net.minecraft.world.level.block.PipeBlock.EAST);
+            boolean ok = com.xtri6.grimstorage.block.CableBlock.side(c, Direction.WEST) == com.xtri6.grimstorage.block.CableBlock.Side.CABLE && com.xtri6.grimstorage.block.CableBlock.side(c, Direction.EAST) == com.xtri6.grimstorage.block.CableBlock.Side.CABLE;
             level.removeBlock(o.east(2), false);
             level.removeBlock(o.east(), false);
             level.removeBlock(o, false);
@@ -697,6 +697,89 @@ public final class SystemCheck {
             }
             return redstone == 32 && coal == 24 && count(Items.COAL) == 0 && water;
         }));
+        final int[] cb = {0};
+        final long[] cbBefore = new long[1];
+        STEPS.add(new Step("cable buses: use an Import Bus on a barrel next to a cable, it goes on the cable", 60, () -> {
+            BlockPos cable = at(1, 1, 0);
+            BlockPos barrel = at(1, 1, -1);
+            if (cb[0] == 0) {
+                cb[0] = 1;
+                cbBefore[0] = count(Items.EMERALD);
+                level.setBlockAndUpdate(cable, Registration.CABLE.get().defaultBlockState());
+                level.setBlockAndUpdate(barrel, Blocks.BARREL.defaultBlockState());
+                level.getCapability(Capabilities.ItemHandler.BLOCK, barrel, Direction.SOUTH).insertItem(0, new ItemStack(Items.EMERALD, 40), false);
+                FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+                ItemStack held = new ItemStack(Registration.IMPORT_BUS_ITEM.get(), 2);
+                fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, held);
+                // click the barrel's south face, where the cable is
+                var hit = new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(barrel).add(0, 0, 0.5), Direction.SOUTH, barrel, false);
+                var result = held.useOn(new net.minecraft.world.item.context.UseOnContext(fp, net.minecraft.world.InteractionHand.MAIN_HAND, hit));
+                var st = level.getBlockState(cable);
+                boolean onCable = com.xtri6.grimstorage.block.CableBlock.side(st, Direction.NORTH) == com.xtri6.grimstorage.block.CableBlock.Side.IMPORT
+                        && level.getBlockEntity(cable) instanceof com.xtri6.grimstorage.block.entity.CableBusBlockEntity be && be.part(Direction.NORTH) != null;
+                                info("use result={} bus on cable west side={} used one item={} network blocked on bus side={} cable down={}", result, onCable,
+                        held.getCount() == 1, !((com.xtri6.grimstorage.block.CableBlock) st.getBlock()).connectsTo(st, Direction.NORTH),
+                        com.xtri6.grimstorage.block.CableBlock.side(st, Direction.DOWN));
+                return false;
+            }
+            long got = count(Items.EMERALD) - cbBefore[0];
+            if (cb[0]++ % 10 == 1) {
+                info("emeralds into the network through the cable bus={}", got);
+            }
+            return got == 40;
+        }));
+        final int[] ce = {0};
+        STEPS.add(new Step("cable buses: Export Bus used on the cable itself, filter screen, pipes, saving and taking it off", 60, () -> {
+            BlockPos cable = at(1, 2, 0);
+            BlockPos barrel = at(1, 2, -1);
+            if (ce[0] == 0) {
+                ce[0] = 1;
+                level.setBlockAndUpdate(cable, Registration.CABLE.get().defaultBlockState());
+                level.setBlockAndUpdate(barrel, Blocks.BARREL.defaultBlockState());
+                FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+                ItemStack held = new ItemStack(Registration.EXPORT_BUS_ITEM.get());
+                fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, held);
+                // click the cable's own north face
+                var hit = new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(cable).add(0, 0, -0.4), Direction.NORTH, cable, false);
+                held.useOn(new net.minecraft.world.item.context.UseOnContext(fp, net.minecraft.world.InteractionHand.MAIN_HAND, hit));
+                var be = (com.xtri6.grimstorage.block.entity.CableBusBlockEntity) level.getBlockEntity(cable);
+                // set its filter through the real bus screen
+                com.xtri6.grimstorage.menu.BlockMenus.Bus menu = com.xtri6.grimstorage.menu.BlockMenus.Bus.server(990, fp.getInventory(), be.part(Direction.NORTH),
+                        net.minecraft.world.inventory.ContainerLevelAccess.create(level, cable), level.getBlockState(cable).getBlock());
+                menu.getSlot(0).set(new ItemStack(Items.EMERALD));
+                info("export bus on cable={} filter={} menu still valid={}", be.part(Direction.NORTH).isExport(), be.part(Direction.NORTH).filters().getItem(0),
+                        menu.stillValid(fp));
+                return false;
+            }
+            IItemHandler out = level.getCapability(Capabilities.ItemHandler.BLOCK, barrel, Direction.SOUTH);
+            int em = 0;
+            for (int i = 0; i < out.getSlots(); i++) {
+                em += out.getStackInSlot(i).is(Items.EMERALD) ? out.getStackInSlot(i).getCount() : 0;
+            }
+            if (em < 40) {
+                return false;
+            }
+            var be = (com.xtri6.grimstorage.block.entity.CableBusBlockEntity) level.getBlockEntity(cable);
+            // pipes: the cable offers the export bus on its west side only
+            IItemHandler west = level.getCapability(Capabilities.ItemHandler.BLOCK, cable, Direction.NORTH);
+            IItemHandler north = level.getCapability(Capabilities.ItemHandler.BLOCK, cable, Direction.WEST);
+            // saving
+            var tag = be.saveWithoutMetadata(level.registryAccess());
+            var copy = new com.xtri6.grimstorage.block.entity.CableBusBlockEntity(cable, level.getBlockState(cable));
+            copy.loadWithComponents(tag, level.registryAccess());
+            boolean saved = copy.part(Direction.NORTH) != null && copy.part(Direction.NORTH).isExport()
+                    && copy.part(Direction.NORTH).filters().getItem(0).is(Items.EMERALD);
+            // take it off: the cable stays, the bus drops, the block entity goes
+            com.xtri6.grimstorage.block.CableBlock.removeBus(level, cable, Direction.NORTH, true);
+            var st = level.getBlockState(cable);
+            boolean off = st.is(Registration.CABLE.get()) && com.xtri6.grimstorage.block.CableBlock.side(st, Direction.NORTH) == com.xtri6.grimstorage.block.CableBlock.Side.NONE
+                    && level.getBlockEntity(cable) == null;
+            int dropped = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(cable).inflate(1.5),
+                    e -> e.getItem().is(Registration.EXPORT_BUS_ITEM.get())).size();
+            info("barrel emeralds={} pipe handler on bus side={} other side={} saved={} removed={} bus item dropped={}", em, west != null, north != null, saved, off, dropped);
+            level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(cable).inflate(1.5)).forEach(e -> e.discard());
+            return em == 40 && count(Items.EMERALD) == 0 && west != null && north == null && saved && off && dropped == 1;
+        }));
         STEPS.add(new Step("terminal: store and take XP", 0, () -> {
             FakePlayer fp = FakePlayerFactory.getMinecraft(level);
             TerminalMenu menu = new TerminalMenu(995, fp.getInventory(), () -> NetworkManager.get(level, at(5, 0, 0)), p -> true);
@@ -788,14 +871,14 @@ public final class SystemCheck {
         STEPS.add(new Step("lag check: 255 idle buses barely cost anything", 140, () -> {
             if (lagWait[0] == 30) {
                 epochAt[0] = NetworkManager.epoch();
-                com.xtri6.grimstorage.block.entity.BusBlockEntity.profileNanos = 0;
-                com.xtri6.grimstorage.block.entity.BusBlockEntity.profileTicks = 0;
+                com.xtri6.grimstorage.block.entity.BusLogic.profileNanos = 0;
+                com.xtri6.grimstorage.block.entity.BusLogic.profileTicks = 0;
             }
             if (lagWait[0]++ < 130) {
                 return false;
             }
-            double busUs = com.xtri6.grimstorage.block.entity.BusBlockEntity.profileNanos / 1000.0
-                    / Math.max(1, com.xtri6.grimstorage.block.entity.BusBlockEntity.profileTicks);
+            double busUs = com.xtri6.grimstorage.block.entity.BusLogic.profileNanos / 1000.0
+                    / Math.max(1, com.xtri6.grimstorage.block.entity.BusLogic.profileTicks);
             tickMs[1] = avgTickMs();
             StorageNetwork n = net();
             int buses = 0;
@@ -862,6 +945,7 @@ public final class SystemCheck {
             return gravel < 1_000_000 && dirt == 50_000 && stored == 0;
         }));
         STEPS.add(new Step("save totals for the persistence run", 0, () -> {
+            info("cable bus at save: {} be={}", level.getBlockState(at(1, 1, 0)), level.getBlockEntity(at(1, 1, 0)));
             long total = net().contents().values().stream().mapToLong(Long::longValue).sum();
             for (BulkKind kind : BulkKind.values()) {
                 total += net().bulkStats(kind)[0];
@@ -899,7 +983,10 @@ public final class SystemCheck {
                     && b.filters().getItem(0).is(Items.APPLE) && !b.blacklist();
             info("after restart total={} expected={} drives={} export bus kept its filter={} xp={}", total, expected, n.driveCount(), busKept,
                     n.countBulk(BulkKey.flat(BulkKind.EXPERIENCE)));
-            return total == expected && n.driveCount() == 2 && busKept;
+            boolean cableBusKept = level.getBlockEntity(at(1, 1, 0)) instanceof com.xtri6.grimstorage.block.entity.CableBusBlockEntity cbe
+                    && cbe.part(Direction.NORTH) != null && !cbe.part(Direction.NORTH).isExport();
+            info("cable bus kept after restart={} state={} be={}", cableBusKept, level.getBlockState(at(1, 1, 0)), level.getBlockEntity(at(1, 1, 0)));
+            return total == expected && n.driveCount() == 2 && busKept && cableBusKept;
         }));
     }
 

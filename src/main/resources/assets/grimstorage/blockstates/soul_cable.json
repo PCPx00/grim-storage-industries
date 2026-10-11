@@ -7,7 +7,7 @@
     },
     {
       "when": {
-        "north": "true"
+        "north": "cable"
       },
       "apply": {
         "model": "grimstorage:block/soul_cable_arm",
@@ -16,7 +16,25 @@
     },
     {
       "when": {
-        "south": "true"
+        "north": "import"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_import_bus",
+        "uvlock": false
+      }
+    },
+    {
+      "when": {
+        "north": "export"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_export_bus",
+        "uvlock": false
+      }
+    },
+    {
+      "when": {
+        "south": "cable"
       },
       "apply": {
         "model": "grimstorage:block/soul_cable_arm",
@@ -26,7 +44,27 @@
     },
     {
       "when": {
-        "east": "true"
+        "south": "import"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_import_bus",
+        "uvlock": false,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "south": "export"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_export_bus",
+        "uvlock": false,
+        "y": 180
+      }
+    },
+    {
+      "when": {
+        "east": "cable"
       },
       "apply": {
         "model": "grimstorage:block/soul_cable_arm",
@@ -36,7 +74,27 @@
     },
     {
       "when": {
-        "west": "true"
+        "east": "import"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_import_bus",
+        "uvlock": false,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "east": "export"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_export_bus",
+        "uvlock": false,
+        "y": 90
+      }
+    },
+    {
+      "when": {
+        "west": "cable"
       },
       "apply": {
         "model": "grimstorage:block/soul_cable_arm",
@@ -46,7 +104,27 @@
     },
     {
       "when": {
-        "up": "true"
+        "west": "import"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_import_bus",
+        "uvlock": false,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "west": "export"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_export_bus",
+        "uvlock": false,
+        "y": 270
+      }
+    },
+    {
+      "when": {
+        "up": "cable"
       },
       "apply": {
         "model": "grimstorage:block/soul_cable_arm",
@@ -56,10 +134,50 @@
     },
     {
       "when": {
-        "down": "true"
+        "up": "import"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_import_bus",
+        "uvlock": false,
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "up": "export"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_export_bus",
+        "uvlock": false,
+        "x": 270
+      }
+    },
+    {
+      "when": {
+        "down": "cable"
       },
       "apply": {
         "model": "grimstorage:block/soul_cable_arm",
+        "uvlock": false,
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "down": "import"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_import_bus",
+        "uvlock": false,
+        "x": 90
+      }
+    },
+    {
+      "when": {
+        "down": "export"
+      },
+      "apply": {
+        "model": "grimstorage:block/cable_export_bus",
         "uvlock": false,
         "x": 90
       }

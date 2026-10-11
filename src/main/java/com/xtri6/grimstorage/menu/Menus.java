@@ -55,7 +55,18 @@ public final class Menus {
 
     public static void openBus(ServerPlayer p, BlockPos pos) {
         if (p.level().getBlockEntity(pos) instanceof BusBlockEntity be) {
-            p.openMenu(new SimpleMenuProvider((id, inv, pl) -> BlockMenus.Bus.server(id, inv, be), title(p, pos)), pos);
+            p.openMenu(new SimpleMenuProvider((id, inv, pl) -> BlockMenus.Bus.server(id, inv, be.logic(),
+                    ContainerLevelAccess.create(p.level(), pos), be.getBlockState().getBlock()), title(p, pos)), pos);
+        }
+    }
+
+    /** A bus mounted on one side of a Soul Cable. */
+    public static void openCableBus(ServerPlayer p, BlockPos pos, net.minecraft.core.Direction side) {
+        if (p.level().getBlockEntity(pos) instanceof com.xtri6.grimstorage.block.entity.CableBusBlockEntity be && be.part(side) != null) {
+            com.xtri6.grimstorage.block.entity.BusLogic logic = be.part(side);
+            Component name = Component.translatable(logic.isExport() ? "block.grimstorage.export_bus" : "block.grimstorage.import_bus");
+            p.openMenu(new SimpleMenuProvider((id, inv, pl) -> BlockMenus.Bus.server(id, inv, logic,
+                    ContainerLevelAccess.create(p.level(), pos), be.getBlockState().getBlock()), name), pos);
         }
     }
 
