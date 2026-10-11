@@ -59,29 +59,37 @@ public final class ScreenshotCheck {
     public static void register(IEventBus modBus) {
         NeoForge.EVENT_BUS.addListener((ClientTickEvent.Post e) -> onTick());
         Runnable none = () -> {};
-        SHOTS.add(new Shot("s00_gallery_loading", true, ScreenshotCheck::gallery, none));
-        SHOTS.add(new Shot("s01_gallery_night", true, sp -> {}, none));
-        SHOTS.add(new Shot("s02_terminal", true, sp -> Menus.openTerminal(sp, BASE.offset(5, 0, 0)), none));
-        SHOTS.add(new Shot("s03_cable_loading", true, ScreenshotCheck::cableBuses, none));
-        SHOTS.add(new Shot("s04_cable_buses", true, sp -> {
+        SHOTS.add(new Shot("f01_terminal_everything", true, sp -> {
+            sp.teleportTo(sp.serverLevel(), 5.5, 221.0, 2.5, 180f, 30f);
+            StorageNetwork n = NetworkManager.get(sp.serverLevel(), BASE);
+            if (n != null) {
+                n.insertBulk(com.xtri6.grimstorage.storage.BulkKey.fluid(new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.WATER, 1)), 48_000, false);
+                n.insertBulk(com.xtri6.grimstorage.storage.BulkKey.fluid(new net.neoforged.neoforge.fluids.FluidStack(net.minecraft.world.level.material.Fluids.LAVA, 1)), 12_000, false);
+                n.insertBulk(com.xtri6.grimstorage.storage.BulkKey.flat(BulkKind.EXPERIENCE), 5_000, false);
+                n.insertBulk(com.xtri6.grimstorage.storage.BulkKey.flat(BulkKind.ENERGY), 2_500_000, false);
+            }
+            setStatic(TerminalScreen.class, "lastAll", true);
+            Menus.openTerminal(sp, BASE.offset(5, 0, 0));
+        }, none));
+        SHOTS.add(new Shot("f02_cable_loading", true, ScreenshotCheck::cableBuses, none));
+        SHOTS.add(new Shot("f03_bus_upgrades", true, sp -> {
+            BlockPos cable = BASE.offset(-40, 14, -40).east(3);
+            if (sp.serverLevel().getBlockEntity(cable) instanceof com.xtri6.grimstorage.block.entity.CableBusBlockEntity be && be.part(net.minecraft.core.Direction.EAST) != null) {
+                for (int i = 0; i < 5; i++) {
+                    be.part(net.minecraft.core.Direction.EAST).upgrades().setStackInSlot(i, new ItemStack(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get()));
+                }
+            }
+            Menus.openCableBus(sp, cable, net.minecraft.core.Direction.EAST);
+        }, none));
+        SHOTS.add(new Shot("f04_wrench_in_hand", true, sp -> {
+            sp.getInventory().selected = 0;
+            sp.getInventory().setItem(0, new ItemStack(com.xtri6.grimstorage.Registration.SOUL_WRENCH.get()));
             BlockPos o = BASE.offset(-40, 14, -40);
             sp.teleportTo(sp.serverLevel(), o.getX() + 3.6, o.getY() + 1.4, o.getZ() + 2.4, 160f, 30f);
         }, none));
-        SHOTS.add(new Shot("s05_bus_screen", true, sp -> Menus.openCableBus(sp, BASE.offset(-40, 14, -40).east(3), net.minecraft.core.Direction.EAST), none));
-        SHOTS.add(new Shot("s06_cells", true, sp -> {
-            sp.setGameMode(GameType.SURVIVAL);
-            sp.getAbilities().mayfly = true;
-            sp.getAbilities().flying = true;
-            sp.onUpdateAbilities();
-        }, () -> Minecraft.getInstance().setScreen(new net.minecraft.client.gui.screens.inventory.InventoryScreen(Minecraft.getInstance().player))));
-        SHOTS.add(new Shot("s07_guide", true, sp -> sp.setGameMode(GameType.CREATIVE), () -> book(0, 0)));
-        SHOTS.add(new Shot("s08_jei", true, sp -> {}, () -> {
-            if (com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.runtime != null) {
-                com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.runtime.getRecipesGui()
-                        .showTypes(List.of(com.xtri6.grimstorage.compat.jei.GrimJeiPlugin.INFUSING));
-            }
-        }));
-        SHOTS.add(new Shot("s09_controller", true, sp -> Menus.openController(sp, BASE), none));
+        SHOTS.add(new Shot("f05_guide_wrench", true, sp -> {}, () -> book(2, 4)));
+        SHOTS.add(new Shot("f06_guide_speed", false, sp -> {}, () -> book(9, 7)));
+        SHOTS.add(new Shot("f07_guide_tabs", true, sp -> {}, () -> book(3, 3)));
     }
 
     private static void cableBuses(ServerPlayer sp) {
@@ -192,6 +200,16 @@ public final class ScreenshotCheck {
             GrimStorage.LOGGER.error("[Shots] could not set page", ex);
         }
         com.xtri6.grimstorage.client.guide.GuideScreen.open();
+    }
+
+    private static void setStatic(Class<?> c, String field, Object value) {
+        try {
+            java.lang.reflect.Field f = c.getDeclaredField(field);
+            f.setAccessible(true);
+            f.set(null, value);
+        } catch (ReflectiveOperationException ex) {
+            GrimStorage.LOGGER.error("[Shots] could not set " + field, ex);
+        }
     }
 
     private static void setMode(BulkKind mode) {

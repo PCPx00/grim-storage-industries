@@ -60,8 +60,12 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     private static final int TOP_W = 24;
     private static final int TOP_H = 21;
 
+    /** The "Everything" tab: items and every other resource in one grid. */
+    private static boolean lastAll;
+
     @Nullable
     private BulkKind mode = lastMode != null && lastMode.available() ? lastMode : null;
+    private boolean all = lastAll;
     private List<TerminalMenu.BulkEntry> bulkView = new ArrayList<>();
     private ItemCategories.Category category = lastCategory;
     private final int[] categoryCounts = new int[ItemCategories.Category.values().length];
@@ -138,7 +142,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                     categoryCounts[c.ordinal()]++;
                 }
             }
-            if (!ItemCategories.matches(category, e.key().stack())) {
+            if (!all && !ItemCategories.matches(category, e.key().stack())) {
                 continue;
             }
             if (!needle.isEmpty()) {
@@ -159,9 +163,12 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         out.sort(cmp);
         view = out;
         List<TerminalMenu.BulkEntry> bulk = new ArrayList<>();
-        if (mode != null) {
+        if (mode != null || all) {
             for (TerminalMenu.BulkEntry e : menu.clientBulk) {
-                if (e.key().kind() != mode) {
+                if (!all && e.key().kind() != mode) {
+                    continue;
+                }
+                if (all && !e.key().kind().available()) {
                     continue;
                 }
                 if (!needle.isEmpty() && !BulkRender.name(e.key()).getString().toLowerCase(Locale.ROOT).contains(needle)) {
@@ -170,7 +177,10 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                 bulk.add(e);
             }
             Comparator<TerminalMenu.BulkEntry> bulkByName = Comparator.comparing(e -> BulkRender.name(e.key()).getString());
-            bulk.sort(sort == 0 ? Comparator.comparingLong(TerminalMenu.BulkEntry::amount).reversed().thenComparing(bulkByName) : bulkByName);
+            Comparator<TerminalMenu.BulkEntry> bulkCmp = sort == 0
+                    ? Comparator.comparingLong(TerminalMenu.BulkEntry::amount).reversed().thenComparing(bulkByName) : bulkByName;
+            // In the Everything tab, resources come first, grouped by kind (fluids, chemicals, energy, Source, XP).
+            bulk.sort(all ? Comparator.<TerminalMenu.BulkEntry>comparingInt(e -> e.key().kind().ordinal()).thenComparing(bulkCmp) : bulkCmp);
         }
         bulkView = bulk;
         scroll = Math.max(0, Math.min(scroll, maxScroll()));
@@ -180,7 +190,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     }
 
     private int shownCount() {
-        return mode == null ? view.size() : mode.typed() ? bulkView.size() : 0;
+        return all ? bulkView.size() + view.size() : mode == null ? view.size() : mode.typed() ? bulkView.size() : 0;
     }
 
     private int maxScroll() {
@@ -216,12 +226,13 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         return leftPos + 8 + i * (TOP_W + 2);
     }
 
+    /** Display index of the top tab under the mouse: 0 is Everything, then items, then each resource (modes() + 1). */
     private int topAt(double mx, double my) {
         if (my < topPos - TOP_H + 3 || my >= topPos) {
             return -1;
         }
         List<BulkKind> modes = modes();
-        for (int i = 0; i < modes.size(); i++) {
+        for (int i = 0; i <= modes.size(); i++) {
             if (mx >= topX(i) && mx < topX(i) + TOP_W) {
                 return i;
             }
@@ -230,7 +241,8 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     }
 
     private void drawTop(GuiGraphics g, Theme t, int i, @Nullable BulkKind kind, int mouseX, int mouseY) {
-        boolean selected = kind == mode;
+        boolean everything = i == 0;
+        boolean selected = everything ? all : !all && kind == mode;
         int x = topX(i);
         int y = topPos - TOP_H + 3 - (selected ? 2 : 0);
         int bottom = topPos + 1;
@@ -242,7 +254,12 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         if (selected) {
             g.fill(x + 2, y + 1, x + TOP_W - 2, y + 2, t.accent());
         }
-        g.renderItem(kind == null ? new ItemStack(net.minecraft.world.item.Items.CHEST) : BulkRender.icon(kind), x + 4, y + 3);
+        g.renderItem(everything ? new ItemStack(com.xtri6.grimstorage.Registration.DRIVE.get())
+                : kind == null ? new ItemStack(net.minecraft.world.item.Items.CHEST) : BulkRender.icon(kind), x + 4, y + 3);
+    }
+
+    private Component topName(int display) {
+        return display == 0 ? Component.translatable("gui.grimstorage.kind.all") : modeName(modes().get(display - 1));
     }
 
     private Component modeName(@Nullable BulkKind kind) {
@@ -265,8 +282,8 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         if (col < 0 || col >= COLS || row < 0 || row >= ROWS) {
             return null;
         }
-        int idx = (scroll + row) * COLS + col;
-        return idx < view.size() ? view.get(idx) : null;
+        int idx = (scroll + row) * COLS + col - (all ? bulkView.size() : 0);
+        return idx >= 0 && idx < view.size() ? view.get(idx) : null;
     }
 
     private boolean inGrid(double mx, double my) {
@@ -289,7 +306,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
 
     @Nullable
     private ItemCategories.Category tabAt(double mx, double my) {
-        if (mode != null || mx < tabX() || mx >= leftPos) {
+        if (mode != null || all || mx < tabX() || mx >= leftPos) {
             return null;
         }
         for (ItemCategories.Category c : ItemCategories.Category.values()) {
@@ -335,12 +352,13 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     protected void renderBg(GuiGraphics g, float partialTick, int mouseX, int mouseY) {
         Theme t = t();
         List<BulkKind> modes = modes();
-        for (int i = 0; i < modes.size(); i++) {
-            if (modes.get(i) != mode) {
-                drawTop(g, t, i, modes.get(i), mouseX, mouseY);
+        int selectedTop = all ? 0 : modes.indexOf(mode) + 1;
+        for (int i = 0; i <= modes.size(); i++) {
+            if (i != selectedTop) {
+                drawTop(g, t, i, i == 0 ? null : modes.get(i - 1), mouseX, mouseY);
             }
         }
-        if (mode == null) {
+        if (mode == null && !all) {
             for (ItemCategories.Category c : ItemCategories.Category.values()) {
                 if (c != category) {
                     drawTab(g, t, c, mouseX, mouseY);
@@ -350,10 +368,10 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         super.renderBg(g, partialTick, mouseX, mouseY);
         g.pose().pushPose();
         g.pose().translate(0, 0, 50);
-        if (mode == null) {
+        if (mode == null && !all) {
             drawTab(g, t, category, mouseX, mouseY);
         }
-        drawTop(g, t, modes.indexOf(mode), mode, mouseX, mouseY);
+        drawTop(g, t, selectedTop, all ? null : mode, mouseX, mouseY);
         g.pose().popPose();
     }
 
@@ -392,8 +410,8 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             String used = Fmt.compact(menu.clientUsed) + " / " + Fmt.compact(menu.clientCapacity);
             g.drawString(font, used, RIGHT_X, 162, t.text(), false);
             g.drawString(font, Component.translatable("gui.grimstorage.types", menu.clientEntries.size()), RIGHT_X, 172, t.textFaint(), false);
-            g.drawString(font, font.plainSubstrByWidth(Component.translatable(category.langKey()).getString(), W - RIGHT_X - 8), RIGHT_X, 190,
-                    t.accent(), false);
+            g.drawString(font, font.plainSubstrByWidth((all ? Component.translatable("gui.grimstorage.kind.all")
+                    : Component.translatable(category.langKey())).getString(), W - RIGHT_X - 8), RIGHT_X, 190, t.accent(), false);
         } else {
             long used = menu.clientBulkStats[mode.ordinal() * 2];
             long cap = menu.clientBulkStats[mode.ordinal() * 2 + 1];
@@ -412,7 +430,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         Theme t = t();
         TerminalMenu.Entry hovered = null;
         TerminalMenu.BulkEntry bulkHovered = null;
-        if (mode != null && mode.typed()) {
+        if (all || (mode != null && mode.typed())) {
             for (int r = 0; r < ROWS; r++) {
                 for (int c = 0; c < COLS; c++) {
                     int idx = (scroll + r) * COLS + c;
@@ -423,7 +441,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                     int x = leftPos + GX + c * 18;
                     int y = topPos + GY + r * 18;
                     BulkRender.draw(g, e.key(), x, y);
-                    Ui.cornerText(g, font, Fmt.shortAmount(mode, e.amount()), x + 17, y + 16, 0xFFFFFFFF, 2f / 3f);
+                    Ui.cornerText(g, font, Fmt.shortAmount(e.key().kind(), e.amount()), x + 17, y + 16, 0xFFFFFFFF, 2f / 3f);
                     if (mouseX >= x - 1 && mouseX < x + 17 && mouseY >= y - 1 && mouseY < y + 17) {
                         bulkHovered = e;
                         g.pose().pushPose();
@@ -433,16 +451,20 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                     }
                 }
             }
-            if (bulkView.isEmpty() && menu.clientOnline) {
+            if (!all && bulkView.isEmpty() && menu.clientOnline) {
                 Component none = Component.translatable("gui.grimstorage.bulk.empty", modeName(mode));
                 g.drawString(font, none, leftPos + GX + (COLS * 18 - font.width(none)) / 2, topPos + GY + 46, t.textFaint(), false);
             }
         } else if (mode != null) {
             drawPool(g, t, mode);
         }
+        int offset = all ? bulkView.size() : 0;
         for (int r = 0; r < ROWS && mode == null; r++) {
             for (int c = 0; c < COLS; c++) {
-                int idx = (scroll + r) * COLS + c;
+                int idx = (scroll + r) * COLS + c - offset;
+                if (idx < 0) {
+                    continue;
+                }
                 if (idx >= view.size()) {
                     break;
                 }
@@ -478,13 +500,19 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         if (crafting != null) {
             renderCraftPopup(g, t, mouseX, mouseY, partialTick);
         } else if (top >= 0) {
-            g.renderTooltip(font, modeName(modes().get(top)), mouseX, mouseY);
+            g.renderTooltip(font, topName(top), mouseX, mouseY);
         } else if (bulkHovered != null) {
             List<Component> lines = new ArrayList<>();
             lines.add(BulkRender.name(bulkHovered.key()));
-            lines.add(Component.literal(Fmt.amount(mode, bulkHovered.amount())).withStyle(ChatFormatting.GRAY));
-            lines.add(Component.translatable(mode == BulkKind.FLUID ? "gui.grimstorage.bulk.hint_fluid" : "gui.grimstorage.bulk.hint_chemical")
-                    .withStyle(ChatFormatting.DARK_AQUA));
+            BulkKind k = bulkHovered.key().kind();
+            lines.add(Component.literal(Fmt.amount(k, bulkHovered.amount())).withStyle(ChatFormatting.GRAY));
+            String hint = switch (k) {
+                case FLUID -> "gui.grimstorage.bulk.hint_fluid";
+                case CHEMICAL -> "gui.grimstorage.bulk.hint_chemical";
+                case EXPERIENCE -> "gui.grimstorage.bulk.hint_xp";
+                default -> "gui.grimstorage.bulk.hint_pool";
+            };
+            lines.add(Component.translatable(hint).withStyle(ChatFormatting.DARK_AQUA));
             g.renderComponentTooltip(font, lines, mouseX, mouseY);
         } else if (tab != null) {
             List<Component> lines = new ArrayList<>();
@@ -628,10 +656,13 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         }
         int top = topAt(mx, my);
         if (top >= 0) {
-            BulkKind next = modes().get(top);
-            if (next != mode) {
+            boolean nextAll = top == 0;
+            BulkKind next = nextAll ? null : modes().get(top - 1);
+            if (next != mode || nextAll != all) {
                 mode = next;
                 lastMode = next;
+                all = nextAll;
+                lastAll = nextAll;
                 scroll = 0;
                 refresh();
                 minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 0.6f));
@@ -650,6 +681,22 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                         java.util.Optional.ofNullable(e == null ? null : e.key())));
             }
             return true;
+        }
+        if (all && inGrid(mx, my)) {
+            // Everything tab: resources act like they do in their own tab, items fall through to the item clicks below.
+            TerminalMenu.BulkEntry b = bulkAt(mx, my);
+            if (b != null) {
+                search.setFocused(false);
+                BulkKind k = b.key().kind();
+                if (k == BulkKind.EXPERIENCE && menu.getCarried().isEmpty()) {
+                    int action = button == 1 ? 2 : hasShiftDown() ? 1 : 0;
+                    PacketDistributor.sendToServer(new Payloads.TerminalXp(menu.containerId, action));
+                    minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 0.4f));
+                } else if (k.typed() && !menu.getCarried().isEmpty()) {
+                    PacketDistributor.sendToServer(new Payloads.TerminalBulkClick(menu.containerId, k.ordinal(), java.util.Optional.of(b.key())));
+                }
+                return true;
+            }
         }
         ItemCategories.Category tab = tabAt(mx, my);
         if (tab != null) {

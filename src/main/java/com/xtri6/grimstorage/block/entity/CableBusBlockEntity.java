@@ -105,6 +105,7 @@ public class CableBusBlockEntity extends NetworkBlockEntity implements Ticking {
             level.setBlock(worldPosition, state.setValue(com.xtri6.grimstorage.block.CableBlock.SIDES.get(side),
                     bus.isExport() ? com.xtri6.grimstorage.block.CableBlock.Side.EXPORT : com.xtri6.grimstorage.block.CableBlock.Side.IMPORT),
                     net.minecraft.world.level.block.Block.UPDATE_ALL);
+            level.invalidateCapabilities(worldPosition);
             com.xtri6.grimstorage.menu.Menus.openCableBus(player, worldPosition, side);
         }
     }

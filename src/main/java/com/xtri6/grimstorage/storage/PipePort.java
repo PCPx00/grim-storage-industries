@@ -16,6 +16,9 @@ public interface PipePort {
     /** May a pipe pull this resource out of the network here? */
     boolean pipeExtract(BulkKey key);
 
+    /** A pipe just moved this much through the port (for status displays). */
+    default void pipeMoved(long amount) {}
+
     /** Should pipes see this stored resource in the port's tanks? By default, only what they may pull. */
     default boolean pipeLists(BulkKey key) {
         return pipeExtract(key);

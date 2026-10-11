@@ -48,9 +48,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 public class CableBlock extends Block implements NetworkMember, EntityBlock {
     public static final MapCodec<CableBlock> CODEC = simpleCodec(CableBlock::new);
 
-    /** What is on one side of a cable. */
+    /** What is on one side of a cable. BLOCKED: cut with a Soul Wrench, so it never connects that way. */
     public enum Side implements StringRepresentable {
-        NONE, CABLE, IMPORT, EXPORT;
+        NONE, CABLE, IMPORT, EXPORT, BLOCKED;
 
         public boolean isBus() {
             return this == IMPORT || this == EXPORT;
@@ -74,7 +74,7 @@ public class CableBlock extends Block implements NetworkMember, EntityBlock {
     private static final VoxelShape CORE = box(6, 6, 6, 10, 10, 10);
     private static final VoxelShape[] ARMS = new VoxelShape[6];
     private static final VoxelShape[] BUSES = new VoxelShape[6];
-    private static final VoxelShape[] SHAPES = new VoxelShape[4096];
+    private static final VoxelShape[] SHAPES = new VoxelShape[15625];
 
     static {
         for (Direction d : Direction.values()) {
@@ -132,7 +132,8 @@ public class CableBlock extends Block implements NetworkMember, EntityBlock {
     /** The network never passes through a side that has a bus on it. */
     @Override
     public boolean connectsTo(BlockState state, Direction side) {
-        return !side(state, side).isBus();
+        Side s = side(state, side);
+        return !s.isBus() && s != Side.BLOCKED;
     }
 
     private static boolean connects(Direction dir, BlockState neighbor) {
@@ -142,7 +143,7 @@ public class CableBlock extends Block implements NetworkMember, EntityBlock {
     /** Every side without a bus worked out from its neighbors. */
     private static BlockState connected(BlockState state, BlockGetter level, BlockPos pos) {
         for (Direction d : Direction.values()) {
-            if (!side(state, d).isBus()) {
+            if (!side(state, d).isBus() && side(state, d) != Side.BLOCKED) {
                 state = state.setValue(SIDES.get(d), connects(d, level.getBlockState(pos.relative(d))) ? Side.CABLE : Side.NONE);
             }
         }
@@ -156,7 +157,7 @@ public class CableBlock extends Block implements NetworkMember, EntityBlock {
 
     @Override
     protected BlockState updateShape(BlockState state, Direction dir, BlockState neighbor, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
-        if (side(state, dir).isBus()) {
+        if (side(state, dir).isBus() || side(state, dir) == Side.BLOCKED) {
             return state;
         }
         return state.setValue(SIDES.get(dir), connects(dir, neighbor) ? Side.CABLE : Side.NONE);
@@ -166,7 +167,7 @@ public class CableBlock extends Block implements NetworkMember, EntityBlock {
     protected VoxelShape getShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext ctx) {
         int key = 0;
         for (Direction d : Direction.values()) {
-            key = key * 4 + side(state, d).ordinal();
+            key = key * 5 + side(state, d).ordinal();
         }
         VoxelShape shape = SHAPES[key];
         if (shape == null) {
@@ -202,6 +203,36 @@ public class CableBlock extends Block implements NetworkMember, EntityBlock {
         return null;
     }
 
+    /** Which cable arm (if any) a point on the block is on. */
+    @Nullable
+    public static Direction armAt(BlockState state, BlockPos pos, Vec3 hit) {
+        Vec3 local = hit.subtract(pos.getX(), pos.getY(), pos.getZ());
+        for (Direction d : Direction.values()) {
+            if (side(state, d) == Side.CABLE) {
+                for (var box : ARMS[d.ordinal()].toAabbs()) {
+                    if (box.inflate(0.02).contains(local)) {
+                        return d;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    /** Soul Wrench: cut the connection on {@code side}, or restore it if it was cut. Returns true if it is now cut. */
+    public static boolean toggleSide(Level level, BlockPos pos, Direction side) {
+        BlockState state = level.getBlockState(pos);
+        Side s = side(state, side);
+        if (s.isBus()) {
+            return false;
+        }
+        boolean cut = s != Side.BLOCKED;
+        Side next = cut ? Side.BLOCKED : connects(side, level.getBlockState(pos.relative(side))) ? Side.CABLE : Side.NONE;
+        level.setBlock(pos, state.setValue(SIDES.get(side), next), Block.UPDATE_ALL);
+        NetworkManager.markDirty();
+        return cut;
+    }
+
     /** Puts a bus on {@code side} of the cable at {@code pos}. Returns false if that side already has one. */
     public static boolean attachBus(Level level, BlockPos pos, Direction side, boolean export) {
         BlockState state = level.getBlockState(pos);
@@ -215,6 +246,8 @@ public class CableBlock extends Block implements NetworkMember, EntityBlock {
         if (level.getBlockEntity(pos) instanceof CableBusBlockEntity be) {
             be.addBus(side, export);
         }
+        // Same block, new state: pipes next to it only see the bus once their capability caches are told.
+        level.invalidateCapabilities(pos);
         NetworkManager.markDirty();
         return true;
     }
@@ -227,6 +260,9 @@ public class CableBlock extends Block implements NetworkMember, EntityBlock {
             return;
         }
         if (level.getBlockEntity(pos) instanceof CableBusBlockEntity be) {
+            if (drop && be.part(side) != null) {
+                be.part(side).takeUpgrades().forEach(st -> popResource(level, pos, st));
+            }
             be.removeBus(side);
         }
         BlockState next = state.setValue(SIDES.get(side), connects(side, level.getBlockState(pos.relative(side))) ? Side.CABLE : Side.NONE);
@@ -234,6 +270,7 @@ public class CableBlock extends Block implements NetworkMember, EntityBlock {
         if (!hasBus(next)) {
             level.removeBlockEntity(pos);
         }
+        level.invalidateCapabilities(pos);
         if (drop) {
             popResource(level, pos, busItem(s));
         }
@@ -318,10 +355,14 @@ public class CableBlock extends Block implements NetworkMember, EntityBlock {
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moved) {
         if (!newState.is(this) && !level.isClientSide) {
-            // the buses come off with the cable
+            // the buses (and their upgrades) come off with the cable
+            CableBusBlockEntity be = level.getBlockEntity(pos) instanceof CableBusBlockEntity c ? c : null;
             for (Direction d : Direction.values()) {
                 if (side(state, d).isBus()) {
                     popResource(level, pos, busItem(side(state, d)));
+                    if (be != null && be.part(d) != null) {
+                        be.part(d).takeUpgrades().forEach(st -> popResource(level, pos, st));
+                    }
                 }
             }
         }

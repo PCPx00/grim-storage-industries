@@ -244,6 +244,9 @@ final class MekanismCompat implements Compat.Chemicals {
                 return stack;
             }
             long in = net.insertBulk(k, stack.getAmount(), action.simulate());
+            if (action.execute()) {
+                be.pipeMoved(in);
+            }
             return in >= stack.getAmount() ? ChemicalStack.EMPTY : stack.copyWithAmount(stack.getAmount() - in);
         }
 
@@ -257,7 +260,11 @@ final class MekanismCompat implements Compat.Chemicals {
             if (tank < 0 || tank >= keys.size() || !be.pipeExtract(keys.get(tank))) {
                 return ChemicalStack.EMPTY;
             }
-            return stack(keys.get(tank), net.extractBulk(keys.get(tank), amount, action.simulate()));
+            long got = net.extractBulk(keys.get(tank), amount, action.simulate());
+            if (action.execute()) {
+                be.pipeMoved(got);
+            }
+            return stack(keys.get(tank), got);
         }
     }
 }

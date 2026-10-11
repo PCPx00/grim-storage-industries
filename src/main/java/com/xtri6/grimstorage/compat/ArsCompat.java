@@ -135,13 +135,21 @@ final class ArsCompat implements Compat.Source {
         @Override
         public int receiveSource(int amount, boolean simulate) {
             StorageNetwork net = be.network();
-            return net == null || !be.pipeInsert(KEY) ? 0 : (int) net.insertBulk(KEY, amount, simulate);
+            int in = net == null || !be.pipeInsert(KEY) ? 0 : (int) net.insertBulk(KEY, amount, simulate);
+            if (!simulate) {
+                be.pipeMoved(in);
+            }
+            return in;
         }
 
         @Override
         public int extractSource(int amount, boolean simulate) {
             StorageNetwork net = be.network();
-            return net == null || !be.pipeExtract(KEY) ? 0 : (int) net.extractBulk(KEY, amount, simulate);
+            int got = net == null || !be.pipeExtract(KEY) ? 0 : (int) net.extractBulk(KEY, amount, simulate);
+            if (!simulate) {
+                be.pipeMoved(got);
+            }
+            return got;
         }
     }
 }

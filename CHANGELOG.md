@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.8.0
+- Speed Upgrades now go in Import and Export Buses: up to 8 per bus, each adding the base speed again (8 = 9x, over
+  1,000 items or 288 buckets a tick). Upgrade slots are on the right of the bus screen, and upgrades drop with the bus.
+- New: Soul Wrench. Click a cable connection to cut it (click again to join it back), click a bus on a cable to take it
+  off, click a machine to turn it toward the side you clicked (works on most other mods' machines too), and sneak-click
+  any Grim Storage block to pick it up.
+- Terminal: new Everything tab (first tab along the top) shows items, fluids, chemicals, energy, Source and XP in one
+  list. The other tabs are still there.
+- Fix: a bus fed by a pipe (for example one facing straight into a pipe end) said "Nothing attached" even while it was
+  working. Buses now count pipe traffic and show "Working".
+- Fix: pipes from other mods now notice a bus as soon as it is clipped onto a cable next to them, or switched between
+  Import and Export.
+
 ## 1.7.1
 - Every bus screen has a direction button: switch a placed bus between Import (takes things out of the block into the
   network) and Export (sends things from the network into the block) without swapping the item. Free-standing buses

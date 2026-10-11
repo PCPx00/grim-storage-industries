@@ -19,7 +19,7 @@ import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 
 /** A free-standing Import / Export Bus block. All the work is done by its {@link BusLogic}. */
-public class BusBlockEntity extends NetworkBlockEntity implements Ticking, PipePort, BusLogic.Host {
+public class BusBlockEntity extends NetworkBlockEntity implements Ticking, PipePort, BusLogic.Host, DropsContents {
     public static final int ITEMS_BIT = BusLogic.ITEMS_BIT;
     public static final int RESOURCES = BusLogic.RESOURCES;
 
@@ -80,6 +80,13 @@ public class BusBlockEntity extends NetworkBlockEntity implements Ticking, PipeP
             fresh.setChanged();
         }
         com.xtri6.grimstorage.menu.Menus.openBus(player, pos);
+    }
+
+    @Override
+    public void dropContents(Level lvl, BlockPos pos) {
+        for (net.minecraft.world.item.ItemStack st : logic.takeUpgrades()) {
+            net.minecraft.world.Containers.dropItemStack(lvl, pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5, st);
+        }
     }
 
     @Override
@@ -157,6 +164,11 @@ public class BusBlockEntity extends NetworkBlockEntity implements Ticking, PipeP
     @Override
     public boolean pipeExtract(BulkKey key) {
         return logic.pipeExtract(key);
+    }
+
+    @Override
+    public void pipeMoved(long amount) {
+        logic.pipeMoved(amount);
     }
 
     @Override

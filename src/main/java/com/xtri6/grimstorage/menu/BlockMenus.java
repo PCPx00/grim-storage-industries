@@ -195,13 +195,20 @@ public final class BlockMenus {
         @javax.annotation.Nullable
         private final BusLogic be;
 
-        public Bus(int id, Inventory inv, GhostContainer filters, ContainerData data, ContainerLevelAccess access, Block block,
+        /** Where the 8 Speed Upgrade slots start (2 columns, right of the filters). */
+        public static final int UPGRADE_X = 182;
+        public static final int UPGRADE_Y = 20;
+
+        public Bus(int id, Inventory inv, GhostContainer filters, IItemHandler upgrades, ContainerData data, ContainerLevelAccess access, Block block,
                    @javax.annotation.Nullable BusLogic be) {
             super(Registration.BUS_MENU.get(), id, access, block);
             this.data = data;
             this.be = be;
             for (int i = 0; i < FilterBlockEntity.SLOTS; i++) {
                 addSlot(new GhostSlot(filters, i, 8 + i * 18, 20, false));
+            }
+            for (int i = 0; i < BusLogic.UPGRADE_SLOTS; i++) {
+                addSlot(new SlotItemHandler(upgrades, i, UPGRADE_X + (i % 2) * 18, UPGRADE_Y + (i / 2) * 18));
             }
             addDataSlots(data);
             addPlayerInventory(inv, 8, 104);
@@ -227,12 +234,22 @@ public final class BlockMenus {
                     return 3;
                 }
             };
-            return new Bus(id, inv, be.filters(), data, access, block, be);
+            return new Bus(id, inv, be.filters(), be.upgrades(), data, access, block, be);
         }
 
         public static Bus client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
-            return new Bus(id, inv, new GhostContainer(FilterBlockEntity.SLOTS, false, () -> {}), new SimpleContainerData(3),
-                    ContainerLevelAccess.NULL, null, null);
+            return new Bus(id, inv, new GhostContainer(FilterBlockEntity.SLOTS, false, () -> {}),
+                    new ItemStackHandler(BusLogic.UPGRADE_SLOTS) {
+                        @Override
+                        public boolean isItemValid(int slot, net.minecraft.world.item.ItemStack stack) {
+                            return stack.is(Registration.SPEED_UPGRADE.get());
+                        }
+
+                        @Override
+                        public int getSlotLimit(int slot) {
+                            return 1;
+                        }
+                    }, new SimpleContainerData(3), ContainerLevelAccess.NULL, null, null);
         }
 
         public boolean blacklist() {

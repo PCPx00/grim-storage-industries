@@ -842,6 +842,164 @@ public final class SystemCheck {
             }
             return moved == 128 && !bus.isExport();
         }));
+        final int[] gp2 = {0};
+        final long[] gp2Before = new long[1];
+        STEPS.add(new Step("a pipe placed first sees an Import Bus clipped onto the cable next to it", 200, () -> {
+            if (!net.neoforged.fml.ModList.get().isLoaded("grimpipes")) {
+                info("Grim Pipe Industries not in libs-dev, skipped");
+                return true;
+            }
+            BlockPos cable = at(1, 4, 0);
+            if (gp2[0] == 0) {
+                gp2[0] = 1;
+                gp2Before[0] = count(Items.LAPIS_LAZULI);
+                // barrel <- pipe (pulling) <- pipe, all placed before the cable and its bus exist
+                level.setBlockAndUpdate(at(1, 4, -3), Blocks.BARREL.defaultBlockState());
+                level.getCapability(Capabilities.ItemHandler.BLOCK, at(1, 4, -3), Direction.SOUTH).insertItem(0, new ItemStack(Items.LAPIS_LAZULI, 48), false);
+                grimPipe(at(1, 4, -2), Direction.NORTH);
+                grimPipe(at(1, 4, -1), null);
+                level.setBlockAndUpdate(cable, Registration.CABLE.get().defaultBlockState());
+                com.xtri6.grimstorage.block.CableBlock.attachBus(level, cable, Direction.NORTH, false);
+                return false;
+            }
+            long got = count(Items.LAPIS_LAZULI) - gp2Before[0];
+            if (gp2[0]++ % 20 == 1) {
+                info("lapis piped into the cable bus={}", got);
+            }
+            return got == 48;
+        }));
+        final int[] ff = {0};
+        final long[] ffBefore = new long[2];
+        final String[] ffStatus = {""};
+        STEPS.add(new Step("buses facing straight into a pipe end: pipe feeds an Import Bus, an Export Bus feeds the pipe", 200, () -> {
+            if (!net.neoforged.fml.ModList.get().isLoaded("grimpipes")) {
+                return true;
+            }
+            if (ff[0] == 0) {
+                ff[0] = 1;
+                ffBefore[0] = count(Items.QUARTZ);
+                // network cable column at x = 6, z = 5..; Import Bus at (6,0,5)? keep clear of other tests: use y = 8
+                // cable from the Network Interface at (-1,0,0) out to x = -3 and up to y = 8
+                level.setBlockAndUpdate(at(-2, 0, 0), Registration.CABLE.get().defaultBlockState());
+                for (int y = 0; y <= 8; y++) {
+                    level.setBlockAndUpdate(at(-3, y, 0), Registration.CABLE.get().defaultBlockState());
+                }
+                // Import Bus at (1,8,-1) facing north into a pipe at (1,8,-2); the pipe pulls from a barrel at (1,8,-3)
+                level.setBlockAndUpdate(at(-3, 8, -3), Blocks.BARREL.defaultBlockState());
+                level.getCapability(Capabilities.ItemHandler.BLOCK, at(-3, 8, -3), Direction.SOUTH).insertItem(0, new ItemStack(Items.QUARTZ, 32), false);
+                grimPipe(at(-3, 8, -2), Direction.NORTH);
+                level.setBlockAndUpdate(at(-3, 8, -1), Registration.IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.NORTH));
+                // Export Bus at (1,8,1) facing south into a pipe at (1,8,2), which runs into a barrel at (1,8,3)
+                ffBefore[1] = 0;
+                net().insert(new ItemStack(Items.PRISMARINE_SHARD, 20), false);
+                level.setBlockAndUpdate(at(-3, 8, 1), Registration.EXPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.SOUTH));
+                ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(at(-3, 8, 1))).filters().setItem(0, new ItemStack(Items.PRISMARINE_SHARD));
+                // a pipe end set to pull (the pipe mod's Input mode) takes from the Export Bus
+                grimPipe(at(-3, 8, 2), Direction.NORTH);
+                level.setBlockAndUpdate(at(-3, 8, 3), Blocks.BARREL.defaultBlockState());
+                return false;
+            }
+            long in = count(Items.QUARTZ) - ffBefore[0];
+            IItemHandler out = level.getCapability(Capabilities.ItemHandler.BLOCK, at(-3, 8, 3), Direction.NORTH);
+            int shards = 0;
+            for (int i = 0; i < out.getSlots(); i++) {
+                shards += out.getStackInSlot(i).is(Items.PRISMARINE_SHARD) ? out.getStackInSlot(i).getCount() : 0;
+            }
+            if (ff[0]++ % 20 == 1) {
+                var ib = (com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(at(-3, 8, -1));
+                var eb = (com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(at(-3, 8, 1));
+                info("face to face: quartz into network={} (import status {}) shards into the far barrel={} (export status {})", in, ib.status(), shards, eb.status());
+            }
+            var ibs = ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(at(-3, 8, -1))).status();
+            if (in == 32 && shards == 20) {
+                info("face to face done: import status while fed={}", ffStatus[0]);
+            }
+            if (in > 0 && in < 32) {
+                ffStatus[0] = ibs.name();
+            }
+            return in == 32 && shards == 20 && "WORKING".equals(ffStatus[0]);
+        }));
+        final int[] sp = {0};
+        final long[] spBefore = new long[1];
+        STEPS.add(new Step("speed upgrades: 8 in a bus make it 9x as fast, and they drop when the bus comes off", 40, () -> {
+            BlockPos cable = at(1, 5, 0);
+            BlockPos barrel = at(1, 5, -1);
+            if (sp[0] == 0) {
+                sp[0] = 1;
+                spBefore[0] = count(Items.FLINT);
+                level.setBlockAndUpdate(cable, Registration.CABLE.get().defaultBlockState());
+                level.setBlockAndUpdate(barrel, Blocks.BARREL.defaultBlockState());
+                IItemHandler inv = level.getCapability(Capabilities.ItemHandler.BLOCK, barrel, Direction.SOUTH);
+                for (int i = 0; i < 18; i++) {
+                    inv.insertItem(i, new ItemStack(Items.FLINT, 64), false);
+                }
+                com.xtri6.grimstorage.block.CableBlock.attachBus(level, cable, Direction.NORTH, false);
+                var bus = ((com.xtri6.grimstorage.block.entity.CableBusBlockEntity) level.getBlockEntity(cable)).part(Direction.NORTH);
+                ItemStack extra = bus.upgrades().insertItem(0, new ItemStack(Registration.SPEED_UPGRADE.get(), 2), false);
+                for (int i = 1; i < 8; i++) {
+                    bus.upgrades().insertItem(i, new ItemStack(Registration.SPEED_UPGRADE.get()), false);
+                }
+                ItemStack ninth = new ItemStack(Items.FLINT);
+                info("speed upgrades in={} speed=x{} second one in slot 0 refused={} flint refused={}", bus.upgradeCount(), bus.speed(),
+                        extra.getCount() == 1, !bus.upgrades().isItemValid(0, ninth));
+                return false;
+            }
+            if (sp[0]++ < 4) {
+                return false;
+            }
+            long got = count(Items.FLINT) - spBefore[0];
+            var bus = ((com.xtri6.grimstorage.block.entity.CableBusBlockEntity) level.getBlockEntity(cable)).part(Direction.NORTH);
+            boolean fast = got == 1152 && bus.speed() == 9;
+            // take it off: 1 bus + 8 upgrades drop
+            com.xtri6.grimstorage.block.CableBlock.removeBus(level, cable, Direction.NORTH, true);
+            var drops = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class, new net.minecraft.world.phys.AABB(cable).inflate(1.5));
+            int ups = 0, buses = 0;
+            for (var e : drops) {
+                ups += e.getItem().is(Registration.SPEED_UPGRADE.get()) ? e.getItem().getCount() : 0;
+                buses += e.getItem().is(Registration.IMPORT_BUS_ITEM.get()) ? e.getItem().getCount() : 0;
+                e.discard();
+            }
+            info("flint moved in 3 runs={} (1152 = 128 x 9) drops: upgrades={} buses={}", got, ups, buses);
+            return fast && ups == 8 && buses == 1;
+        }));
+        STEPS.add(new Step("soul wrench: cut and rejoin a cable link, turn a machine, leave a chest alone", 0, () -> {
+            FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+            ItemStack wrench = new ItemStack(Registration.SOUL_WRENCH.get());
+            fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, wrench);
+            BlockPos a = at(1, 6, 0);
+            BlockPos b = at(1, 7, 0);
+            level.setBlockAndUpdate(a, Registration.CABLE.get().defaultBlockState());
+            level.setBlockAndUpdate(b, Registration.CABLE.get().defaultBlockState());
+            var cs = com.xtri6.grimstorage.block.CableBlock.Side.class;
+            // click the upper arm of the lower cable
+            var hitArm = new net.minecraft.world.phys.BlockHitResult(new net.minecraft.world.phys.Vec3(a.getX() + 0.5, a.getY() + 0.95, a.getZ() + 0.5), Direction.EAST, a, false);
+            wrench.useOn(new net.minecraft.world.item.context.UseOnContext(fp, net.minecraft.world.InteractionHand.MAIN_HAND, hitArm));
+            var sa = com.xtri6.grimstorage.block.CableBlock.side(level.getBlockState(a), Direction.UP);
+            var sb = com.xtri6.grimstorage.block.CableBlock.side(level.getBlockState(b), Direction.DOWN);
+            boolean cut = sa == com.xtri6.grimstorage.block.CableBlock.Side.BLOCKED && sb == com.xtri6.grimstorage.block.CableBlock.Side.NONE;
+            // click the top face of the core to join it back
+            var hitCore = new net.minecraft.world.phys.BlockHitResult(new net.minecraft.world.phys.Vec3(a.getX() + 0.5, a.getY() + 0.625, a.getZ() + 0.5), Direction.UP, a, false);
+            wrench.useOn(new net.minecraft.world.item.context.UseOnContext(fp, net.minecraft.world.InteractionHand.MAIN_HAND, hitCore));
+            boolean joined = com.xtri6.grimstorage.block.CableBlock.side(level.getBlockState(a), Direction.UP) == com.xtri6.grimstorage.block.CableBlock.Side.CABLE
+                    && com.xtri6.grimstorage.block.CableBlock.side(level.getBlockState(b), Direction.DOWN) == com.xtri6.grimstorage.block.CableBlock.Side.CABLE;
+            // turn a drive to face east
+            BlockPos drive = at(3, 6, 0);
+            level.setBlockAndUpdate(drive, Registration.DRIVE.get().defaultBlockState());
+            var driveBefore = level.getBlockState(drive);
+            var hitDrive = new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(drive).add(0.5, 0, 0), Direction.EAST, drive, false);
+            var r = wrench.useOn(new net.minecraft.world.item.context.UseOnContext(fp, net.minecraft.world.InteractionHand.MAIN_HAND, hitDrive));
+            var after = level.getBlockState(drive);
+            BlockPos chest = at(4, 6, 0);
+            level.setBlockAndUpdate(chest, Blocks.CHEST.defaultBlockState());
+            var hitChest = new net.minecraft.world.phys.BlockHitResult(net.minecraft.world.phys.Vec3.atCenterOf(chest).add(0.5, 0, 0), Direction.EAST, chest, false);
+            var rc = wrench.useOn(new net.minecraft.world.item.context.UseOnContext(fp, net.minecraft.world.InteractionHand.MAIN_HAND, hitChest));
+            info("cut={} joined={} drive {} -> {} ({}) chest result={}", cut, joined, driveBefore, after, r, rc);
+            boolean turned = after.toString().contains("facing=east") && !driveBefore.toString().contains("facing=east");
+            for (BlockPos p2 : List.of(a, b, drive, chest)) {
+                level.removeBlock(p2, false);
+            }
+            return cut && joined && turned && rc == net.minecraft.world.InteractionResult.PASS;
+        }));
         STEPS.add(new Step("terminal: store and take XP", 0, () -> {
             FakePlayer fp = FakePlayerFactory.getMinecraft(level);
             TerminalMenu menu = new TerminalMenu(995, fp.getInventory(), () -> NetworkManager.get(level, at(5, 0, 0)), p -> true);
