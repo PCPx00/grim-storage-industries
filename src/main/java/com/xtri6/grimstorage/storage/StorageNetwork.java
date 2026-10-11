@@ -60,7 +60,7 @@ public final class StorageNetwork {
     private final Set<GlobalPos> members = new HashSet<>();
     private final List<DriveBlockEntity> drives = new ArrayList<>();
     private final List<AssemblerBlockEntity> assemblers = new ArrayList<>();
-    private final List<ProcessingInterfaceBlockEntity> processors = new ArrayList<>();
+    private final List<MachineLink> processors = new ArrayList<>();
     private final List<StockKeeperBlockEntity> keepers = new ArrayList<>();
     private final List<VoidFilterBlockEntity> voids = new ArrayList<>();
     private Map<ItemKey, List<Pattern>> patterns = Map.of();
@@ -149,7 +149,7 @@ public final class StorageNetwork {
                 drives.add(d);
             } else if (be instanceof AssemblerBlockEntity a) {
                 assemblers.add(a);
-            } else if (be instanceof ProcessingInterfaceBlockEntity p) {
+            } else if (be instanceof MachineLink p) {
                 processors.add(p);
             } else if (be instanceof StockKeeperBlockEntity k) {
                 keepers.add(k);
@@ -193,17 +193,50 @@ public final class StorageNetwork {
                 }
             }
         }
-        for (ProcessingInterfaceBlockEntity proc : processors) {
+        // Machine recipes: cards first, then what Machine Buses learned. The same recipe on several machines is one
+        // pattern backed by all of them, so big jobs are shared out.
+        List<Pattern> machine = new ArrayList<>();
+        for (MachineLink proc : processors) {
             for (ItemStack card : proc.cards()) {
                 Pattern p = Pattern.processing(card, proc);
                 if (p != null) {
-                    for (ItemKey out : p.outputs().keySet()) {
-                        map.computeIfAbsent(out, k -> new ArrayList<>()).add(p);
-                    }
+                    addMachinePattern(machine, p);
+                }
+            }
+        }
+        for (MachineLink proc : processors) {
+            for (Pattern p : proc.learnedPatterns()) {
+                addMachinePattern(machine, p);
+            }
+        }
+        Set<ItemKey> explicit = new HashSet<>(map.keySet());
+        for (Pattern p : machine) {
+            for (ItemKey out : p.outputs().keySet()) {
+                map.computeIfAbsent(out, k -> new ArrayList<>()).add(p);
+                if (!p.learned()) {
+                    explicit.add(out);
                 }
             }
         }
         patterns = map;
+        explicitCraftables = explicit;
+    }
+
+    private Set<ItemKey> explicitCraftables = Set.of();
+
+    private static void addMachinePattern(List<Pattern> list, Pattern p) {
+        for (Pattern q : list) {
+            if (q.sameRecipe(p)) {
+                q.addMachines(p);
+                return;
+            }
+        }
+        list.add(p);
+    }
+
+    /** Things the network can make from Recipe Cards or Processing Cards (not only learned machine recipes). */
+    public Set<ItemKey> explicitCraftables() {
+        return explicitCraftables;
     }
 
     public List<Pattern> patternsFor(ItemKey key) {
@@ -528,22 +561,39 @@ public final class StorageNetwork {
     /** Sends one batch of a processing card into its machine. Returns null on success, or why it could not. */
     @Nullable
     Component trySendProcessing(Pattern pattern) {
-        ProcessingInterfaceBlockEntity proc = pattern.processor();
-        if (proc == null || proc.isRemoved()) {
-            return Component.translatable("gui.grimstorage.job.no_machine");
-        }
-        IItemHandler machine = proc.machineInput();
-        if (machine == null) {
-            return Component.translatable("gui.grimstorage.job.no_machine");
-        }
         for (Map.Entry<ItemKey, Long> in : pattern.inputs().entrySet()) {
             if (extract(in.getKey(), in.getValue(), true) < in.getValue()) {
                 return Component.translatable("gui.grimstorage.job.waiting", in.getKey().stack().getHoverName());
             }
-            ItemStack test = in.getKey().toStack((int) Math.min(Integer.MAX_VALUE, in.getValue()));
-            if (!ItemHandlerHelper.insertItemStacked(machine, test, true).isEmpty()) {
-                return Component.translatable("gui.grimstorage.job.machine_busy");
+        }
+        // the first machine (taking turns) that has room for every ingredient
+        IItemHandler machine = null;
+        boolean any = false;
+        for (MachineLink link : pattern.machinesInTurn()) {
+            if (link.linkRemoved()) {
+                continue;
             }
+            IItemHandler h = link.machineInput();
+            if (h == null) {
+                continue;
+            }
+            any = true;
+            boolean fits = true;
+            for (Map.Entry<ItemKey, Long> in : pattern.inputs().entrySet()) {
+                ItemStack test = in.getKey().toStack((int) Math.min(Integer.MAX_VALUE, in.getValue()));
+                if (!ItemHandlerHelper.insertItemStacked(h, test, true).isEmpty()) {
+                    fits = false;
+                    break;
+                }
+            }
+            if (fits) {
+                machine = h;
+                pattern.usedMachine(link);
+                break;
+            }
+        }
+        if (machine == null) {
+            return Component.translatable(any ? "gui.grimstorage.job.machine_busy" : "gui.grimstorage.job.no_machine");
         }
         for (Map.Entry<ItemKey, Long> in : pattern.inputs().entrySet()) {
             long got = extract(in.getKey(), in.getValue(), false);
@@ -604,8 +654,8 @@ public final class StorageNetwork {
         }
 
         if (tickCount % 5 == 0) {
-            for (ProcessingInterfaceBlockEntity p : processors) {
-                if (!p.isRemoved()) {
+            for (MachineLink p : processors) {
+                if (!p.linkRemoved()) {
                     p.pullOutputs(this);
                 }
             }

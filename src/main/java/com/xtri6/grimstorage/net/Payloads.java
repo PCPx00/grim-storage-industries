@@ -63,7 +63,7 @@ public final class Payloads {
         public static final Type<TerminalContents> TYPE = id("terminal_contents");
         private static final StreamCodec<RegistryFriendlyByteBuf, TerminalMenu.Entry> ENTRY = StreamCodec.composite(
                 ItemKey.STREAM_CODEC, TerminalMenu.Entry::key, ByteBufCodecs.VAR_LONG, TerminalMenu.Entry::count,
-                ByteBufCodecs.BOOL, TerminalMenu.Entry::craftable, TerminalMenu.Entry::new);
+                ByteBufCodecs.BOOL, TerminalMenu.Entry::craftable, ByteBufCodecs.BOOL, TerminalMenu.Entry::learned, TerminalMenu.Entry::new);
         private static final StreamCodec<RegistryFriendlyByteBuf, TerminalMenu.BulkEntry> BULK = StreamCodec.composite(
                 BulkKey.STREAM_CODEC, TerminalMenu.BulkEntry::key, ByteBufCodecs.VAR_LONG, TerminalMenu.BulkEntry::amount,
                 TerminalMenu.BulkEntry::new);

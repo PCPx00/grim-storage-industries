@@ -10,7 +10,6 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 import com.xtri6.grimstorage.Registration;
-import com.xtri6.grimstorage.block.entity.ProcessingInterfaceBlockEntity;
 import com.xtri6.grimstorage.item.CardData;
 
 import net.minecraft.world.item.ItemStack;
@@ -20,7 +19,11 @@ import net.minecraft.world.item.crafting.RecipeHolder;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 
-/** One way the network knows to make something: a crafting recipe card or a machine processing card. */
+/**
+ * One way the network knows to make something: a crafting recipe card, a machine Processing Card, or a recipe a
+ * Machine Bus learned from the machine it faces. A machine recipe can be backed by several machines at once; the
+ * network spreads the work across all of them.
+ */
 public final class Pattern {
     public enum Kind { CRAFTING, PROCESSING }
 
@@ -30,17 +33,23 @@ public final class Pattern {
     private final List<ItemStack> grid;
     @Nullable
     private final RecipeHolder<CraftingRecipe> recipe;
-    @Nullable
-    private final ProcessingInterfaceBlockEntity processor;
+    /** Machines that can run this recipe (processing only). */
+    private final List<MachineLink> machines = new ArrayList<>();
+    private int nextMachine;
+    /** Learned from a machine rather than written on a card. */
+    private final boolean learned;
 
     private Pattern(Kind kind, Map<ItemKey, Long> inputs, Map<ItemKey, Long> outputs, List<ItemStack> grid,
-                    @Nullable RecipeHolder<CraftingRecipe> recipe, @Nullable ProcessingInterfaceBlockEntity processor) {
+                    @Nullable RecipeHolder<CraftingRecipe> recipe, @Nullable MachineLink processor, boolean learned) {
         this.kind = kind;
         this.inputs = Collections.unmodifiableMap(inputs);
         this.outputs = Collections.unmodifiableMap(outputs);
         this.grid = grid;
         this.recipe = recipe;
-        this.processor = processor;
+        if (processor != null) {
+            machines.add(processor);
+        }
+        this.learned = learned;
     }
 
     @Nullable
@@ -72,11 +81,11 @@ public final class Pattern {
         }
         Map<ItemKey, Long> outs = new LinkedHashMap<>();
         outs.put(out, (long) result.getCount());
-        return new Pattern(Kind.CRAFTING, in, outs, List.copyOf(grid), found.get(), null);
+        return new Pattern(Kind.CRAFTING, in, outs, List.copyOf(grid), found.get(), null, false);
     }
 
     @Nullable
-    public static Pattern processing(ItemStack card, ProcessingInterfaceBlockEntity processor) {
+    public static Pattern processing(ItemStack card, MachineLink processor) {
         CardData.Processing data = card.get(Registration.PROCESSING_CARD_DATA.get());
         if (data == null || !data.valid()) {
             return null;
@@ -98,7 +107,56 @@ public final class Pattern {
         if (in.isEmpty() || outs.isEmpty()) {
             return null;
         }
-        return new Pattern(Kind.PROCESSING, in, outs, List.of(), null, processor);
+        return new Pattern(Kind.PROCESSING, in, outs, List.of(), null, processor, false);
+    }
+
+    /** A one-input, one-output machine recipe a Machine Bus learned (for example a furnace's smelting recipes). */
+    public static Pattern learned(ItemKey input, long inCount, ItemKey output, long outCount, MachineLink machine) {
+        Map<ItemKey, Long> in = new LinkedHashMap<>();
+        in.put(input, inCount);
+        Map<ItemKey, Long> outs = new LinkedHashMap<>();
+        outs.put(output, outCount);
+        return new Pattern(Kind.PROCESSING, in, outs, List.of(), null, machine, true);
+    }
+
+    public boolean learned() {
+        return learned;
+    }
+
+    /** Same kind, same ingredients, same results: two machines offering this can share the work. */
+    public boolean sameRecipe(Pattern o) {
+        return kind == o.kind && inputs.equals(o.inputs) && outputs.equals(o.outputs);
+    }
+
+    public void addMachines(Pattern o) {
+        for (MachineLink m : o.machines) {
+            if (!machines.contains(m)) {
+                machines.add(m);
+            }
+        }
+    }
+
+    public List<MachineLink> machines() {
+        return machines;
+    }
+
+    /** The machines to try, starting after the one that was used last, so the work is spread out. */
+    public List<MachineLink> machinesInTurn() {
+        if (machines.size() <= 1) {
+            return machines;
+        }
+        List<MachineLink> out = new ArrayList<>(machines.size());
+        for (int i = 0; i < machines.size(); i++) {
+            out.add(machines.get((nextMachine + i) % machines.size()));
+        }
+        return out;
+    }
+
+    public void usedMachine(MachineLink m) {
+        int i = machines.indexOf(m);
+        if (i >= 0) {
+            nextMachine = (i + 1) % machines.size();
+        }
     }
 
     public Kind kind() {
@@ -127,8 +185,8 @@ public final class Pattern {
     }
 
     @Nullable
-    public ProcessingInterfaceBlockEntity processor() {
-        return processor;
+    public MachineLink processor() {
+        return machines.isEmpty() ? null : machines.get(0);
     }
 
     public CraftingInput craftingInput() {

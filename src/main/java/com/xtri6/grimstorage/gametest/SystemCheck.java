@@ -1190,6 +1190,7 @@ public final class SystemCheck {
             info("gravel accepted={} (fills cells), dirt accepted={} dirt stored={}", gravel, dirt, stored);
             return gravel < 1_000_000 && dirt == 50_000 && stored == 0;
         }));
+        addMachineBusSteps();
         STEPS.add(new Step("save totals for the persistence run", 0, () -> {
             info("cable bus at save: {} be={}", level.getBlockState(at(1, 1, 0)), level.getBlockEntity(at(1, 1, 0)));
             long total = net().contents().values().stream().mapToLong(Long::longValue).sum();
@@ -1203,6 +1204,109 @@ public final class SystemCheck {
             }
             info("total items stored={}", total);
             return total > 100_000;
+        }));
+    }
+
+    // ------------------------------------------------------------------ machine bus (its own small network)
+
+    private static final BlockPos MB = new BlockPos(24, 230, 0);
+
+    private static StorageNetwork mbNet() {
+        return NetworkManager.get(level, MB);
+    }
+
+    private static com.xtri6.grimstorage.block.entity.MachineBusBlockEntity machineBus(Direction d) {
+        return (com.xtri6.grimstorage.block.entity.MachineBusBlockEntity) level.getBlockEntity(MB.relative(d));
+    }
+
+    private static net.minecraft.world.level.block.entity.FurnaceBlockEntity mbFurnace(Direction d) {
+        return (net.minecraft.world.level.block.entity.FurnaceBlockEntity) level.getBlockEntity(MB.relative(d, 2));
+    }
+
+    private static void addMachineBusSteps() {
+        STEPS.add(new Step("machine bus: build two furnaces and a chest on their own network", 0, () -> {
+            level.setChunkForced(MB.getX() >> 4, MB.getZ() >> 4, true);
+            level.setBlockAndUpdate(MB, Registration.CONTROLLER.get().defaultBlockState());
+            level.setBlockAndUpdate(MB.west(), Registration.DRIVE.get().defaultBlockState());
+            ((DriveBlockEntity) level.getBlockEntity(MB.west())).cells().setStackInSlot(0, new ItemStack(Registration.CELLS.get(CellTier.GOLD).get()));
+            level.setBlockAndUpdate(MB.east(2), Blocks.FURNACE.defaultBlockState());
+            level.setBlockAndUpdate(MB.south(2), Blocks.FURNACE.defaultBlockState());
+            level.setBlockAndUpdate(MB.north(2), Blocks.CHEST.defaultBlockState());
+            for (Direction d : new Direction[] {Direction.EAST, Direction.SOUTH, Direction.NORTH}) {
+                level.setBlockAndUpdate(MB.relative(d), Registration.MACHINE_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, d));
+            }
+            ItemStack card = new ItemStack(Registration.PROCESSING_CARD.get());
+            card.set(Registration.PROCESSING_CARD_DATA.get(), new CardData.Processing(
+                    List.of(new ItemStack(Items.DIRT)), List.of(new ItemStack(Items.DIAMOND))));
+            machineBus(Direction.NORTH).cardHandler().setStackInSlot(0, card);
+            NetworkManager.markDirty();
+            return true;
+        }));
+        STEPS.add(new Step("machine bus learns every furnace recipe with no cards", 60, () -> {
+            StorageNetwork n = mbNet();
+            if (n == null) {
+                return false;
+            }
+            n.insert(key(Items.RAW_IRON), 4, false);
+            CraftingPlanner.Plan p = n.plan(key(Items.IRON_INGOT), 4);
+            int learned = machineBus(Direction.EAST).recipeCount();
+            info("east bus recipes={} chest bus recipes={} plan ok={} missing={} explicit has iron={}", learned,
+                    machineBus(Direction.NORTH).recipeCount(), p.ok(), p.missing(), n.explicitCraftables().contains(key(Items.IRON_INGOT)));
+            n.extract(key(Items.RAW_IRON), 4, false);
+            return learned > 20 && machineBus(Direction.NORTH).recipeCount() == 1 && p.ok()
+                    && !n.explicitCraftables().contains(key(Items.IRON_INGOT));
+        }));
+        STEPS.add(new Step("planner picks the option it can actually make (charcoal from birch, not oak)", 0, () -> {
+            StorageNetwork n = mbNet();
+            n.insert(key(Items.BIRCH_LOG), 2, false);
+            CraftingPlanner.Plan p = n.plan(key(Items.CHARCOAL), 2);
+            info("charcoal plan ok={} missing={}", p.ok(), p.missing());
+            n.extract(key(Items.BIRCH_LOG), 2, false);
+            return p.ok();
+        }));
+        STEPS.add(new Step("order 4 iron ingots: both furnaces get work", 40, () -> {
+            StorageNetwork n = mbNet();
+            if (n.jobs().isEmpty()) {
+                n.insert(key(Items.RAW_IRON), 4, false);
+                n.insert(key(Items.COAL), 4, false);
+                CraftingPlanner.Plan p = n.request(key(Items.IRON_INGOT), 4, "test");
+                info("smelt plan ok={} missing={}", p.ok(), p.missing());
+            }
+            ItemStack a = mbFurnace(Direction.EAST).getItem(0), b = mbFurnace(Direction.SOUTH).getItem(0);
+            info("furnace inputs east={} south={}", a, b);
+            return a.is(Items.RAW_IRON) && b.is(Items.RAW_IRON);
+        }));
+        STEPS.add(new Step("both furnaces were fuelled from the network", 40, () -> {
+            boolean lit = mbFurnace(Direction.EAST).getBlockState().getValue(net.minecraft.world.level.block.AbstractFurnaceBlock.LIT)
+                    && mbFurnace(Direction.SOUTH).getBlockState().getValue(net.minecraft.world.level.block.AbstractFurnaceBlock.LIT);
+            long coal = mbNet().count(key(Items.COAL));
+            info("lit={} coal left in network={}", lit, coal);
+            return lit && coal < 4;
+        }));
+        STEPS.add(new Step("iron ingots came back from the result slots only", 900, () -> {
+            StorageNetwork n = mbNet();
+            long iron = n.count(key(Items.IRON_INGOT)), raw = n.count(key(Items.RAW_IRON));
+            info("iron={} raw={} jobs={}", iron, raw, n.jobs().isEmpty() ? "none" : n.jobs().get(0).status().getString());
+            return iron == 4 && raw == 0 && n.jobs().isEmpty()
+                    && mbFurnace(Direction.EAST).getItem(2).isEmpty() && mbFurnace(Direction.SOUTH).getItem(2).isEmpty();
+        }));
+        STEPS.add(new Step("machine bus with a card only takes that card's outputs", 20, () -> {
+            IItemHandler chest = level.getCapability(Capabilities.ItemHandler.BLOCK, MB.north(2), null);
+            if (chest.getStackInSlot(0).isEmpty() && chest.getStackInSlot(1).isEmpty()) {
+                chest.insertItem(0, new ItemStack(Items.DIAMOND, 3), false);
+                chest.insertItem(1, new ItemStack(Items.DIRT, 5), false);
+            }
+            long diamonds = mbNet().count(key(Items.DIAMOND));
+            info("diamonds pulled={} dirt left in chest={}", diamonds, chest.getStackInSlot(1).getCount());
+            return diamonds == 3 && chest.getStackInSlot(1).getCount() == 5;
+        }));
+        STEPS.add(new Step("machine bus fuel switch saves and stops refuelling", 0, () -> {
+            com.xtri6.grimstorage.block.entity.MachineBusBlockEntity bus = machineBus(Direction.EAST);
+            bus.toggleFuel();
+            net.minecraft.nbt.CompoundTag tag = bus.saveWithoutMetadata(level.registryAccess());
+            boolean saved = !tag.getBoolean("fuel") && tag.getBoolean("learn");
+            bus.toggleFuel();
+            return saved && bus.fuels();
         }));
     }
 

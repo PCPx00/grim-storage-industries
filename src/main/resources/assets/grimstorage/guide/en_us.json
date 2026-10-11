@@ -156,11 +156,18 @@
           ]
         },
         {
+          "title": "Shift keeps things still",
+          "text": [
+            "While you **hold Shift**, nothing in the terminal moves. Shift-click the same spot again and again to keep taking the same item.",
+            "An item that runs out stays in its spot, faded, until you let go. Let go of Shift and the list sorts itself again."
+          ]
+        },
+        {
           "title": "Finding things",
           "text": [
             "Type in the search box to filter. Start with `@` to search by mod, for example `@mekanism`. Right-click the box to clear it.",
             "The button next to it changes the sort: by amount, by name or by mod.",
-            "The **tabs on the left** filter by type: ores, ingots, weapons and tools, armor, food, mob drops, farming, building blocks and misc."
+            "The **tabs on the left** filter by type: ores, ingots, weapons and tools, armor, food, mob drops, farming, building blocks and misc. The last one, **Craftable**, shows only what your network can craft."
           ]
         },
         {
@@ -369,6 +376,24 @@
             "Put Processing Cards in it. The network sends the inputs into the machine and pulls the results back out by itself."
           ],
           "recipe": "grimstorage:processing_interface"
+        },
+        {
+          "title": "Machine Bus",
+          "text": [
+            "The **Machine Bus** clips onto a machine, like an Import Bus. The network then uses that machine for autocrafting.",
+            "On a **furnace, blast furnace or smoker** it needs no cards at all: it learns every recipe the machine can cook. They show up in the **Craftable** tab."
+          ],
+          "recipe": "grimstorage:machine_bus"
+        },
+        {
+          "title": "Machine Bus tricks",
+          "text": [
+            "- **Keeps furnaces fuelled** with coal, charcoal, blaze rods or dried kelp from your network, one piece at a time.",
+            "- Takes results only from the **output slot**.",
+            "- **Several buses on several furnaces share big jobs**: 64 ore on 4 furnaces cooks 4 times as fast.",
+            "- Holds 9 Processing Cards for **any other machine**.",
+            "- Buttons in its screen turn learning and fuelling off."
+          ]
         },
         {
           "title": "Example",

@@ -262,5 +262,17 @@
   "gui.grimstorage.bulk.hint_xp": "Click to take a level, shift-click for 10, right-click to store all your XP.",
   "gui.grimstorage.bulk.hint_pool": "Stored as one big pool. Move it with buses or a Network Interface.",
   "gui.grimstorage.bus.speed": "Speed x%s",
-  "gui.grimstorage.bus.upgrade_slot": "Speed Upgrade: each one adds the bus's base speed again (up to 8, for 9x)."
+  "gui.grimstorage.bus.upgrade_slot": "Speed Upgrade: each one adds the bus's base speed again (up to 8, for 9x).",
+  "block.grimstorage.machine_bus": "Machine Bus",
+  "gui.grimstorage.machine_bus.on": "Machine:",
+  "gui.grimstorage.machine_bus.none": "Nothing in front",
+  "gui.grimstorage.machine_bus.recipes": "%s recipes ready",
+  "gui.grimstorage.machine_bus.learn.on": "Learn recipes: On",
+  "gui.grimstorage.machine_bus.learn.off": "Learn recipes: Off",
+  "gui.grimstorage.machine_bus.learn.tooltip": "On a furnace, blast furnace or smoker (or a modded furnace built on them), the network learns every recipe that machine can make. No cards needed.",
+  "gui.grimstorage.machine_bus.fuel.on": "Keep fueled: On",
+  "gui.grimstorage.machine_bus.fuel.off": "Keep fueled: Off",
+  "gui.grimstorage.machine_bus.fuel.tooltip": "When the furnace has something to cook and no fuel, the bus feeds it coal, charcoal or other fuel from the network.",
+  "gui.grimstorage.tab.craftable": "Craftable",
+  "gui.grimstorage.terminal.gone": "None left"
 }

@@ -14,6 +14,7 @@ import com.xtri6.grimstorage.client.ui.Ui;
 import com.xtri6.grimstorage.menu.TerminalMenu;
 import com.xtri6.grimstorage.net.Payloads;
 import com.xtri6.grimstorage.storage.BulkKind;
+import com.xtri6.grimstorage.storage.ItemKey;
 import com.xtri6.grimstorage.util.Fmt;
 
 import net.minecraft.ChatFormatting;
@@ -48,7 +49,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     private static final int BAR_X = 174;
     private static final int RIGHT_X = 192;
     private static final int TAB_W = 22;
-    private static final int TAB_H = 20;
+    private static final int TAB_H = 18;
     private static final String[] SORTS = {"gui.grimstorage.sort.count", "gui.grimstorage.sort.name", "gui.grimstorage.sort.mod"};
 
     /** Remembered between openings so the terminal reopens the way you left it. */
@@ -128,7 +129,19 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
 
     // ------------------------------------------------------------------ data
 
+    /** Item order from the last refresh, kept while shift is held. */
+    @Nullable
+    private List<ItemKey> frozen;
+    private boolean holdOrder;
+    private boolean held;
+    private int storedTypes;
+
     private void refresh() {
+        refresh(false);
+    }
+
+    private void refresh(boolean keepOrder) {
+        holdOrder = keepOrder;
         seenRevision = menu.clientRevision;
         seenSearch = search.getValue();
         String q = seenSearch.toLowerCase(Locale.ROOT).trim();
@@ -136,14 +149,30 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         String needle = byMod ? q.substring(1) : q;
         Arrays.fill(categoryCounts, 0);
         List<TerminalMenu.Entry> out = new ArrayList<>();
+        storedTypes = 0;
         for (TerminalMenu.Entry e : menu.clientEntries) {
+            boolean hiddenLearned = e.count() == 0 && e.learned();
+            if (e.count() > 0) {
+                storedTypes++;
+            }
             for (ItemCategories.Category c : ItemCategories.Category.values()) {
-                if (ItemCategories.matches(c, e.key().stack())) {
+                if (c == ItemCategories.Category.CRAFTABLE ? e.craftable() : !hiddenLearned && ItemCategories.matches(c, e.key().stack())) {
                     categoryCounts[c.ordinal()]++;
                 }
             }
-            if (!all && !ItemCategories.matches(category, e.key().stack())) {
-                continue;
+            boolean craftTab = !all && category == ItemCategories.Category.CRAFTABLE;
+            if (craftTab) {
+                if (!e.craftable()) {
+                    continue;
+                }
+            } else {
+                if (!all && !ItemCategories.matches(category, e.key().stack())) {
+                    continue;
+                }
+                // a furnace's whole recipe book would flood the list: learned recipes only show in the Craftable tab
+                if (e.count() == 0 && e.learned()) {
+                    continue;
+                }
             }
             if (!needle.isEmpty()) {
                 ItemStack s = e.key().stack();
@@ -161,6 +190,25 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             default -> Comparator.comparingLong(TerminalMenu.Entry::count).reversed().thenComparing(byName);
         };
         out.sort(cmp);
+        // Holding shift keeps every item where it is, so the same spot can be shift-clicked again and again.
+        if (holdOrder && frozen != null) {
+            java.util.Map<ItemKey, TerminalMenu.Entry> byKey = new java.util.LinkedHashMap<>();
+            for (TerminalMenu.Entry e : out) {
+                byKey.put(e.key(), e);
+            }
+            List<TerminalMenu.Entry> kept = new ArrayList<>(Math.max(frozen.size(), out.size()));
+            for (ItemKey k : frozen) {
+                TerminalMenu.Entry e = byKey.remove(k);
+                // gone for now: keep its spot, shown faded
+                kept.add(e != null ? e : new TerminalMenu.Entry(k, 0, false, false));
+            }
+            kept.addAll(byKey.values());
+            out = kept;
+        }
+        frozen = new ArrayList<>(out.size());
+        for (TerminalMenu.Entry e : out) {
+            frozen.add(e.key());
+        }
         view = out;
         List<TerminalMenu.BulkEntry> bulk = new ArrayList<>();
         if (mode != null || all) {
@@ -269,9 +317,16 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     @Override
     protected void containerTick() {
         super.containerTick();
-        if (menu.clientRevision != seenRevision || !search.getValue().equals(seenSearch)) {
+        boolean shift = hasShiftDown();
+        if (!search.getValue().equals(seenSearch)) {
+            refresh();
+        } else if (menu.clientRevision != seenRevision) {
+            refresh(shift);
+        } else if (held && !shift) {
+            // let go of shift: sort again
             refresh();
         }
+        held = shift;
         search.setTextColor(t().text() & 0xFFFFFF);
     }
 
@@ -331,12 +386,12 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         if (selected) {
             g.fill(x + 1, y + 2, x + 2, y + TAB_H - 2, t.accent());
         }
-        g.renderItem(c.icon(), x + 4, y + 2);
+        g.renderItem(c.icon(), x + 4, y + 1);
         boolean empty = c != ItemCategories.Category.ALL && categoryCounts[c.ordinal()] == 0;
         if (empty && !selected) {
             g.pose().pushPose();
             g.pose().translate(0, 0, 250);
-            g.fill(x + 4, y + 2, x + 20, y + 18, Theme.withAlpha(t.panelBottom(), 0xA0));
+            g.fill(x + 4, y + 1, x + 20, y + 17, Theme.withAlpha(t.panelBottom(), 0xA0));
             g.pose().popPose();
         }
     }
@@ -409,7 +464,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         if (mode == null) {
             String used = Fmt.compact(menu.clientUsed) + " / " + Fmt.compact(menu.clientCapacity);
             g.drawString(font, used, RIGHT_X, 162, t.text(), false);
-            g.drawString(font, Component.translatable("gui.grimstorage.types", menu.clientEntries.size()), RIGHT_X, 172, t.textFaint(), false);
+            g.drawString(font, Component.translatable("gui.grimstorage.types", storedTypes), RIGHT_X, 172, t.textFaint(), false);
             g.drawString(font, font.plainSubstrByWidth((all ? Component.translatable("gui.grimstorage.kind.all")
                     : Component.translatable(category.langKey())).getString(), W - RIGHT_X - 8), RIGHT_X, 190, t.accent(), false);
         } else {
@@ -472,7 +527,14 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                 int x = leftPos + GX + c * 18;
                 int y = topPos + GY + r * 18;
                 g.renderItem(e.key().stack(), x, y);
-                if (e.count() > 0) {
+                boolean ghost = e.count() == 0 && !e.craftable();
+                if (ghost) {
+                    // ran out while shift is held: its spot stays, faded, until shift is let go
+                    g.pose().pushPose();
+                    g.pose().translate(0, 0, 300);
+                    g.fill(x, y, x + 16, y + 16, Theme.withAlpha(t.panelBottom() & 0xFFFFFF, 0xB0));
+                    g.pose().popPose();
+                } else if (e.count() > 0) {
                     Ui.cornerText(g, font, Fmt.compact(e.count()), x + 17, y + 16, 0xFFFFFFFF, 2f / 3f);
                 } else {
                     Ui.cornerText(g, font, Component.translatable("gui.grimstorage.craft.short").getString(), x + 17, y + 16, t.accent(), 0.5f);
@@ -720,7 +782,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             ItemStack carried = menu.getCarried();
             if (!carried.isEmpty()) {
                 send(null, button == 1 ? TerminalMenu.INSERT_ONE : TerminalMenu.INSERT_ALL);
-            } else if (e != null) {
+            } else if (e != null && (e.count() > 0 || e.craftable())) {
                 boolean wantsCraft = e.craftable() && (e.count() == 0 || hasControlDown() || button == 2);
                 if (wantsCraft) {
                     openCraft(e);

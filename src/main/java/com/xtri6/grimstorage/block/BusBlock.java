@@ -124,6 +124,8 @@ public class BusBlock extends FacingDeviceBlock.All {
         super.neighborChanged(state, level, pos, neighbor, from, moving);
         if (level.getBlockEntity(pos) instanceof BusBlockEntity bus) {
             bus.wake();
+        } else if (level.getBlockEntity(pos) instanceof com.xtri6.grimstorage.block.entity.MachineBusBlockEntity mb) {
+            mb.neighborChanged(from);
         }
     }
 }

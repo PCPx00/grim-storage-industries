@@ -48,7 +48,9 @@ public final class ItemCategories {
         MOB_DROPS("mob_drops", Items.BONE),
         FARMING("farming", Items.WHEAT),
         BUILDING("building", Items.BRICKS),
-        MISC("misc", Items.COMPASS);
+        MISC("misc", Items.COMPASS),
+        /** Everything the network knows how to make, stored or not. */
+        CRAFTABLE("craftable", Items.CRAFTING_TABLE);
 
         private final String id;
         private final Item icon;
@@ -94,6 +96,9 @@ public final class ItemCategories {
     public static boolean matches(Category category, ItemStack stack) {
         if (category == Category.ALL) {
             return true;
+        }
+        if (category == Category.CRAFTABLE) {
+            return false;
         }
         int mask = CACHE.computeIfAbsent(stack.getItem(), i -> classify(stack));
         return category == Category.MISC ? mask == 0 : (mask & (1 << category.ordinal())) != 0;

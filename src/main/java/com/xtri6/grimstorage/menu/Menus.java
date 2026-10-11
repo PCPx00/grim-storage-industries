@@ -47,6 +47,12 @@ public final class Menus {
         }
     }
 
+    public static void openMachineBus(ServerPlayer p, BlockPos pos) {
+        if (p.level().getBlockEntity(pos) instanceof com.xtri6.grimstorage.block.entity.MachineBusBlockEntity be) {
+            p.openMenu(new SimpleMenuProvider((id, inv, pl) -> BlockMenus.MachineBus.server(id, inv, be), title(p, pos)), pos);
+        }
+    }
+
     public static void openFilter(ServerPlayer p, BlockPos pos) {
         if (p.level().getBlockEntity(pos) instanceof FilterBlockEntity be) {
             p.openMenu(new SimpleMenuProvider((id, inv, pl) -> BlockMenus.Filter.server(id, inv, be), title(p, pos)), pos);

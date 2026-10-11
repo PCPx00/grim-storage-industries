@@ -78,7 +78,32 @@ public final class CraftingPlanner {
             plan.missing.merge(key, amount, Long::sum);
             return false;
         }
+        // Several ways to make it (a furnace and a crafting recipe, say): use the first one that works with what is
+        // in storage, and only report missing items if none of them do.
         Pattern pattern = options.get(0);
+        if (options.size() > 1) {
+            for (Pattern option : options) {
+                Map<ItemKey, Long> savedAvailable = new HashMap<>(available);
+                Map<ItemKey, Long> savedMissing = new LinkedHashMap<>(plan.missing);
+                int savedSteps = plan.steps.size();
+                boolean savedLoop = plan.loop;
+                if (tryOption(option, key, amount) && plan.missing.equals(savedMissing) && !plan.loop) {
+                    return true;
+                }
+                available.clear();
+                available.putAll(savedAvailable);
+                plan.missing.clear();
+                plan.missing.putAll(savedMissing);
+                while (plan.steps.size() > savedSteps) {
+                    plan.steps.remove(plan.steps.size() - 1);
+                }
+                plan.loop = savedLoop;
+            }
+        }
+        return tryOption(pattern, key, amount);
+    }
+
+    private boolean tryOption(Pattern pattern, ItemKey key, long amount) {
         long per = pattern.outputCount(key);
         long times = (amount + per - 1) / per;
 

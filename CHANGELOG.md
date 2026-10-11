@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.9.0
+- New: Machine Bus. Clips onto a machine like an Import Bus, and the network uses that machine for autocrafting.
+  - On a furnace, blast furnace or smoker (or any modded furnace built on them) it needs no cards: it learns every
+    recipe the machine can cook, and they show up as craftable right away.
+  - Keeps the furnace fuelled from the network (coal, charcoal, coal blocks, blaze rods, dried kelp blocks), one piece
+    at a time so fuel is shared fairly.
+  - Only takes results from the output slot.
+  - Several Machine Buses on several machines share a job: 64 ore on 4 furnaces cooks 4 times as fast.
+  - Holds 9 Processing Cards for any other machine, from any mod.
+  - Buttons in its screen turn recipe learning and fuelling on or off.
+- Autocrafting: when an item can be made more than one way (charcoal from any log, say), the network now picks a way it
+  has the ingredients for, instead of always the first one.
+- Processing Cards for the same recipe on several Processing Interfaces or Machine Buses now share the work too.
+- Terminal: hold Shift and nothing moves. Shift-click the same spot again and again to keep taking the same item; an
+  item that runs out stays in its spot, faded, until you let go.
+- Terminal: new Craftable tab (last on the left) shows only what the network can craft. Recipes a furnace learned
+  only show there while you have none stored, so they never flood your item list.
+- Fix: the "types" count in the terminal only counts items you actually have.
+
 ## 1.8.1
 - Fix: an Import or Export Bus next to Soul Cable now visibly connects to it from any side (not only its back). The bus
   draws a cable arm toward every side that touches cable or another network block, the same way cable does, and its
