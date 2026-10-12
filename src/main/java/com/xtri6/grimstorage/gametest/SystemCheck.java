@@ -1545,10 +1545,11 @@ public final class SystemCheck {
             info("purification chamber recipes={} needing a chemical={}", bus.recipeCount(), withChem);
             return withChem > 3;
         }));
-        STEPS.add(new Step("Purification Chamber: no oxygen in storage shows as missing", 0, () -> {
+        STEPS.add(new Step("Purification Chamber: no oxygen (or flint) in storage shows as missing", 0, () -> {
             CraftingPlanner.Plan p = mbNet().plan(ItemKey.of(new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("mekanism", "clump_iron")))), 3);
             info("clump plan without oxygen ok={} missing items={} missing chemicals={}", p.ok(), p.missing(), p.missingBulk());
-            return !p.ok() && !p.missingBulk().isEmpty();
+            // without oxygen it needs oxygen, or the flint Mekanism turns into oxygen (or what makes that flint)
+            return !p.ok() && (!p.missingBulk().isEmpty() || !p.missing().isEmpty());
         }));
         STEPS.add(new Step("Purification Chamber: order iron clumps, the bus feeds it oxygen", 0, () -> {
             StorageNetwork n = mbNet();
@@ -1873,6 +1874,8 @@ public final class SystemCheck {
                     busOn(CHAIN.east(2), "mekanism", "chemical_washer");
                     level.setBlockAndUpdate(CHAIN.east(3), Registration.CABLE.get().defaultBlockState());
                     busOn(CHAIN.east(4), "mekanism", "chemical_crystallizer");
+                    level.setBlockAndUpdate(CHAIN.east(7), Registration.CABLE.get().defaultBlockState());
+                    busOn(CHAIN.east(8), "mekanism", "metallurgic_infuser");
                 }
                 level.setBlockAndUpdate(CHAIN.east(5), Registration.CABLE.get().defaultBlockState());
                 if (ars) {
@@ -1949,6 +1952,30 @@ public final class SystemCheck {
                                     .map(s2 -> s2.finished() + "/" + s2.total() + " in " + s2.inMachines()).toList());
                 }
                 return crystals >= 2 && dirty < 4_000 && n.jobs().isEmpty();
+            }));
+            final long[] circuits = new long[2];
+            STEPS.add(new Step("Metallurgic Infuser: plans Basic Control Circuits from redstone dust (no redstone chemical stored)", 0, () -> {
+                StorageNetwork n = chainNet();
+                ItemKey circuit = modItem("mekanism", "basic_control_circuit");
+                n.insert(modItem("mekanism", "ingot_osmium"), 2, false);
+                n.insert(key(Items.REDSTONE), 4, false);
+                circuits[0] = n.count(circuit);
+                circuits[1] = n.count(key(Items.REDSTONE));
+                long chem = n.countBulk(mekChem("redstone"));
+                CraftingPlanner.Plan p = n.request(circuit, 2, "test");
+                info("circuit plan ok={} redstone chemical stored={} missing={} {} steps={}", p.ok(), chem, p.missing(), p.missingBulk(),
+                        p.steps().stream().map(st -> st.pattern().inputs() + "+" + st.pattern().bulkInputs()).toList());
+                return p.ok() && chem == 0;
+            }));
+            STEPS.add(new Step("Metallurgic Infuser: the circuits came back, the dust went into the machine", 900, () -> {
+                StorageNetwork n = chainNet();
+                long made = n.count(modItem("mekanism", "basic_control_circuit")) - circuits[0];
+                long dust = n.count(key(Items.REDSTONE));
+                if (stepTicks % 200 == 199 || made >= 2) {
+                    info("circuits made={} redstone dust {} -> {} jobs={}", made, circuits[1], dust,
+                            n.jobs().isEmpty() ? "none" : n.jobs().get(0).status().getString());
+                }
+                return made >= 2 && dust == circuits[1] - 4 && n.jobs().isEmpty();
             }));
             STEPS.add(new Step("job queue: one player can't take every job slot", 0, () -> {
                 StorageNetwork n = chainNet();

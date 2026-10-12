@@ -35,6 +35,8 @@ public final class MekanismSides {
             changed |= set(config, "FLUID", side, "INPUT", "INPUT_1");
             // the rest of a chemical machine's tanks (a second input, the outputs) go on sides nobody uses yet, so
             // the bus can reach every tank through them; sides a player set are never touched
+            // the slot that turns items into a chemical (a Metallurgic Infuser's infuse slot)
+            changed |= spare(config, "ITEM", side, "EXTRA");
             for (String extra : new String[] {"INPUT_2", "OUTPUT", "OUTPUT_1", "OUTPUT_2"}) {
                 changed |= spare(config, "CHEMICAL", side, extra);
                 changed |= spare(config, "FLUID", side, extra);

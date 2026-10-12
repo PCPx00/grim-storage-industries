@@ -131,6 +131,76 @@ public final class MekanismRecipeReader {
         return null;
     }
 
+    // ------------------------------------------------------------------ chemicals from items
+
+    /** One item that turns into {@code amount} of a chemical when put in a Mekanism machine (redstone dust: 10 redstone). */
+    private record Conversion(ItemKey item, long amount) {}
+
+    private static net.minecraft.world.item.crafting.RecipeManager convertedFor;
+    private static Map<BulkKey, List<Conversion>> conversions = Map.of();
+
+    /** Mekanism's own chemical conversion recipes, read once per recipe reload. */
+    private static Map<BulkKey, List<Conversion>> conversions(net.minecraft.world.level.Level level) {
+        net.minecraft.world.item.crafting.RecipeManager rm = level.getRecipeManager();
+        if (rm != convertedFor) {
+            Map<BulkKey, List<Conversion>> map = new java.util.HashMap<>();
+            for (var holder : rm.getAllRecipesFor(mekanism.api.recipes.MekanismRecipeTypes.TYPE_CHEMICAL_CONVERSION.get())) {
+                mekanism.api.recipes.ItemStackToChemicalRecipe r = holder.value();
+                List<mekanism.api.chemical.ChemicalStack> outs = r.getOutputDefinition();
+                if (outs.isEmpty() || outs.get(0).isEmpty()) {
+                    continue;
+                }
+                BulkKey chem = BulkKey.chemical(outs.get(0).getTypeRegistryName());
+                for (ItemStack in : r.getInput().getRepresentations()) {
+                    ItemKey k = ItemKey.of(in);
+                    if (k != null && in.getCount() == 1) {
+                        map.computeIfAbsent(chem, c -> new java.util.ArrayList<>()).add(new Conversion(k, outs.get(0).getAmount()));
+                    }
+                }
+            }
+            conversions = map;
+            convertedFor = rm;
+        }
+        return conversions;
+    }
+
+    /**
+     * The same recipe with its chemicals given as the items Mekanism turns into them (20 redstone infuse = 2 redstone
+     * dust), so a Metallurgic Infuser can run from the dust in storage. The items go into the machine with the rest
+     * and Mekanism converts them itself. Null if none of its chemicals come from items.
+     */
+    @Nullable
+    public static RecipeReader.Read withItems(RecipeReader.Read read, net.minecraft.world.level.Level level) {
+        if (read.bulk().isEmpty()) {
+            return null;
+        }
+        Map<BulkKey, List<Conversion>> table = conversions(level);
+        List<RecipeReader.Input> inputs = new java.util.ArrayList<>(read.inputs());
+        Map<BulkKey, Long> left = new LinkedHashMap<>();
+        boolean any = false;
+        for (Map.Entry<BulkKey, Long> e : read.bulk().entrySet()) {
+            Conversion best = null;
+            long bestCount = 0;
+            for (Conversion c : table.getOrDefault(e.getKey(), List.of())) {
+                long count = (e.getValue() + c.amount() - 1) / c.amount();
+                long waste = count * c.amount() - e.getValue();
+                long bestWaste = best == null ? Long.MAX_VALUE : bestCount * best.amount() - e.getValue();
+                // least left over, then the smallest item (dust rather than a block)
+                if (best == null || waste < bestWaste || (waste == bestWaste && c.amount() < best.amount())) {
+                    best = c;
+                    bestCount = count;
+                }
+            }
+            if (best == null || bestCount > 64) {
+                left.put(e.getKey(), e.getValue());
+                continue;
+            }
+            inputs.add(new RecipeReader.Input(List.of(best.item()), bestCount));
+            any = true;
+        }
+        return any ? new RecipeReader.Read(inputs, read.output(), read.outCount(), left, read.bulkOut()) : null;
+    }
+
     /** A recipe whose results are all fluids or chemicals. */
     @Nullable
     private static RecipeReader.Read bulkOut(@Nullable List<RecipeReader.Input> items, Map<BulkKey, Long> in, Map<BulkKey, Long> out) {

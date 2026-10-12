@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.14.1
+- Fixed: Mekanism recipes that need an infuse type or another chemical (a Basic Control Circuit needs redstone
+  infuse) said ingredients were missing even with them in storage. The network only looked for the chemical itself.
+  Now a Machine Bus also gives the machine the items Mekanism turns into that chemical: 2 redstone dust for a circuit,
+  osmium ingots for an Osmium Compressor, flint for a Purification Chamber, and so on. It uses stored chemical when you
+  have it, and the items otherwise.
+- Machine Bus on Mekanism machines: also opens a spare side for the slot that takes those items (only a side nobody
+  has set).
+
 ## 1.14.0
 - Machine Bus: machines that make fluids and chemicals work now. The bus pulls what they make into your fluid and
   chemical cells, and fills machines that only take fluids and chemicals with exactly what each run needs, many runs
