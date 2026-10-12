@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.13.0
+- Networks belong to the player who places the controller. Others can't open its blocks, use wireless terminals on
+  it, or break or add its blocks. Trust players by name, or open the network to everyone, from the controller (the
+  key button). Server operators can always get in. Networks from before 1.13 are open until someone claims them.
+- Recipe Cards take any variant the recipe accepts: an oak-plank chest card also crafts from birch. The Any / Exact
+  button on the card turns it off. The network picks the variant you have.
+- Craft preview: the order window shows every step and what makes it, what it takes from storage, anything missing
+  (in red) and about how long it will take, before you confirm.
+- Machine Bus: recipes that need a fluid or chemical are learned too, and the bus keeps the machine's tank topped up
+  from the network (Mekanism Purification Chamber, Osmium Compressor, Chemical Injection, Metallurgic Infuser; any
+  mod's fluid recipes). Missing fluids or chemicals show in the preview.
+- Tested in game with Create 6 (Millstone), Ender IO 8 (SAG Mill, Alloy Smelter), Ars Nouveau 5.13 (Imbuement
+  Chamber) and Immersive Engineering 12.4 (Crusher). Fixed reading Ender IO's SAG Mill recipes.
+- New: Chest Link. Makes any chest, barrel or drawer part of storage: in and out, only in, or only out, and
+  optionally filled before the cells.
+- New: Redstone Emitter. A signal when an item is at least or below an amount, or crafts it up to the amount while
+  powered.
+- EMI and REI support: the + button writes cards and fills the terminal grid, items drag onto filter and card slots,
+  and the terminal search syncs, just like with JEI.
+- Craft alerts: a pop-up when a craft you ordered is done, or has been stuck for a minute (can be turned off in the
+  terminal settings).
+- Terminal: Alt-click an item to pin it to the top; new "recently added" sort.
+- The Machine Bus table no longer mentions Thermal (it has no 1.21.1 release); its entries stay, harmless.
+
 ## 1.12.0
 - Write cards without having the items:
   - Recipe Card: open it, find the recipe in JEI and press +. The card is written.

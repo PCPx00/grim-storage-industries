@@ -53,6 +53,18 @@ public final class Menus {
         }
     }
 
+    public static void openChestLink(ServerPlayer p, BlockPos pos) {
+        if (p.level().getBlockEntity(pos) instanceof com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity be) {
+            p.openMenu(new SimpleMenuProvider((id, inv, pl) -> BlockMenus.ChestLink.server(id, inv, be), title(p, pos)), pos);
+        }
+    }
+
+    public static void openEmitter(ServerPlayer p, BlockPos pos) {
+        if (p.level().getBlockEntity(pos) instanceof com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity be) {
+            p.openMenu(new SimpleMenuProvider((id, inv, pl) -> BlockMenus.Emitter.server(id, inv, be), title(p, pos)), pos);
+        }
+    }
+
     public static void openFilter(ServerPlayer p, BlockPos pos) {
         if (p.level().getBlockEntity(pos) instanceof FilterBlockEntity be) {
             p.openMenu(new SimpleMenuProvider((id, inv, pl) -> BlockMenus.Filter.server(id, inv, be), title(p, pos)), pos);

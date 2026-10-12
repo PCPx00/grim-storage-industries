@@ -51,6 +51,15 @@ public final class BulkKey {
         };
     }
 
+    /** A name that works on the server too (chemicals use Mekanism's own name key). */
+    public net.minecraft.network.chat.Component name() {
+        return switch (kind) {
+            case FLUID -> fluid().getHoverName();
+            case CHEMICAL -> net.minecraft.network.chat.Component.translatable("chemical." + id().getNamespace() + "." + id().getPath());
+            default -> net.minecraft.network.chat.Component.translatable("gui.grimstorage.kind." + kind.id());
+        };
+    }
+
     public BulkKind kind() {
         return kind;
     }

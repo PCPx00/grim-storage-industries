@@ -59,6 +59,54 @@
       "recipe_types": [
         "minecraft:smelting"
       ]
+    },
+    {
+      "machines": [
+        "mekanism:osmium_compressor",
+        "mekanism:basic_compressing_factory",
+        "mekanism:advanced_compressing_factory",
+        "mekanism:elite_compressing_factory",
+        "mekanism:ultimate_compressing_factory"
+      ],
+      "recipe_types": [
+        "mekanism:compressing"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:purification_chamber",
+        "mekanism:basic_purifying_factory",
+        "mekanism:advanced_purifying_factory",
+        "mekanism:elite_purifying_factory",
+        "mekanism:ultimate_purifying_factory"
+      ],
+      "recipe_types": [
+        "mekanism:purifying"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:chemical_injection_chamber",
+        "mekanism:basic_injecting_factory",
+        "mekanism:advanced_injecting_factory",
+        "mekanism:elite_injecting_factory",
+        "mekanism:ultimate_injecting_factory"
+      ],
+      "recipe_types": [
+        "mekanism:injecting"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:metallurgic_infuser",
+        "mekanism:basic_infusing_factory",
+        "mekanism:advanced_infusing_factory",
+        "mekanism:elite_infusing_factory",
+        "mekanism:ultimate_infusing_factory"
+      ],
+      "recipe_types": [
+        "mekanism:metallurgic_infusing"
+      ]
     }
   ]
 }

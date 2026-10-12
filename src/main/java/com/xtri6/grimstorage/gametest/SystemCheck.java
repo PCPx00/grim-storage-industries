@@ -1180,6 +1180,59 @@ public final class SystemCheck {
             info("hydrogen pulled from the Mekanism tank={} left in tank={}", got, left);
             return mekHeld[0] > 0 && got == mekHeld[0] && left == 0;
         }));
+        STEPS.add(new Step("craft preview: steps, what it takes from storage, what's missing", 0, () -> {
+            FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+            TerminalMenu menu = new TerminalMenu(990, fp.getInventory(), () -> NetworkManager.get(level, at(5, 0, 0)), p -> true);
+            com.xtri6.grimstorage.net.Payloads.Preview ok = menu.preview(key(Items.STICK), 8);
+            com.xtri6.grimstorage.net.Payloads.Preview bad = menu.preview(key(Items.DIAMOND_BLOCK), 1);
+            boolean stepsOk = ok != null && ok.ok() && ok.steps().size() == 2 && ok.steps().get(0).item().is(Items.STICK)
+                    && ok.steps().get(0).by().getString().contains("Assembler") && ok.used().stream().anyMatch(l -> l.item().is(Items.OAK_LOG));
+            boolean badOk = bad != null && !bad.ok() && bad.missing().stream().anyMatch(l -> l.item().is(Items.DIAMOND_BLOCK));
+            info("preview sticks: ok={} steps={} used={} seconds={}; diamond block missing={}", ok == null ? "-" : ok.ok(),
+                    ok == null ? "-" : ok.steps().stream().map(l -> l.amount() + "x" + l.item().getItem() + " by " + l.by().getString()).toList(),
+                    ok == null ? "-" : ok.used().stream().map(l -> l.amount() + "x" + l.item().getItem()).toList(), ok == null ? -1 : ok.seconds(),
+                    bad == null ? "-" : bad.missing().size());
+            return stepsOk && badOk;
+        }));
+        final long[] variant = new long[2];
+        STEPS.add(new Step("any-variant card: an oak-plank chest card crafts with birch planks", 0, () -> {
+            AssemblerBlockEntity asm = (AssemblerBlockEntity) level.getBlockEntity(at(2, 0, 0));
+            asm.cardHandler().setStackInSlot(2, recipeCard(Items.OAK_PLANKS, Items.OAK_PLANKS, Items.OAK_PLANKS, Items.OAK_PLANKS, Items.AIR,
+                    Items.OAK_PLANKS, Items.OAK_PLANKS, Items.OAK_PLANKS, Items.OAK_PLANKS));
+            NetworkManager.markDirty();
+            net().insert(key(Items.BIRCH_PLANKS), 8, false);
+            variant[0] = count(Items.OAK_LOG);
+            variant[1] = count(Items.CHEST);
+            return true;
+        }));
+        STEPS.add(new Step("any-variant card: order a chest", 5, () -> {
+            CraftingPlanner.Plan p = net().request(key(Items.CHEST), 1, "test");
+            info("chest plan ok={} steps={} first step inputs={}", p.ok(), p.steps().size(), p.steps().isEmpty() ? "-" : p.steps().get(0).pattern().inputs());
+            return p.ok() && p.steps().size() == 1 && p.steps().get(0).pattern().inputs().containsKey(key(Items.BIRCH_PLANKS));
+        }));
+        STEPS.add(new Step("any-variant card: chest made from the birch, oak logs untouched", 100, () -> {
+            info("chests {} -> {} birch planks={} oak logs {} -> {}", variant[1], count(Items.CHEST), count(Items.BIRCH_PLANKS), variant[0], count(Items.OAK_LOG));
+            return count(Items.CHEST) == variant[1] + 1 && count(Items.BIRCH_PLANKS) == 0 && count(Items.OAK_LOG) == variant[0] && net().jobs().isEmpty();
+        }));
+        STEPS.add(new Step("exact card: only oak will do (birch is ignored)", 5, () -> {
+            AssemblerBlockEntity asm = (AssemblerBlockEntity) level.getBlockEntity(at(2, 0, 0));
+            ItemStack card = asm.cardHandler().getStackInSlot(2).copy();
+            card.set(Registration.RECIPE_EXACT.get(), true);
+            asm.cardHandler().setStackInSlot(2, card);
+            NetworkManager.markDirty();
+            if (net().patternsFor(key(Items.CHEST)).size() != 1) {
+                return false;
+            }
+            net().insert(key(Items.BIRCH_PLANKS), 8, false);
+            CraftingPlanner.Plan p = net().plan(key(Items.CHEST), 1);
+            boolean usesOak = p.steps().stream().anyMatch(st -> st.pattern().inputs().containsKey(key(Items.OAK_PLANKS)));
+            boolean usesBirch = p.steps().stream().anyMatch(st -> st.pattern().inputs().containsKey(key(Items.BIRCH_PLANKS)));
+            net().extract(key(Items.BIRCH_PLANKS), 8, false);
+            asm.cardHandler().setStackInSlot(2, ItemStack.EMPTY);
+            NetworkManager.markDirty();
+            info("exact plan ok={} uses oak={} uses birch={}", p.ok(), usesOak, usesBirch);
+            return p.ok() && usesOak && !usesBirch;
+        }));
         STEPS.add(new Step("JEI recipe button writes a Recipe Card without holding any of the items", 0, () -> {
             FakePlayer fp = FakePlayerFactory.getMinecraft(level);
             fp.getInventory().clearContent();
@@ -1458,7 +1511,7 @@ public final class SystemCheck {
             boolean stems = com.xtri6.grimstorage.storage.MachineRecipes.stem("crusher").equals(com.xtri6.grimstorage.storage.MachineRecipes.stem("crushing"))
                     && com.xtri6.grimstorage.storage.MachineRecipes.stem("sag_mill").equals(com.xtri6.grimstorage.storage.MachineRecipes.stem("sag_milling"))
                     && com.xtri6.grimstorage.storage.MachineRecipes.stem("machine_pulverizer").equals(com.xtri6.grimstorage.storage.MachineRecipes.stem("pulverizer"));
-            // the osmium compressor is found by name, but every one of its recipes needs a chemical, so none are learned
+            // the osmium compressor is found by name, and its recipes (an item plus a chemical) are now learned too
             long learnable = 0;
             for (var t : mr.typesFor(BuiltInRegistries.BLOCK.get(ResourceLocation.parse("mekanism:osmium_compressor")).defaultBlockState())) {
                 @SuppressWarnings({"unchecked", "rawtypes"})
@@ -1467,7 +1520,173 @@ public final class SystemCheck {
             }
             info("crusher={} elite factory={} compressor={} (learnable {}) chest={} stems ok={}", crusher, factory, compressor, learnable, chest, stems);
             return crusher.contains("mekanism:crushing") && factory.contains("mekanism:crushing") && compressor.contains("mekanism:compressing")
-                    && learnable == 0 && chest.isEmpty() && stems;
+                    && learnable > 0 && chest.isEmpty() && stems;
+        }));
+        STEPS.add(new Step("recipe reader: a machine recipe that also takes a fluid", 0, () -> {
+            com.xtri6.grimstorage.storage.RecipeReader.Read r = com.xtri6.grimstorage.storage.RecipeReader.read(new FluidTestRecipe(), level.registryAccess());
+            info("fluid recipe read: {}", r == null ? "null" : r.inputs() + " + " + r.bulk() + " -> " + r.output());
+            return r != null && r.output().item() == Items.GOLD_INGOT && r.bulk().get(BulkKey.fluid(new FluidStack(Fluids.WATER, 1))) == 250L;
+        }));
+        final Object[] purify = new Object[2];
+        BlockPos pc = MB.west().above(3);
+        STEPS.add(new Step("Purification Chamber: learns its oxygen recipes", 60, () -> {
+            if (purify[0] == null) {
+                purify[0] = true;
+                ((DriveBlockEntity) level.getBlockEntity(MB.west())).cells().setStackInSlot(2,
+                        new ItemStack(Registration.BULK_CELLS.get(BulkKind.CHEMICAL).get(CellTier.COPPER).get()));
+                level.setBlockAndUpdate(MB.west().above(), Registration.CABLE.get().defaultBlockState());
+                level.setBlockAndUpdate(pc, BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath("mekanism", "purification_chamber")).defaultBlockState());
+                level.setBlockAndUpdate(MB.west().above(2), Registration.MACHINE_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.UP));
+                NetworkManager.markDirty();
+                return false;
+            }
+            var bus = (com.xtri6.grimstorage.block.entity.MachineBusBlockEntity) level.getBlockEntity(MB.west().above(2));
+            long withChem = bus.learnedPatterns().stream().filter(p -> !p.bulkInputs().isEmpty()).count();
+            info("purification chamber recipes={} needing a chemical={}", bus.recipeCount(), withChem);
+            return withChem > 3;
+        }));
+        STEPS.add(new Step("Purification Chamber: no oxygen in storage shows as missing", 0, () -> {
+            CraftingPlanner.Plan p = mbNet().plan(ItemKey.of(new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("mekanism", "clump_iron")))), 3);
+            info("clump plan without oxygen ok={} missing items={} missing chemicals={}", p.ok(), p.missing(), p.missingBulk());
+            return !p.ok() && !p.missingBulk().isEmpty();
+        }));
+        STEPS.add(new Step("Purification Chamber: order iron clumps, the bus feeds it oxygen", 0, () -> {
+            StorageNetwork n = mbNet();
+            n.insertBulk(BulkKey.chemical(ResourceLocation.fromNamespaceAndPath("mekanism", "oxygen")), 50_000, false);
+            n.insertBulk(BulkKey.flat(BulkKind.ENERGY), 2_000_000, false);
+            n.insert(key(Items.IRON_ORE), 1, false);
+            ItemKey clump = ItemKey.of(new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("mekanism", "clump_iron"))));
+            purify[1] = n.count(clump);
+            CraftingPlanner.Plan p = n.request(clump, 3, "test");
+            info("clump plan ok={} missing={} bulk missing={} steps={}", p.ok(), p.missing(), p.missingBulk(),
+                    p.steps().stream().map(st -> st.pattern().inputs() + "+" + st.pattern().bulkInputs()).toList());
+            return p.ok();
+        }));
+        STEPS.add(new Step("Purification Chamber: clumps came back, oxygen was used from storage", 900, () -> {
+            StorageNetwork n = mbNet();
+            ItemKey clump = ItemKey.of(new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath("mekanism", "clump_iron"))));
+            long oxygen = n.countBulk(BulkKey.chemical(ResourceLocation.fromNamespaceAndPath("mekanism", "oxygen")));
+            info("clumps {} -> {} oxygen left={} jobs={}", purify[1], n.count(clump), oxygen, n.jobs().isEmpty() ? "none" : n.jobs().get(0).status().getString());
+            return n.count(clump) >= (Long) purify[1] + 3 && oxygen < 50_000 && n.jobs().isEmpty();
+        }));
+        BlockPos chest = MB.west().south(2);
+        STEPS.add(new Step("Chest Link: a chest becomes part of storage", 20, () -> {
+            if (level.getBlockState(chest).isAir()) {
+                level.setBlockAndUpdate(chest, Blocks.CHEST.defaultBlockState());
+                IItemHandler h = level.getCapability(Capabilities.ItemHandler.BLOCK, chest, null);
+                h.insertItem(0, new ItemStack(Items.EMERALD, 20), false);
+                level.setBlockAndUpdate(MB.west().south(), Registration.CHEST_LINK.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.SOUTH));
+                NetworkManager.markDirty();
+                return false;
+            }
+            long emeralds = mbNet().count(key(Items.EMERALD));
+            info("emeralds seen through the chest link={}", emeralds);
+            return emeralds == 20;
+        }));
+        STEPS.add(new Step("Chest Link: take from the chest, items added later by hand show up too", 30, () -> {
+            StorageNetwork n = mbNet();
+            IItemHandler h = level.getCapability(Capabilities.ItemHandler.BLOCK, chest, null);
+            if (h.getStackInSlot(5).isEmpty()) {
+                long took = n.extract(key(Items.EMERALD), 5, false);
+                h.insertItem(5, new ItemStack(Items.LAPIS_LAZULI, 7), false);
+                info("took {} emeralds", took);
+            }
+            info("emeralds={} lapis={}", n.count(key(Items.EMERALD)), n.count(key(Items.LAPIS_LAZULI)));
+            return n.count(key(Items.EMERALD)) == 15 && n.count(key(Items.LAPIS_LAZULI)) == 7;
+        }));
+        STEPS.add(new Step("Chest Link: 'only put in' fills the chest first and stops the network taking from it", 0, () -> {
+            var link = (com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity) level.getBlockEntity(MB.west().south());
+            link.toggleFillFirst();
+            long put = mbNet().insert(key(Items.EMERALD), 10, false);
+            IItemHandler h = level.getCapability(Capabilities.ItemHandler.BLOCK, chest, null);
+            int inChest = 0;
+            for (int i = 0; i < h.getSlots(); i++) {
+                if (h.getStackInSlot(i).is(Items.EMERALD)) {
+                    inChest += h.getStackInSlot(i).getCount();
+                }
+            }
+            link.cycleMode();
+            long takeAfter = mbNet().extract(key(Items.LAPIS_LAZULI), 7, true);
+            link.cycleMode();
+            link.cycleMode();
+            link.toggleFillFirst();
+            info("put={} emeralds in chest={} could take lapis in insert-only mode={}", put, inChest, takeAfter);
+            return put == 10 && inChest == 25 && takeAfter == 0;
+        }));
+        BlockPos emitter = MB.west().north();
+        STEPS.add(new Step("Redstone Emitter: signal at 10 emeralds, none below", 30, () -> {
+            if (!(level.getBlockEntity(emitter) instanceof com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity)) {
+                level.setBlockAndUpdate(emitter, Registration.REDSTONE_EMITTER.get().defaultBlockState());
+                var e = (com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity) level.getBlockEntity(emitter);
+                e.filter().setItem(0, new ItemStack(Items.EMERALD));
+                e.setAmount(10);
+                NetworkManager.markDirty();
+                return false;
+            }
+            int signal = level.getBestNeighborSignal(emitter.north());
+            info("emeralds={} signal={}", mbNet().count(key(Items.EMERALD)), signal);
+            return signal == 15;
+        }));
+        STEPS.add(new Step("Redstone Emitter: signal drops when the emeralds go", 30, () -> {
+            StorageNetwork n = mbNet();
+            if (n.count(key(Items.EMERALD)) >= 10) {
+                n.extract(key(Items.EMERALD), n.count(key(Items.EMERALD)) - 3, false);
+            }
+            int signal = level.getBestNeighborSignal(emitter.north());
+            info("emeralds={} signal={}", n.count(key(Items.EMERALD)), signal);
+            return signal == 0;
+        }));
+        STEPS.add(new Step("Redstone Emitter: craft while powered (iron ingots from raw iron)", 0, () -> {
+            var e = (com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity) level.getBlockEntity(emitter);
+            e.filter().setItem(0, new ItemStack(Items.IRON_INGOT));
+            e.setAmount((int) mbNet().count(key(Items.IRON_INGOT)) + 2);
+            e.cycleMode();
+            e.cycleMode();
+            mbNet().insert(key(Items.RAW_IRON), 2, false);
+            mbNet().insert(key(Items.COAL), 2, false);
+            level.setBlockAndUpdate(emitter.above(), Blocks.REDSTONE_BLOCK.defaultBlockState());
+            return e.mode() == com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity.CRAFT;
+        }));
+        STEPS.add(new Step("Redstone Emitter: the iron got crafted", 700, () -> {
+            var e = (com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity) level.getBlockEntity(emitter);
+            long iron = mbNet().count(key(Items.IRON_INGOT));
+            info("iron={} target={} jobs={}", iron, e.amount(), mbNet().jobs().size());
+            boolean done = iron >= e.amount() && mbNet().jobs().isEmpty();
+            if (done) {
+                level.removeBlock(emitter.above(), false);
+            }
+            return done;
+        }));
+        STEPS.add(new Step("terminal: recently added items carry when they came in", 3, () -> {
+            StorageNetwork n = mbNet();
+            if (n.lastAdded(key(Items.AMETHYST_SHARD)) == 0) {
+                n.insert(key(Items.AMETHYST_SHARD), 1, false);
+                return false;
+            }
+            n.insert(key(Items.PRISMARINE_CRYSTALS), 1, false);
+            boolean order = n.lastAdded(key(Items.PRISMARINE_CRYSTALS)) > n.lastAdded(key(Items.AMETHYST_SHARD));
+            boolean never = n.lastAdded(key(Items.NETHER_STAR)) == 0;
+            info("amethyst={} prismarine={} order ok={}", n.lastAdded(key(Items.AMETHYST_SHARD)), n.lastAdded(key(Items.PRISMARINE_CRYSTALS)), order);
+            return order && never;
+        }));
+        addModMachineSteps();
+        STEPS.add(new Step("network access: owner, trusted players, open mode", 0, () -> {
+            com.xtri6.grimstorage.block.entity.ControllerBlockEntity c = (com.xtri6.grimstorage.block.entity.ControllerBlockEntity) level.getBlockEntity(MB);
+            FakePlayer alice = FakePlayerFactory.get(level, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes("alice".getBytes()), "Alice"));
+            FakePlayer bob = FakePlayerFactory.get(level, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes("bob".getBytes()), "Bob"));
+            boolean unownedOpen = c.allows(bob);
+            c.setOwner(alice);
+            boolean ownerIn = c.allows(alice), bobOut = !c.allows(bob) && !com.xtri6.grimstorage.storage.NetworkAccess.check(bob, level, MB.east());
+            c.trust(bob.getUUID(), "Bob");
+            boolean bobTrusted = c.allows(bob) && !c.canManage(bob);
+            c.untrust("bob");
+            boolean bobGone = !c.allows(bob);
+            c.toggleOpen();
+            boolean open = c.allows(bob);
+            c.toggleOpen();
+            c.trust(bob.getUUID(), "Bob");
+            info("unowned open={} owner in={} stranger out={} trusted={} untrusted={} open mode={}", unownedOpen, ownerIn, bobOut, bobTrusted, bobGone, open);
+            return unownedOpen && ownerIn && bobOut && bobTrusted && bobGone && open;
         }));
         STEPS.add(new Step("machine bus fuel switch saves and stops refuelling", 0, () -> {
             com.xtri6.grimstorage.block.entity.MachineBusBlockEntity bus = machineBus(Direction.EAST);
@@ -1479,7 +1698,185 @@ public final class SystemCheck {
         }));
     }
 
+    // ------------------------------------------------------------------ other mods' machines (only if they're in the dev game)
+
+    private static final BlockPos MOD = new BlockPos(24, 230, 24);
+    private static final String[][] MOD_MACHINES = {
+            {"create", "millstone"},
+            {"enderio", "sag_mill"},
+            {"enderio", "alloy_smelter"},
+            {"ars_nouveau", "imbuement_chamber"},
+            {"immersiveengineering", "crusher"}};
+    private static final List<String> MOD_REPORT = new ArrayList<>();
+
+    private static void addModMachineSteps() {
+        final Object[][] state = new Object[MOD_MACHINES.length][];
+        STEPS.add(new Step("other mods' machines: build a test row", 0, () -> {
+            level.setChunkForced(MOD.getX() >> 4, MOD.getZ() >> 4, true);
+            level.setBlockAndUpdate(MOD, Registration.CONTROLLER.get().defaultBlockState());
+            level.setBlockAndUpdate(MOD.west(), Registration.DRIVE.get().defaultBlockState());
+            DriveBlockEntity d = (DriveBlockEntity) level.getBlockEntity(MOD.west());
+            d.cells().setStackInSlot(0, new ItemStack(Registration.CELLS.get(CellTier.GOLD).get()));
+            d.cells().setStackInSlot(1, new ItemStack(Registration.BULK_CELLS.get(BulkKind.ENERGY).get(CellTier.GOLD).get()));
+            for (int i = 0; i < MOD_MACHINES.length; i++) {
+                BlockPos c = MOD.east(1 + i * 2);
+                level.setBlockAndUpdate(c, Registration.CABLE.get().defaultBlockState());
+                if (i > 0) {
+                    level.setBlockAndUpdate(c.west(), Registration.CABLE.get().defaultBlockState());
+                }
+                var block = BuiltInRegistries.BLOCK.getOptional(ResourceLocation.fromNamespaceAndPath(MOD_MACHINES[i][0], MOD_MACHINES[i][1]));
+                if (block.isEmpty()) {
+                    continue;
+                }
+                BlockPos machine = c.above().north();
+                level.setBlockAndUpdate(machine, block.get().defaultBlockState());
+                level.setBlockAndUpdate(c.above(), Registration.MACHINE_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.NORTH));
+                if (MOD_MACHINES[i][0].equals("enderio")) {
+                    // Ender IO machines run on a capacitor, which the player puts in
+                    BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath("enderio", "basic_capacitor")).ifPresent(cap -> {
+                        IItemHandler h = level.getCapability(Capabilities.ItemHandler.BLOCK, machine, null);
+                        ItemStack left = new ItemStack(cap);
+                        for (int s2 = 0; h != null && s2 < h.getSlots() && !left.isEmpty(); s2++) {
+                            left = h.insertItem(s2, left, false);
+                        }
+                        info("enderio capacitor inserted={}", left.isEmpty());
+                    });
+                }
+                if (MOD_MACHINES[i][0].equals("create")) {
+                    // a Create machine needs to turn: a creative motor under it
+                    BuiltInRegistries.BLOCK.getOptional(ResourceLocation.fromNamespaceAndPath("create", "creative_motor")).ifPresent(m -> {
+                        var st = m.defaultBlockState();
+                        for (var prop : st.getProperties()) {
+                            if (prop.getName().equals("facing")) {
+                                @SuppressWarnings({"unchecked", "rawtypes"})
+                                var dp = (net.minecraft.world.level.block.state.properties.Property) prop;
+                                st = st.setValue(dp, Direction.UP);
+                            }
+                        }
+                        level.setBlockAndUpdate(c.north(), st);
+                    });
+                }
+            }
+            NetworkManager.markDirty();
+            return true;
+        }));
+        STEPS.add(new Step("other mods' machines: each learns its recipes", 60, () -> {
+            StorageNetwork n = NetworkManager.get(level, MOD);
+            if (n == null) {
+                return false;
+            }
+            n.insertBulk(BulkKey.flat(BulkKind.ENERGY), 50_000_000, false);
+            boolean allLearned = true;
+            MOD_REPORT.clear();
+            for (int i = 0; i < MOD_MACHINES.length; i++) {
+                String id = MOD_MACHINES[i][0] + ":" + MOD_MACHINES[i][1];
+                if (!(level.getBlockEntity(MOD.east(1 + i * 2).above()) instanceof com.xtri6.grimstorage.block.entity.MachineBusBlockEntity bus)) {
+                    MOD_REPORT.add(id + ": mod not in the dev game");
+                    continue;
+                }
+                int r = bus.learnedPatterns().size();
+                MOD_REPORT.add(id + ": " + r + " recipes");
+                allLearned &= r > 0 || id.startsWith("immersiveengineering");
+            }
+            info("mod machines: {}", MOD_REPORT);
+            return allLearned;
+        }));
+        for (int idx = 0; idx < MOD_MACHINES.length; idx++) {
+            final int i = idx;
+            String id = MOD_MACHINES[i][0] + ":" + MOD_MACHINES[i][1];
+            if (id.startsWith("ars_nouveau") || id.startsWith("immersiveengineering")) {
+                continue; // Imbuement needs Source from jars; IE's machines are multiblocks that need building first
+            }
+            STEPS.add(new Step(id + ": order something it makes", 0, () -> {
+                if (!(level.getBlockEntity(MOD.east(1 + i * 2).above()) instanceof com.xtri6.grimstorage.block.entity.MachineBusBlockEntity bus)) {
+                    return true;
+                }
+                StorageNetwork n = NetworkManager.get(level, MOD);
+                for (com.xtri6.grimstorage.storage.Pattern p : bus.learnedPatterns()) {
+                    boolean vanilla = p.bulkInputs().isEmpty() && p.inputs().keySet().stream()
+                            .allMatch(k -> BuiltInRegistries.ITEM.getKey(k.item()).getNamespace().equals("minecraft"));
+                    if (!vanilla || n.count(p.primary()) > 0) {
+                        continue;
+                    }
+                    p.inputs().forEach((k, c) -> n.insert(k, c * 2, false));
+                    CraftingPlanner.Plan plan = n.request(p.primary(), p.outputCount(p.primary()), "test");
+                    state[i] = new Object[] {p, plan.ok()};
+                    info("{}: ordering {} from {} ok={} missing={}", id, p.primary().item(), p.inputs(), plan.ok(), plan.missing());
+                    return plan.ok();
+                }
+                info("{}: no vanilla-only recipe to try", id);
+                return false;
+            }));
+            STEPS.add(new Step(id + ": the result came back", 900, () -> {
+                if (state[i] == null) {
+                    return true;
+                }
+                com.xtri6.grimstorage.storage.Pattern p = (com.xtri6.grimstorage.storage.Pattern) state[i][0];
+                StorageNetwork n = NetworkManager.get(level, MOD);
+                long have = n.count(p.primary());
+                boolean ok = have >= p.outputCount(p.primary()) && n.jobs().isEmpty();
+                if (ok) {
+                    MOD_REPORT.add(id + ": made " + have + "x " + p.primary().item());
+                    info("{}: made {}x {}", id, have, p.primary().item());
+                } else if (stepTicks >= 899) {
+                    info("{}: still {} jobs={}", id, have, n.jobs().isEmpty() ? "none" : n.jobs().get(0).status().getString());
+                }
+                return ok;
+            }));
+        }
+    }
+
+    /** A made-up machine recipe: an iron ingot and 250 mB of water make a gold ingot. */
+    public static final class FluidTestRecipe implements net.minecraft.world.item.crafting.Recipe<net.minecraft.world.item.crafting.RecipeInput> {
+        @Override
+        public boolean matches(net.minecraft.world.item.crafting.RecipeInput in, Level l) {
+            return false;
+        }
+
+        @Override
+        public ItemStack assemble(net.minecraft.world.item.crafting.RecipeInput in, net.minecraft.core.HolderLookup.Provider r) {
+            return new ItemStack(Items.GOLD_INGOT);
+        }
+
+        @Override
+        public boolean canCraftInDimensions(int w, int h) {
+            return true;
+        }
+
+        @Override
+        public ItemStack getResultItem(net.minecraft.core.HolderLookup.Provider r) {
+            return new ItemStack(Items.GOLD_INGOT);
+        }
+
+        @Override
+        public net.minecraft.core.NonNullList<net.minecraft.world.item.crafting.Ingredient> getIngredients() {
+            return net.minecraft.core.NonNullList.of(net.minecraft.world.item.crafting.Ingredient.EMPTY,
+                    net.minecraft.world.item.crafting.Ingredient.of(Items.IRON_INGOT));
+        }
+
+        public net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient getFluidIngredient() {
+            return net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient.of(Fluids.WATER, 250);
+        }
+
+        @Override
+        public net.minecraft.world.item.crafting.RecipeSerializer<?> getSerializer() {
+            return null;
+        }
+
+        @Override
+        public net.minecraft.world.item.crafting.RecipeType<?> getType() {
+            return net.minecraft.world.item.crafting.RecipeType.SMELTING;
+        }
+    }
+
     private static void buildPersistenceSteps() {
+        STEPS.add(new Step("network owner and trusted players survived a restart", 10, () -> {
+            if (!(level.getBlockEntity(MB) instanceof com.xtri6.grimstorage.block.entity.ControllerBlockEntity c)) {
+                return false;
+            }
+            info("owner={} trusted={} open={}", c.ownerName(), c.trusted().values(), c.isOpen());
+            return c.ownerName().equals("Alice") && c.trusted().containsValue("Bob") && !c.isOpen();
+        }));
         STEPS.add(new Step("contents survived a restart", 10, () -> {
             StorageNetwork n = net();
             if (n == null) {

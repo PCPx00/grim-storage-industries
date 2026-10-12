@@ -175,6 +175,10 @@ public final class Registration {
     /** Clips onto any machine so the network can craft with it (learns furnace recipes by itself). */
     public static final DeferredBlock<NetworkDeviceBlock> MACHINE_BUS = device("machine_bus",
             () -> new BusBlock(machine().noOcclusion(), Registration.MACHINE_BUS_ENTITY, Menus::openMachineBus));
+    public static final DeferredBlock<NetworkDeviceBlock> CHEST_LINK = device("chest_link",
+            () -> new BusBlock(machine().noOcclusion(), Registration.CHEST_LINK_ENTITY, Menus::openChestLink));
+    public static final DeferredBlock<NetworkDeviceBlock> REDSTONE_EMITTER = device("redstone_emitter",
+            () -> new com.xtri6.grimstorage.block.RedstoneEmitterBlock(machine(), Registration.REDSTONE_EMITTER_ENTITY, Menus::openEmitter));
     /** Bus items also go straight onto Soul Cable. */
     public static final DeferredItem<com.xtri6.grimstorage.item.BusItem> IMPORT_BUS_ITEM = ITEMS.register("import_bus",
             () -> new com.xtri6.grimstorage.item.BusItem(IMPORT_BUS.get(), false, new Item.Properties()));
@@ -216,6 +220,10 @@ public final class Registration {
             be("export_bus", BusBlockEntity::new, EXPORT_BUS);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.MachineBusBlockEntity>> MACHINE_BUS_ENTITY =
             be("machine_bus", com.xtri6.grimstorage.block.entity.MachineBusBlockEntity::new, MACHINE_BUS);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity>> CHEST_LINK_ENTITY =
+            be("chest_link", com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity::new, CHEST_LINK);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity>> REDSTONE_EMITTER_ENTITY =
+            be("redstone_emitter", com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity::new, REDSTONE_EMITTER);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.CableBusBlockEntity>> CABLE_BUS_ENTITY =
             be("cable_bus", com.xtri6.grimstorage.block.entity.CableBusBlockEntity::new, CABLE);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<QuantumLinkBlockEntity>> QUANTUM_LINK_ENTITY =
@@ -281,6 +289,9 @@ public final class Registration {
             "cell_lock", b -> b.persistent(CardData.Locked.CODEC).networkSynchronized(CardData.Locked.STREAM_CODEC));
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CardData.Recipe>> RECIPE_CARD_DATA = COMPONENTS.registerComponentType(
             "recipe_card", b -> b.persistent(CardData.Recipe.CODEC).networkSynchronized(CardData.Recipe.STREAM_CODEC));
+    /** On a Recipe Card: use exactly the items on the card (no "any planks" swapping). Absent means any variant. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Boolean>> RECIPE_EXACT = COMPONENTS.registerComponentType(
+            "recipe_exact", b -> b.persistent(com.mojang.serialization.Codec.BOOL).networkSynchronized(net.minecraft.network.codec.ByteBufCodecs.BOOL));
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CardData.Processing>> PROCESSING_CARD_DATA =
             COMPONENTS.registerComponentType("processing_card",
                     b -> b.persistent(CardData.Processing.CODEC).networkSynchronized(CardData.Processing.STREAM_CODEC));
@@ -302,6 +313,10 @@ public final class Registration {
             () -> IMenuTypeExtension.create(BlockMenus.Processing::client));
     public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.MachineBus>> MACHINE_BUS_MENU = MENUS.register("machine_bus",
             () -> IMenuTypeExtension.create(BlockMenus.MachineBus::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.ChestLink>> CHEST_LINK_MENU = MENUS.register("chest_link",
+            () -> IMenuTypeExtension.create(BlockMenus.ChestLink::client));
+    public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Emitter>> EMITTER_MENU = MENUS.register("redstone_emitter",
+            () -> IMenuTypeExtension.create(BlockMenus.Emitter::client));
     public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Filter>> FILTER_MENU = MENUS.register("filter",
             () -> IMenuTypeExtension.create(BlockMenus.Filter::client));
     public static final DeferredHolder<MenuType<?>, MenuType<BlockMenus.Bus>> BUS_MENU = MENUS.register("bus",
@@ -335,7 +350,7 @@ public final class Registration {
                                 RAW_SOULITE_BLOCK, SOULITE_BLOCK,
                                 RAW_SOULITE, SOULITE_DUST, SOULITE_NUGGET, SOULITE_INGOT,
                                 INFUSED_SOULITE, ECHO_SOULITE_SHARD, ECHO_SOULITE_ALLOY, SINGULARITY_CORE,
-                                SOUL_INFUSER, CONTROLLER, DRIVE, TERMINAL, CABLE, SOUL_GLASS, INTERFACE, IMPORT_BUS, EXPORT_BUS, MACHINE_BUS,
+                                SOUL_INFUSER, CONTROLLER, DRIVE, TERMINAL, CABLE, SOUL_GLASS, INTERFACE, IMPORT_BUS, EXPORT_BUS, MACHINE_BUS, CHEST_LINK, REDSTONE_EMITTER,
                                 ASSEMBLER, STOCK_KEEPER, VOID_FILTER, PROCESSING_INTERFACE, QUANTUM_LINK));
                         for (CellTier t : CellTier.values()) {
                             order.add(CELLS.get(t));

@@ -22,14 +22,19 @@ import net.neoforged.neoforge.common.crafting.SizedIngredient;
 /**
  * Reads what any mod's machine recipe takes and makes, so a Machine Bus can learn it. Uses the standard recipe
  * methods most mods fill in, Mekanism's own recipe API, and a careful look for the usual getInput / getOutput
- * methods. Recipes that also need a fluid or chemical are skipped: only item recipes are learned.
+ * methods. Fluids a recipe needs are read too (and chemicals, for Mekanism); the Machine Bus feeds them from the
+ * network. Recipes that need something else it can't give are skipped.
  */
 public final class RecipeReader {
     /** One ingredient: any of {@code options}, {@code count} of them. */
     public record Input(List<ItemKey> options, long count) {}
 
-    /** A machine recipe: these inputs make {@code outCount} of {@code output}. */
-    public record Read(List<Input> inputs, ItemKey output, long outCount) {}
+    /** A machine recipe: these inputs (and fluids / chemicals) make {@code outCount} of {@code output}. */
+    public record Read(List<Input> inputs, ItemKey output, long outCount, Map<BulkKey, Long> bulk) {
+        public Read(List<Input> inputs, ItemKey output, long outCount) {
+            this(inputs, output, outCount, Map.of());
+        }
+    }
 
     private static final int MAX_OPTIONS = 16;
     private static final boolean MEKANISM = ModList.get() != null && ModList.get().isLoaded("mekanism");
@@ -45,7 +50,8 @@ public final class RecipeReader {
                     return mek;
                 }
             }
-            if (needsFluidOrChemical(recipe)) {
+            Map<BulkKey, Long> bulk = new LinkedHashMap<>();
+            if (!fluidInputs(recipe, bulk)) {
                 return null;
             }
             List<Input> inputs = inputs(recipe);
@@ -54,7 +60,7 @@ public final class RecipeReader {
             }
             ItemStack out = output(recipe, registries);
             ItemKey key = ItemKey.of(out);
-            return key == null ? null : new Read(inputs, key, Math.max(1, out.getCount()));
+            return key == null ? null : new Read(inputs, key, Math.max(1, out.getCount()), bulk);
         } catch (RuntimeException | LinkageError e) {
             return null;
         }
@@ -142,7 +148,8 @@ public final class RecipeReader {
         if (!out.isEmpty()) {
             return out;
         }
-        Object o = call(recipe, "getOutput", "output", "getResult", "result", "getResults", "getOutputs", "getRollableResults");
+        Object o = call(recipe, "getOutput", "output", "getResult", "result", "getResults", "results", "getOutputs", "outputs",
+                "getRollableResults", "getMainOutput", "mainOutput");
         return stackOf(o);
     }
 
@@ -164,8 +171,11 @@ public final class RecipeReader {
 
     // ------------------------------------------------------------------ fluids and chemicals
 
-    /** A recipe that also takes a fluid, chemical or gas can't be fed with items alone. */
-    private static boolean needsFluidOrChemical(Recipe<?> recipe) {
+    /**
+     * Adds the fluids the recipe takes to {@code out}. Returns false if it also takes something the network can't
+     * feed a machine (a chemical or gas outside Mekanism's API, say), so the recipe is left out.
+     */
+    private static boolean fluidInputs(Recipe<?> recipe, Map<BulkKey, Long> out) {
         for (Method m : recipe.getClass().getMethods()) {
             if (m.getParameterCount() != 0 || Modifier.isStatic(m.getModifiers())) {
                 continue;
@@ -175,18 +185,56 @@ public final class RecipeReader {
                 continue;
             }
             String type = m.getReturnType().getSimpleName().toLowerCase(java.util.Locale.ROOT);
-            if (type.contains("fluid") || type.contains("chemical") || type.contains("gas")) {
-                try {
-                    Object v = m.invoke(recipe);
-                    if (v != null && !(v instanceof Collection<?> c && c.isEmpty()) && !isEmptyStack(v)) {
-                        return true;
+            boolean collection = Collection.class.isAssignableFrom(m.getReturnType());
+            if (!(type.contains("fluid") || type.contains("chemical") || type.contains("gas") || collection)) {
+                continue;
+            }
+            Object v;
+            try {
+                v = m.invoke(recipe);
+            } catch (ReflectiveOperationException | RuntimeException e) {
+                continue;
+            }
+            if (v == null || isEmptyStack(v)) {
+                continue;
+            }
+            for (Object o : v instanceof Collection<?> c ? c : List.of(v)) {
+                if (o == null || o instanceof Ingredient || o instanceof SizedIngredient || o instanceof ItemStack) {
+                    continue;
+                }
+                if (!fluid(o, out)) {
+                    String cls = o.getClass().getSimpleName().toLowerCase(java.util.Locale.ROOT);
+                    if (cls.contains("fluid") || cls.contains("chemical") || cls.contains("gas")) {
+                        return false;
                     }
-                } catch (ReflectiveOperationException | RuntimeException ignored) {
-                    // can't tell; treat it as item-only
                 }
             }
         }
-        return false;
+        return true;
+    }
+
+    /** One fluid ingredient (sized ingredient, plain ingredient or stack) into {@code out}; false if it isn't one. */
+    private static boolean fluid(Object o, Map<BulkKey, Long> out) {
+        net.neoforged.neoforge.fluids.FluidStack stack = null;
+        long amount = 1000;
+        if (o instanceof net.neoforged.neoforge.fluids.crafting.SizedFluidIngredient sized) {
+            net.neoforged.neoforge.fluids.FluidStack[] all = sized.getFluids();
+            stack = all.length == 0 ? null : all[0];
+            amount = sized.amount();
+        } else if (o instanceof net.neoforged.neoforge.fluids.crafting.FluidIngredient ing) {
+            net.neoforged.neoforge.fluids.FluidStack[] all = ing.getStacks();
+            stack = all.length == 0 ? null : all[0];
+        } else if (o instanceof net.neoforged.neoforge.fluids.FluidStack fs) {
+            stack = fs;
+            amount = fs.getAmount();
+        } else {
+            return false;
+        }
+        if (stack == null || stack.isEmpty()) {
+            return false;
+        }
+        out.merge(BulkKey.fluid(stack), Math.max(1, amount), Long::sum);
+        return true;
     }
 
     private static boolean isEmptyStack(Object v) {

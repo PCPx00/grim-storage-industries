@@ -21,9 +21,159 @@ public class ControllerScreen extends GrimScreen<ControllerMenu> {
     private static final int JOBS_SHOWN = 4;
     private int scroll;
 
+    // the access window: who owns the network and who else may use it
+    private boolean accessOpen;
+    private com.xtri6.grimstorage.client.ui.GrimButton accessButton;
+    private com.xtri6.grimstorage.client.ui.GrimButton modeButton;
+    private com.xtri6.grimstorage.client.ui.GrimButton claimButton;
+    private com.xtri6.grimstorage.client.ui.GrimButton addButton;
+    private com.xtri6.grimstorage.client.ui.GrimButton doneButton;
+    private net.minecraft.client.gui.components.EditBox nameBox;
+    private static final int AW = 180;
+    private static final int AH = 196;
+    private static final int TRUSTED_SHOWN = 6;
+
     public ControllerScreen(ControllerMenu menu, Inventory inv, Component title) {
         super(menu, inv, title, 210, 238);
         this.inventoryLabelY = 10_000;
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+        accessButton = addRenderableWidget(new com.xtri6.grimstorage.client.ui.GrimButton(leftPos + imageWidth - 34, topPos + 4, 15, 12,
+                Component.literal("\u26bf"), b -> accessOpen = !accessOpen));
+        accessButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("gui.grimstorage.access")));
+        int x = ax(), y = ay();
+        modeButton = new com.xtri6.grimstorage.client.ui.GrimButton(x + 8, y + 42, AW - 16, 14, Component.empty(),
+                b -> edit(Payloads.AccessEdit.TOGGLE_OPEN, ""));
+        claimButton = new com.xtri6.grimstorage.client.ui.GrimButton(x + 8, y + 42, AW - 16, 14, Component.translatable("gui.grimstorage.access.claim"),
+                b -> edit(Payloads.AccessEdit.CLAIM, ""), true);
+        nameBox = new net.minecraft.client.gui.components.EditBox(font, x + 11, y + AH - 42, AW - 64, 10, Component.translatable("gui.grimstorage.access.name"));
+        nameBox.setBordered(false);
+        nameBox.setMaxLength(16);
+        nameBox.setHint(Component.translatable("gui.grimstorage.access.name").withColor(t().textFaint()));
+        addButton = new com.xtri6.grimstorage.client.ui.GrimButton(x + AW - 48, y + AH - 45, 40, 14, Component.translatable("gui.grimstorage.access.add"), b -> {
+            if (!nameBox.getValue().isBlank()) {
+                edit(Payloads.AccessEdit.TRUST, nameBox.getValue().trim());
+                nameBox.setValue("");
+            }
+        });
+        doneButton = new com.xtri6.grimstorage.client.ui.GrimButton(x + 8, y + AH - 24, AW - 16, 16, Component.translatable("gui.done"),
+                b -> accessOpen = false, true);
+    }
+
+    private int ax() {
+        return leftPos + (imageWidth - AW) / 2;
+    }
+
+    private int ay() {
+        return topPos + 20;
+    }
+
+    private void edit(int action, String name) {
+        PacketDistributor.sendToServer(new Payloads.AccessEdit(menu.containerId, action, name));
+    }
+
+    private int trustedRowY(int i) {
+        return ay() + 74 + i * 12;
+    }
+
+    private void renderAccess(GuiGraphics g, int mouseX, int mouseY, float pt) {
+        Theme t = t();
+        Payloads.AccessInfo a = menu.clientAccess;
+        int x = ax(), y = ay();
+        g.pose().pushPose();
+        g.pose().translate(0, 0, 400);
+        g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0x80000000);
+        Ui.panel(g, t, x, y, AW, AH);
+        g.fill(x + 1, y + 2, x + AW - 1, y + AH - 1, Theme.withAlpha(t.panelTop(), 0xF0));
+        g.pose().translate(0, 0, 10);
+        g.drawString(font, Component.translatable("gui.grimstorage.access"), x + 8, y + 8, t.text(), false);
+        Ui.rule(g, t, x + 8, y + 18, AW - 16);
+        if (a == null) {
+            g.drawString(font, Component.translatable("gui.grimstorage.controller.loading"), x + 8, y + 26, t.textDim(), false);
+            g.pose().popPose();
+            return;
+        }
+        boolean owned = !a.owner().isEmpty();
+        g.drawString(font, owned ? Component.translatable("gui.grimstorage.access.owner", a.owner())
+                : Component.translatable("gui.grimstorage.access.no_owner"), x + 8, y + 26, owned ? t.accent() : t.warn(), false);
+        com.xtri6.grimstorage.client.ui.GrimButton top = owned ? modeButton : claimButton;
+        modeButton.setMessage(Component.translatable(a.open() ? "gui.grimstorage.access.open" : "gui.grimstorage.access.private"));
+        modeButton.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("gui.grimstorage.access.mode.tooltip")));
+        top.active = a.canManage();
+        top.render(g, mouseX, mouseY, pt);
+        g.drawString(font, Component.translatable("gui.grimstorage.access.trusted_list", a.trusted().size()), x + 8, y + 62, t.textDim(), false);
+        if (a.trusted().isEmpty()) {
+            small(g, Component.translatable("gui.grimstorage.access.none").getString(), x + 10, y + 76, t.textFaint());
+        }
+        for (int i = 0; i < Math.min(TRUSTED_SHOWN, a.trusted().size()); i++) {
+            int ry = trustedRowY(i);
+            g.fill(x + 8, ry, x + AW - 8, ry + 11, i % 2 == 0 ? t.button() : t.buttonHover());
+            g.drawString(font, a.trusted().get(i), x + 11, ry + 2, t.text(), false);
+            if (a.canManage()) {
+                boolean hot = mouseX >= x + AW - 20 && mouseX < x + AW - 9 && mouseY >= ry && mouseY < ry + 11;
+                g.drawString(font, "\u00d7", x + AW - 17, ry + 2, hot ? t.danger() : t.textFaint(), false);
+            }
+        }
+        if (a.trusted().size() > TRUSTED_SHOWN) {
+            small(g, "+" + (a.trusted().size() - TRUSTED_SHOWN), x + 10, trustedRowY(TRUSTED_SHOWN) + 1, t.textFaint());
+        }
+        if (a.canManage() && owned) {
+            Ui.field(g, t, x + 8, y + AH - 45, AW - 60, 14, nameBox.isFocused());
+            nameBox.setTextColor(t.text() & 0xFFFFFF);
+            nameBox.render(g, mouseX, mouseY, pt);
+            addButton.render(g, mouseX, mouseY, pt);
+        } else if (owned) {
+            small(g, Component.translatable("gui.grimstorage.access.owner_only").getString(), x + 10, y + AH - 40, t.textFaint());
+        }
+        doneButton.render(g, mouseX, mouseY, pt);
+        g.pose().popPose();
+    }
+
+    private void small(GuiGraphics g, String text, int x, int y, int color) {
+        g.pose().pushPose();
+        g.pose().translate(x, y, 0);
+        g.pose().scale(0.75f, 0.75f, 1f);
+        g.drawString(font, text, 0, 0, color, false);
+        g.pose().popPose();
+    }
+
+    @Override
+    public void render(GuiGraphics g, int mouseX, int mouseY, float pt) {
+        super.render(g, mouseX, mouseY, pt);
+        if (accessOpen) {
+            renderAccess(g, mouseX, mouseY, pt);
+        }
+    }
+
+    @Override
+    public boolean keyPressed(int key, int scan, int mods) {
+        if (accessOpen) {
+            if (key == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {
+                accessOpen = false;
+                return true;
+            }
+            if (nameBox.isFocused()) {
+                if (key == org.lwjgl.glfw.GLFW.GLFW_KEY_ENTER || key == org.lwjgl.glfw.GLFW.GLFW_KEY_KP_ENTER) {
+                    addButton.onPress();
+                    return true;
+                }
+                nameBox.keyPressed(key, scan, mods);
+                return true;
+            }
+            return true;
+        }
+        return super.keyPressed(key, scan, mods);
+    }
+
+    @Override
+    public boolean charTyped(char c, int mods) {
+        if (accessOpen) {
+            return nameBox.isFocused() && nameBox.charTyped(c, mods);
+        }
+        return super.charTyped(c, mods);
     }
 
     private boolean onCancel(int i, double mx, double my) {
@@ -166,6 +316,36 @@ public class ControllerScreen extends GrimScreen<ControllerMenu> {
 
     @Override
     public boolean mouseClicked(double mx, double my, int button) {
+        if (accessOpen) {
+            Payloads.AccessInfo a = menu.clientAccess;
+            if (a != null) {
+                boolean owned = !a.owner().isEmpty();
+                if (a.canManage()) {
+                    if ((owned ? modeButton : claimButton).mouseClicked(mx, my, button)) {
+                        return true;
+                    }
+                    for (int i = 0; i < Math.min(TRUSTED_SHOWN, a.trusted().size()); i++) {
+                        int ry = trustedRowY(i);
+                        if (mx >= ax() + AW - 20 && mx < ax() + AW - 9 && my >= ry && my < ry + 11) {
+                            edit(Payloads.AccessEdit.UNTRUST, a.trusted().get(i));
+                            return true;
+                        }
+                    }
+                    if (owned) {
+                        boolean inBox = nameBox.mouseClicked(mx, my, button);
+                        nameBox.setFocused(inBox);
+                        if (inBox || addButton.mouseClicked(mx, my, button)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            doneButton.mouseClicked(mx, my, button);
+            if (mx < ax() || mx >= ax() + AW || my < ay() || my >= ay() + AH) {
+                accessOpen = false;
+            }
+            return true;
+        }
         Payloads.ControllerStatus s = menu.clientStatus;
         if (s != null) {
             for (int i = 0; i < JOBS_SHOWN && i + scroll < s.jobs().size(); i++) {

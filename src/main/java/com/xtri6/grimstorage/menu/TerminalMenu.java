@@ -62,7 +62,11 @@ public class TerminalMenu extends GrimMenu {
     public static final int EXTRACT_ONE = 5;
 
     /** {@code learned}: craftable only through recipes a Machine Bus learned (listed in the Craftable tab, not everywhere). */
-    public record Entry(ItemKey key, long count, boolean craftable, boolean learned) {}
+    public record Entry(ItemKey key, long count, boolean craftable, boolean learned, long added) {
+        public Entry(ItemKey key, long count, boolean craftable, boolean learned) {
+            this(key, count, craftable, learned, 0);
+        }
+    }
 
     /** A stored fluid / chemical / energy / Source amount, for the terminal's resource tabs. */
     public record BulkEntry(BulkKey key, long amount) {}
@@ -92,6 +96,9 @@ public class TerminalMenu extends GrimMenu {
     public long[] clientBulkStats = new long[BulkKind.values().length * 2];
     /** Client copy of the running crafting jobs, filled by {@link Payloads.TerminalJobs}. */
     public List<Payloads.JobView> clientJobs = List.of();
+    /** The last craft preview the server sent. */
+    @Nullable
+    public Payloads.Preview clientPreview;
     private int sinceJobs;
     private boolean sentJobs;
 
@@ -328,6 +335,59 @@ public class TerminalMenu extends GrimMenu {
         return net();
     }
 
+    /** What ordering {@code amount} of {@code key} would do: every step, what it takes from storage, what's missing. */
+    @Nullable
+    public Payloads.Preview preview(ItemKey key, int amount) {
+        StorageNetwork net = net();
+        if (net == null) {
+            return null;
+        }
+        CraftingPlanner.Plan plan = net.plan(key, amount);
+        List<Payloads.PreviewLine> steps = new ArrayList<>();
+        long crafts = 0;
+        long machineRuns = 0;
+        for (CraftingPlanner.Step st : plan.steps()) {
+            com.xtri6.grimstorage.storage.Pattern p = st.pattern();
+            Component by;
+            if (p.kind() == com.xtri6.grimstorage.storage.Pattern.Kind.CRAFTING) {
+                by = Registration.ASSEMBLER.get().getName();
+                crafts += st.times();
+            } else {
+                Component name = null;
+                int machines = 0;
+                for (com.xtri6.grimstorage.storage.MachineLink link : p.machines()) {
+                    if (!link.linkRemoved()) {
+                        machines++;
+                        if (name == null) {
+                            name = link.machineName();
+                        }
+                    }
+                }
+                by = name == null ? Component.translatable("gui.grimstorage.jobs.machine") : machines > 1 ? name.copy().append(" x" + machines) : name;
+                machineRuns += (st.times() + Math.max(1, machines) - 1) / Math.max(1, machines);
+            }
+            steps.add(new Payloads.PreviewLine(p.primary().toStack(1), st.times() * p.outputCount(p.primary()), by));
+        }
+        // newest step last in the plan is the item asked for: show it first
+        java.util.Collections.reverse(steps);
+        List<Payloads.PreviewLine> used = new ArrayList<>();
+        plan.used().forEach((k, n) -> used.add(new Payloads.PreviewLine(k.toStack(1), n, Component.empty())));
+        used.sort((a, b) -> Long.compare(b.amount(), a.amount()));
+        List<Payloads.PreviewLine> missing = new ArrayList<>();
+        plan.missing().forEach((k, n) -> missing.add(new Payloads.PreviewLine(k.toStack(1), n, Component.empty())));
+        plan.missingBulk().forEach((k, n) -> missing.add(new Payloads.PreviewLine(ItemStack.EMPTY, n,
+                k.name().copy().append(k.kind() == BulkKind.FLUID ? " (mB)" : ""))));
+        double cps = net.craftsPerSecond();
+        // machines: about 10 seconds a run (a furnace), shared between machines
+        long seconds = (long) Math.ceil((cps > 0 ? crafts / cps : 0) + machineRuns * 10.0);
+        return new Payloads.Preview(containerId, amount, plan.ok(), limit(steps, 40), limit(used, 40), limit(missing, 40),
+                (int) Math.min(Integer.MAX_VALUE, seconds));
+    }
+
+    private static <T> List<T> limit(List<T> list, int max) {
+        return list.size() <= max ? list : new ArrayList<>(list.subList(0, max));
+    }
+
     /**
      * Moves the player inventory to a new height (client side; the screen can be made taller). Slot positions are
      * final, so the slots are swapped for copies at the new spot. The server never looks at slot positions.
@@ -359,7 +419,7 @@ public class TerminalMenu extends GrimMenu {
         }
         sinceSend++;
         StorageNetwork net = net();
-        long version = net == null ? -1 : CellStorage.version();
+        long version = net == null ? -1 : net.contentVersion();
         long epoch = net == null ? -1 : net.builtEpoch();
         boolean changed = version != sentVersion || epoch != sentEpoch;
         if ((changed && sinceSend >= 4) || sinceSend >= 100) {
@@ -435,7 +495,7 @@ public class TerminalMenu extends GrimMenu {
         Set<ItemKey> explicit = net.explicitCraftables();
         for (Map.Entry<ItemKey, Long> e : net.contents().entrySet()) {
             boolean c = craftable.remove(e.getKey());
-            out.add(new Entry(e.getKey(), e.getValue(), c, c && !explicit.contains(e.getKey())));
+            out.add(new Entry(e.getKey(), e.getValue(), c, c && !explicit.contains(e.getKey()), net.lastAdded(e.getKey())));
         }
         for (ItemKey k : craftable) {
             out.add(new Entry(k, 0, true, !explicit.contains(k)));

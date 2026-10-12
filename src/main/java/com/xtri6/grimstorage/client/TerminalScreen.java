@@ -54,7 +54,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     private static final int RIGHT_X = 192;
     private static final int TAB_W = 22;
     private static final int TAB_H = 18;
-    private static final String[] SORTS = {"gui.grimstorage.sort.count", "gui.grimstorage.sort.name", "gui.grimstorage.sort.mod"};
+    private static final String[] SORTS = {"gui.grimstorage.sort.count", "gui.grimstorage.sort.name", "gui.grimstorage.sort.mod", "gui.grimstorage.sort.recent"};
 
     /** Remembered between openings so the terminal reopens the way you left it. */
     private static ItemCategories.Category lastCategory = ItemCategories.Category.ALL;
@@ -228,6 +228,11 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             b.setMessage(onOff("gui.grimstorage.settings.keep", ClientConfig.keepSearch()));
         });
         keep.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.settings.keep.tooltip")));
+        GrimButton alerts = new GrimButton(0, 0, 150, 16, onOff("gui.grimstorage.settings.alerts", ClientConfig.craftAlerts()), b -> {
+            ClientConfig.set(ClientConfig.CRAFT_ALERTS, !ClientConfig.craftAlerts());
+            b.setMessage(onOff("gui.grimstorage.settings.alerts", ClientConfig.craftAlerts()));
+        });
+        alerts.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.settings.alerts.tooltip")));
         ClientConfig.TerminalSize now = ClientConfig.terminalSize();
         GrimButton size = new GrimButton(0, 0, 150, 16, Component.translatable("gui.grimstorage.settings.size",
                 Component.translatable("gui.grimstorage.size." + now.name().toLowerCase(Locale.ROOT))), b -> {
@@ -238,7 +243,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         });
         size.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.settings.size.tooltip", rows, rowsThatFit())));
         GrimButton done = new GrimButton(0, 0, 150, 16, Component.translatable("gui.done"), b -> settingsOpen = false, true);
-        settingButtons.addAll(List.of(sync, focus, keep, size, done));
+        settingButtons.addAll(List.of(sync, focus, keep, alerts, size, done));
     }
 
     private int settingsX() {
@@ -246,10 +251,10 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     }
 
     private int settingsY() {
-        return topPos + 20;
+        return topPos + 10;
     }
 
-    private static final int SETTINGS_H = 26 + 5 * 20;
+    private static final int SETTINGS_H = 26 + 6 * 20;
 
     private void renderSettings(GuiGraphics g, Theme t, int mouseX, int mouseY, float pt) {
         int w = 166, x = settingsX(), y = settingsY();
@@ -329,8 +334,15 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         Comparator<TerminalMenu.Entry> cmp = switch (sort) {
             case 1 -> byName;
             case 2 -> Comparator.<TerminalMenu.Entry, String>comparing(e -> BuiltInRegistries.ITEM.getKey(e.key().item()).toString());
+            case 3 -> Comparator.comparingLong(TerminalMenu.Entry::added).reversed().thenComparing(byName);
             default -> Comparator.comparingLong(TerminalMenu.Entry::count).reversed().thenComparing(byName);
         };
+        // pinned items (Alt-click) always come first, in the order they were pinned
+        java.util.List<String> pins = ClientConfig.pinned();
+        cmp = Comparator.<TerminalMenu.Entry>comparingInt(e -> {
+            int i = pins.indexOf(BuiltInRegistries.ITEM.getKey(e.key().item()).toString());
+            return i < 0 ? Integer.MAX_VALUE : i;
+        }).thenComparing(cmp);
         out.sort(cmp);
         // Holding shift keeps every item where it is, so the same spot can be shift-clicked again and again.
         if (holdOrder && frozen != null) {
@@ -478,6 +490,8 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     @Override
     protected void containerTick() {
         super.containerTick();
+        tickCount++;
+        updatePreview();
         boolean shift = hasShiftDown();
         String typed = search.getValue();
         if (syncing() && typed.equals(seenSearch)) {
@@ -706,6 +720,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             drawPool(g, t, mode);
         }
         int offset = all ? bulkView.size() : 0;
+        java.util.List<String> pins = ClientConfig.pinned();
         for (int r = 0; r < rows && mode == null && !jobs; r++) {
             for (int c = 0; c < COLS; c++) {
                 int idx = (scroll + r) * COLS + c - offset;
@@ -719,6 +734,12 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                 int x = leftPos + GX + c * 18;
                 int y = topPos + GY + r * 18;
                 g.renderItem(e.key().stack(), x, y);
+                if (!pins.isEmpty() && pins.contains(BuiltInRegistries.ITEM.getKey(e.key().item()).toString())) {
+                    g.pose().pushPose();
+                    g.pose().translate(0, 0, 300);
+                    g.fill(x - 1, y - 1, x + 3, y + 3, t.accent());
+                    g.pose().popPose();
+                }
                 boolean ghost = e.count() == 0 && !e.craftable();
                 if (ghost) {
                     // ran out while shift is held: its spot stays, faded, until shift is let go
@@ -786,6 +807,9 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                 lines.add(Component.translatable(hovered.count() > 0 ? "gui.grimstorage.terminal.craft_more" : "gui.grimstorage.terminal.craft_click")
                         .withStyle(ChatFormatting.AQUA));
             }
+            boolean pinned = ClientConfig.pinned().contains(BuiltInRegistries.ITEM.getKey(hovered.key().item()).toString());
+            lines.add(Component.translatable(pinned ? "gui.grimstorage.terminal.pinned" : "gui.grimstorage.terminal.pin_hint")
+                    .withStyle(pinned ? ChatFormatting.DARK_AQUA : ChatFormatting.DARK_GRAY));
             g.renderComponentTooltip(font, lines, mouseX, mouseY);
         }
     }
@@ -974,9 +998,69 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         return tip;
     }
 
+    private static final int CW = 228;
+    private static final int CH = 196;
+    private static final int PREVIEW_ROWS = 9;
+    private int previewScroll;
+    private int sentAmount = -1;
+    private int amountChangedAt;
+    private int tickCount;
+
+    private int craftX() {
+        return leftPos + (imageWidth - CW) / 2;
+    }
+
+    private int craftY() {
+        return topPos + 14;
+    }
+
+    private int typedAmount() {
+        try {
+            return Math.max(0, Integer.parseInt(craftAmount.getValue()));
+        } catch (NumberFormatException ex) {
+            return 0;
+        }
+    }
+
+    /** Asks the server what the craft would do, a moment after the amount stops changing. */
+    private void updatePreview() {
+        if (crafting == null) {
+            return;
+        }
+        int n = typedAmount();
+        if (n != sentAmount && n > 0 && tickCount - amountChangedAt >= 4) {
+            sentAmount = n;
+            PacketDistributor.sendToServer(new Payloads.PreviewRequest(menu.containerId, crafting.key().stack(), n));
+        }
+    }
+
+    /** One preview line: a small icon, the amount and name, and what makes it. */
+    private record PreviewRow(@Nullable Payloads.PreviewLine line, @Nullable Component header, int color) {}
+
+    private List<PreviewRow> previewRows(Theme t) {
+        List<PreviewRow> rows = new ArrayList<>();
+        Payloads.Preview p = menu.clientPreview;
+        if (p == null || p.amount() != typedAmount()) {
+            return rows;
+        }
+        if (!p.missing().isEmpty()) {
+            rows.add(new PreviewRow(null, Component.translatable("gui.grimstorage.preview.missing"), t.danger()));
+            p.missing().forEach(l -> rows.add(new PreviewRow(l, null, t.danger())));
+        }
+        if (!p.steps().isEmpty()) {
+            rows.add(new PreviewRow(null, Component.translatable("gui.grimstorage.preview.steps"), t.accent()));
+            p.steps().forEach(l -> rows.add(new PreviewRow(l, null, t.text())));
+        }
+        if (!p.used().isEmpty()) {
+            rows.add(new PreviewRow(null, Component.translatable("gui.grimstorage.preview.used"), t.textDim()));
+            p.used().forEach(l -> rows.add(new PreviewRow(l, null, t.textDim())));
+        }
+        return rows;
+    }
+
     private void renderCraftPopup(GuiGraphics g, Theme t, int mouseX, int mouseY, float pt) {
-        int w = 160, h = 86;
-        int x = leftPos + GX + (COLS * 18 - w) / 2, y = topPos + 26;
+        int w = CW, h = CH;
+        int x = craftX(), y = craftY();
         g.pose().pushPose();
         g.pose().translate(0, 0, 400);
         g.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, 0x80000000);
@@ -987,15 +1071,63 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         g.renderItem(crafting.key().stack(), x + 9, y + 9);
         g.drawString(font, Component.translatable("gui.grimstorage.craft.title"), x + 32, y + 9, t.text(), false);
         String name = crafting.key().stack().getHoverName().getString();
-        g.drawString(font, font.plainSubstrByWidth(name, w - 40), x + 32, y + 19, t.accent(), false);
-        Ui.rule(g, t, x + 8, y + 30, w - 16);
-        Ui.field(g, t, x + 8, y + 37, w - 16, 14, true);
-        craftAmount.setPosition(x + 12, y + 40);
-        craftAmount.setWidth(w - 24);
+        g.drawString(font, font.plainSubstrByWidth(name, w - 100), x + 32, y + 19, t.accent(), false);
+        // amount box, top right
+        Ui.field(g, t, x + w - 64, y + 9, 56, 14, true);
+        craftAmount.setPosition(x + w - 60, y + 12);
+        craftAmount.setWidth(50);
         craftAmount.setTextColor(t.text() & 0xFFFFFF);
-        craftGo.setPosition(x + 8, y + 60);
-        craftCancel.setPosition(x + w - 68, y + 60);
         craftAmount.render(g, mouseX, mouseY, pt);
+        Ui.rule(g, t, x + 8, y + 30, w - 16);
+        // the plan
+        int listY = y + 36, listH = PREVIEW_ROWS * 12;
+        g.fill(x + 8, listY - 1, x + w - 8, listY + listH + 1, t.slot());
+        List<PreviewRow> rows = previewRows(t);
+        Payloads.Preview p = menu.clientPreview;
+        boolean fresh = p != null && p.amount() == typedAmount();
+        int max = Math.max(0, rows.size() - PREVIEW_ROWS);
+        previewScroll = Math.max(0, Math.min(previewScroll, max));
+        if (!fresh) {
+            small(g, Component.translatable("gui.grimstorage.preview.working").getString(), x + 12, listY + 4, t.textFaint());
+        }
+        for (int i = 0; i < PREVIEW_ROWS && i + previewScroll < rows.size(); i++) {
+            PreviewRow r = rows.get(i + previewScroll);
+            int ry = listY + i * 12;
+            if (r.header() != null) {
+                small(g, r.header().getString(), x + 11, ry + 3, r.color());
+                continue;
+            }
+            Payloads.PreviewLine l = r.line();
+            g.pose().pushPose();
+            g.pose().translate(x + 13, ry + 2, 0);
+            g.pose().scale(0.5f, 0.5f, 1f);
+            g.renderItem(l.item(), 0, 0);
+            g.pose().popPose();
+            String text = Fmt.compact(l.amount()) + "x " + l.item().getHoverName().getString();
+            if (l.item().isEmpty()) {
+                // a fluid or chemical: the name is in "by"
+                text = Fmt.compact(l.amount()) + " " + l.by().getString();
+            } else if (!l.by().getString().isEmpty()) {
+                text += "  \u00b7  " + l.by().getString();
+            }
+            small(g, font.plainSubstrByWidth(text, (int) ((w - 36) / 0.75f)), x + 24, ry + 3, r.color());
+        }
+        if (max > 0) {
+            int barH = Math.max(8, listH * PREVIEW_ROWS / rows.size());
+            int barY = listY + (listH - barH) * previewScroll / max;
+            g.fill(x + w - 11, barY, x + w - 9, barY + barH, t.accentDim());
+        }
+        // summary and buttons
+        int fy = listY + listH + 6;
+        if (fresh) {
+            Component summary = !p.ok()
+                    ? Component.translatable(p.missing().isEmpty() ? "gui.grimstorage.preview.cant" : "gui.grimstorage.preview.short", p.missing().size())
+                    : Component.translatable("gui.grimstorage.preview.time", Fmt.duration(p.seconds()));
+            small(g, summary.getString(), x + 10, fy, p.ok() ? t.ok() : t.danger());
+        }
+        craftGo.active = fresh && p.ok();
+        craftGo.setPosition(x + 8, y + h - 24);
+        craftCancel.setPosition(x + w - 68, y + h - 24);
         craftGo.render(g, mouseX, mouseY, pt);
         craftCancel.render(g, mouseX, mouseY, pt);
         g.pose().popPose();
@@ -1010,6 +1142,11 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     private void openCraft(TerminalMenu.Entry e) {
         crafting = e;
         craftAmount.setValue("1");
+        menu.clientPreview = null;
+        sentAmount = -1;
+        previewScroll = 0;
+        amountChangedAt = tickCount - 10;
+        craftAmount.setResponder(v -> amountChangedAt = tickCount);
         craftAmount.setFocused(true);
         craftAmount.moveCursorToEnd(false);
         craftAmount.setHighlightPos(0);
@@ -1160,6 +1297,16 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             ItemStack carried = menu.getCarried();
             if (!carried.isEmpty()) {
                 send(null, button == 1 ? TerminalMenu.INSERT_ONE : TerminalMenu.INSERT_ALL);
+            } else if (e != null && hasAltDown()) {
+                // pin it to the top, or unpin it
+                java.util.List<String> pins = ClientConfig.pinned();
+                String id = BuiltInRegistries.ITEM.getKey(e.key().item()).toString();
+                if (!pins.remove(id)) {
+                    pins.add(id);
+                }
+                ClientConfig.setPinned(pins);
+                refresh();
+                minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 1.2f));
             } else if (e != null && (e.count() > 0 || e.craftable())) {
                 boolean wantsCraft = e.craftable() && (e.count() == 0 || hasControlDown() || button == 2);
                 if (wantsCraft) {
@@ -1206,7 +1353,11 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
 
     @Override
     public boolean mouseScrolled(double mx, double my, double sx, double sy) {
-        if (crafting != null || settingsOpen) {
+        if (crafting != null) {
+            previewScroll = Math.max(0, previewScroll - (int) Math.signum(sy));
+            return true;
+        }
+        if (settingsOpen) {
             return true;
         }
         if (inGrid(mx, my) || onBar(mx, my)) {

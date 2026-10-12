@@ -43,4 +43,18 @@ public final class Fmt {
         }
         return v < 10 ? String.format(Locale.ROOT, "%.1f%s", Math.floor(v * 10) / 10, units[u]) : ((long) v) + units[u];
     }
+
+    /** 45 -> "45s", 125 -> "2m 5s", 7300 -> "2h 1m". */
+    public static String duration(long seconds) {
+        if (seconds < 1) {
+            return "<1s";
+        }
+        if (seconds < 60) {
+            return seconds + "s";
+        }
+        if (seconds < 3600) {
+            return seconds / 60 + "m " + seconds % 60 + "s";
+        }
+        return seconds / 3600 + "h " + seconds % 3600 / 60 + "m";
+    }
 }

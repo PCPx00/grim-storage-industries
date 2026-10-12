@@ -44,6 +44,14 @@ public final class ClientConfig {
             .comment("Soul Terminal height: AUTO fits the screen, NORMAL is 6 rows, TALL 9, TALLER 12.")
             .defineEnum("terminalSize", TerminalSize.AUTO);
 
+    public static final ModConfigSpec.BooleanValue CRAFT_ALERTS = BUILDER
+            .comment("Show a toast when a craft you ordered finishes, or has been stuck for a minute.")
+            .define("craftAlerts", true);
+
+    public static final ModConfigSpec.ConfigValue<java.util.List<? extends String>> PINNED = BUILDER
+            .comment("Soul Terminal: items pinned to the top of the list (Alt-click an item to pin or unpin it).")
+            .defineListAllowEmpty("pinnedItems", java.util.List.of(), () -> "minecraft:stone", o -> o instanceof String);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private ClientConfig() {}
@@ -66,6 +74,21 @@ public final class ClientConfig {
 
     public static boolean keepSearch() {
         return SPEC.isLoaded() && KEEP_SEARCH.get();
+    }
+
+    public static java.util.List<String> pinned() {
+        return SPEC.isLoaded() ? new java.util.ArrayList<>(PINNED.get()) : java.util.List.of();
+    }
+
+    public static void setPinned(java.util.List<String> ids) {
+        if (SPEC.isLoaded()) {
+            PINNED.set(ids);
+            PINNED.save();
+        }
+    }
+
+    public static boolean craftAlerts() {
+        return !SPEC.isLoaded() || CRAFT_ALERTS.get();
     }
 
     public static TerminalSize terminalSize() {

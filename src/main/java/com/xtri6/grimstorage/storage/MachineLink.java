@@ -29,6 +29,9 @@ public interface MachineLink {
 
     boolean linkRemoved();
 
+    /** A recipe that also needs fluids or chemicals was just sent here: keep the machine supplied with them. */
+    default void onSent(Pattern pattern) {}
+
     /** The machine this link runs, for the terminal's crafting tab (null if nothing is there). */
     @Nullable
     default net.minecraft.network.chat.Component machineName() {

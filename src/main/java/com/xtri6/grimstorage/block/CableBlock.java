@@ -288,7 +288,7 @@ public class CableBlock extends Block implements NetworkMember, EntityBlock {
         if (bus == null) {
             return InteractionResult.PASS;
         }
-        if (player instanceof ServerPlayer sp) {
+        if (player instanceof ServerPlayer sp && com.xtri6.grimstorage.storage.NetworkAccess.check(sp, level, pos)) {
             Menus.openCableBus(sp, pos, bus);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);

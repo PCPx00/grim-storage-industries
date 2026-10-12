@@ -70,23 +70,57 @@ public final class ScreenshotCheck {
             }
             sp.teleportTo(sp.serverLevel(), mb.getX() + 4.5, mb.getY() + 2.6, mb.getZ() + 4.5, 135f, 28f);
         }, none));
-        SHOTS.add(new Shot("r01_recipe_card_from_jei", true, sp -> {
-            sp.getInventory().clearContent();
+        if (Boolean.getBoolean("grimstorage.emi")) {
+            SHOTS.add(new Shot("e01_emi_terminal_search", true, sp -> {
+                sp.teleportTo(sp.serverLevel(), 2.5, 220.6, 4.5, 200f, 15f);
+                Menus.openTerminal(sp, BASE.offset(5, 0, 0));
+            }, () -> com.xtri6.grimstorage.client.RecipeViewerSearch.set("plank")));
+            SHOTS.add(new Shot("e02_emi_recipe_card", true, sp -> {
+                sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.RECIPE_CARD.get()));
+                Menus.openRecipeCard(sp, InteractionHand.MAIN_HAND);
+            }, () -> {
+                boolean ok = Minecraft.getInstance().screen instanceof net.minecraft.client.gui.screens.inventory.AbstractContainerScreen<?> s
+                        && com.xtri6.grimstorage.compat.ViewerActions.recipeCard(s, net.minecraft.resources.ResourceLocation.parse("minecraft:chest"));
+                GrimStorage.LOGGER.info("[Shots] EMI path recipe card written={} search sync available={}", ok,
+                        com.xtri6.grimstorage.client.RecipeViewerSearch.available());
+            }));
+            return;
+        }
+        BlockPos mod = new BlockPos(24, 230, 24);
+        SHOTS.add(new Shot("t01_guide_access", true, sp -> {}, () -> book(2, 5)));
+        SHOTS.add(new Shot("t02_guide_variants", true, sp -> {}, () -> book(6, 2)));
+        SHOTS.add(new Shot("t03_guide_ordering", true, sp -> {}, () -> book(6, 6)));
+        SHOTS.add(new Shot("t04_guide_good_to_know", true, sp -> {}, () -> book(7, 5)));
+        SHOTS.add(new Shot("t05_guide_chest_link", true, sp -> {}, () -> book(8, 3)));
+        SHOTS.add(new Shot("t06_guide_emitter", true, sp -> {}, () -> book(8, 4)));
+        SHOTS.add(new Shot("s01_mod_machines", true, sp -> {
+            sp.serverLevel().setDayTime(6000);
+            sp.teleportTo(sp.serverLevel(), mod.getX() + 5.5, mod.getY() + 3.0, mod.getZ() + 4.5, 180f, 22f);
+        }, none));
+        SHOTS.add(new Shot("s02_access", true, sp -> {
+            sp.teleportTo(sp.serverLevel(), mb.getX() + 2.5, mb.getY() + 1.0, mb.getZ() + 2.5, 135f, 20f);
+            Menus.openController(sp, mb);
+        }, () -> setField("accessOpen", true)));
+        SHOTS.add(new Shot("s03_chest_link", true, sp -> Menus.openChestLink(sp, mb.west().south()), none));
+        SHOTS.add(new Shot("s04_emitter", true, sp -> Menus.openEmitter(sp, mb.west().north()), none));
+        SHOTS.add(new Shot("s05_preview", true, sp -> {
             sp.teleportTo(sp.serverLevel(), 2.5, 220.6, 4.5, 200f, 15f);
+            Menus.openTerminal(sp, BASE.offset(5, 0, 0));
+        }, ScreenshotCheck::openCraftDialog));
+        SHOTS.add(new Shot("s06_pinned", true, sp -> {
+            ClientConfig.setPinned(List.of("minecraft:diamond", "minecraft:bone", "minecraft:ender_pearl"));
+            Menus.openTerminal(sp, BASE.offset(5, 0, 0));
+        }, none));
+        SHOTS.add(new Shot("s07_craft_toast", true, sp -> {
+            StorageNetwork n = NetworkManager.get(sp.serverLevel(), BASE);
+            if (n != null) {
+                n.request(ItemKey.of(new ItemStack(Items.STICK)), 4, sp.getGameProfile().getName());
+            }
+        }, none));
+        SHOTS.add(new Shot("s08_recipe_card_any", true, sp -> {
             sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.RECIPE_CARD.get()));
             Menus.openRecipeCard(sp, InteractionHand.MAIN_HAND);
-        }, () -> JeiShots.transfer("minecraft:torch", mezz.jei.api.constants.RecipeTypes.CRAFTING)));
-        SHOTS.add(new Shot("r02_processing_card_from_jei", true, sp -> {
-            sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.PROCESSING_CARD.get()));
-            Menus.openProcessingCard(sp, InteractionHand.MAIN_HAND);
-        }, () -> JeiShots.transfer("minecraft:iron_ingot_from_smelting_raw_iron", mezz.jei.api.constants.RecipeTypes.SMELTING)));
-        SHOTS.add(new Shot("r03_terminal_grid_from_jei", true, sp -> {
-            sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.RECIPE_CARD.get(), 4));
-            Menus.openTerminal(sp, BASE.offset(5, 0, 0));
         }, () -> JeiShots.transfer("minecraft:chest", mezz.jei.api.constants.RecipeTypes.CRAFTING)));
-        SHOTS.add(new Shot("r05_guide_cards_from_jei", true, sp -> {}, () -> book(6, 2)));
-        SHOTS.add(new Shot("r04_jei_page_over_terminal", true, sp -> Menus.openTerminal(sp, BASE.offset(5, 0, 0)),
-                () -> JeiShots.show("minecraft:dispenser")));
     }
 
     /** A Soul Infuser with buses on two faces: one fed by cable from its side, one from its back. */
@@ -226,6 +260,21 @@ public final class ScreenshotCheck {
         com.xtri6.grimstorage.client.guide.GuideScreen.open();
     }
 
+    /** Sets a field on the open screen (dev only, for screenshots). */
+    private static void setField(String name, Object value) {
+        var screen = Minecraft.getInstance().screen;
+        if (screen == null) {
+            return;
+        }
+        try {
+            java.lang.reflect.Field f = screen.getClass().getDeclaredField(name);
+            f.setAccessible(true);
+            f.set(screen, value);
+        } catch (ReflectiveOperationException ex) {
+            GrimStorage.LOGGER.error("[Shots] could not set " + name, ex);
+        }
+    }
+
     private static void openSettings() {
         if (Minecraft.getInstance().screen instanceof TerminalScreen ts) {
             try {
@@ -310,6 +359,10 @@ public final class ScreenshotCheck {
         int local = (tick - 120) % 40;
         if (local == 0) {
             index++;
+            if (index == 0 && System.getProperty("grimstorage.only") != null) {
+                String only = System.getProperty("grimstorage.only");
+                SHOTS.removeIf(sh -> !sh.name().startsWith("m01") && !sh.name().startsWith(only));
+            }
             if (index >= SHOTS.size()) {
                 ClientConfig.setDark(true);
                 GrimStorage.LOGGER.info("[Shots] done");

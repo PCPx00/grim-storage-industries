@@ -107,6 +107,25 @@ public final class CardMenus {
             broadcastChanges();
         }
 
+        /** Button 0: switch between "any variant" (any planks will do) and exact items. */
+        @Override
+        public boolean clickMenuButton(Player p, int id) {
+            if (id == 0 && card().getItem() instanceof RecipeCardItem) {
+                ItemStack card = card();
+                if (exact()) {
+                    card.remove(Registration.RECIPE_EXACT.get());
+                } else {
+                    card.set(Registration.RECIPE_EXACT.get(), true);
+                }
+                return true;
+            }
+            return false;
+        }
+
+        public boolean exact() {
+            return Boolean.TRUE.equals(card().get(Registration.RECIPE_EXACT.get()));
+        }
+
         @Override
         public boolean stillValid(Player p) {
             return card().getItem() instanceof RecipeCardItem;

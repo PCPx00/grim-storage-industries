@@ -55,6 +55,10 @@ public class SoulWrenchItem extends Item {
         BlockState state = level.getBlockState(pos);
         Player player = ctx.getPlayer();
         Direction face = ctx.getClickedFace();
+        if (player != null && (ours(state) || state.getBlock() instanceof CableBlock)
+                && !com.xtri6.grimstorage.storage.NetworkAccess.check(player, level, pos)) {
+            return InteractionResult.FAIL;
+        }
 
         if (player != null && player.isShiftKeyDown() && ours(state)) {
             if (!level.isClientSide) {

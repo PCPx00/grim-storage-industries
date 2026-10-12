@@ -44,6 +44,9 @@ public class WirelessTerminalItem extends Item {
         if (player == null || !player.isShiftKeyDown() || !(ctx.getLevel().getBlockEntity(ctx.getClickedPos()) instanceof ControllerBlockEntity)) {
             return InteractionResult.PASS;
         }
+        if (!ctx.getLevel().isClientSide && !com.xtri6.grimstorage.storage.NetworkAccess.check(player, ctx.getLevel(), ctx.getClickedPos())) {
+            return InteractionResult.FAIL;
+        }
         if (!ctx.getLevel().isClientSide) {
             ctx.getItemInHand().set(Registration.BOUND_POS.get(), GlobalPos.of(ctx.getLevel().dimension(), ctx.getClickedPos()));
             player.displayClientMessage(Component.translatable("message.grimstorage.wireless.bound"), true);
@@ -77,6 +80,10 @@ public class WirelessTerminalItem extends Item {
                 || pos.pos().distSqr(player.blockPosition()) > (double) RANGE * RANGE)) {
             return Component.translatable("message.grimstorage.wireless.range");
         }
+        ServerLevel lvl = player.server.getLevel(pos.dimension());
+        if (lvl != null && lvl.isLoaded(pos.pos()) && lvl.getBlockEntity(pos.pos()) instanceof ControllerBlockEntity c && !c.allows(player)) {
+            return Component.translatable("message.grimstorage.access.denied", c.ownerName());
+        }
         return resolve(player, stack) == null ? Component.translatable("message.grimstorage.wireless.offline") : null;
     }
 
@@ -90,7 +97,8 @@ public class WirelessTerminalItem extends Item {
         if (level == null || !level.isLoaded(pos.pos())) {
             return null;
         }
-        if (level.getBlockEntity(pos.pos()) instanceof ControllerBlockEntity c && c.ownNetwork() != null && c.ownNetwork().isActive()) {
+        if (level.getBlockEntity(pos.pos()) instanceof ControllerBlockEntity c && c.ownNetwork() != null && c.ownNetwork().isActive()
+                && c.allows(player)) {
             boolean unlimited = stack.getItem() instanceof WirelessTerminalItem w && w.unlimited;
             if (!unlimited && (!pos.dimension().equals(player.level().dimension())
                     || pos.pos().distSqr(player.blockPosition()) > (double) RANGE * RANGE)) {

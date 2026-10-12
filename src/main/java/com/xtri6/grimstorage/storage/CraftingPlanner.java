@@ -21,7 +21,19 @@ public final class CraftingPlanner {
     public static final class Plan {
         private final List<Step> steps = new ArrayList<>();
         private final Map<ItemKey, Long> missing = new LinkedHashMap<>();
+        private final Map<ItemKey, Long> used = new LinkedHashMap<>();
+        private final Map<BulkKey, Long> missingBulk = new LinkedHashMap<>();
+
+        /** Fluids and chemicals a machine step needs that storage doesn't have enough of. */
+        public Map<BulkKey, Long> missingBulk() {
+            return missingBulk;
+        }
         private boolean loop;
+
+        /** What the plan takes out of storage. */
+        public Map<ItemKey, Long> used() {
+            return used;
+        }
 
         public List<Step> steps() {
             return steps;
@@ -36,12 +48,14 @@ public final class CraftingPlanner {
         }
 
         public boolean ok() {
-            return missing.isEmpty() && !loop && !steps.isEmpty();
+            return missing.isEmpty() && missingBulk.isEmpty() && !loop && !steps.isEmpty();
         }
     }
 
     private final StorageNetwork network;
     private final Map<ItemKey, Long> available;
+    /** Fluids and chemicals in storage, used up as the plan takes them. */
+    private final Map<BulkKey, Long> availableBulk = new HashMap<>();
     private final Deque<ItemKey> path = new ArrayDeque<>();
     private final Plan plan = new Plan();
 
@@ -54,7 +68,25 @@ public final class CraftingPlanner {
     public static Plan plan(StorageNetwork network, ItemKey key, long amount) {
         CraftingPlanner planner = new CraftingPlanner(network);
         planner.craft(key, amount);
+        network.contents().forEach((k, had) -> {
+            long left = planner.available.getOrDefault(k, 0L);
+            if (left < had) {
+                planner.plan.used.put(k, had - left);
+            }
+        });
         return planner.plan;
+    }
+
+    /** Fluids and chemicals come from storage only (nothing crafts them). */
+    private boolean needBulk(BulkKey key, long amount) {
+        long have = availableBulk.computeIfAbsent(key, network::countBulk);
+        long take = Math.min(have, amount);
+        availableBulk.put(key, have - take);
+        if (take < amount) {
+            plan.missingBulk.merge(key, amount - take, Long::sum);
+            return false;
+        }
+        return true;
     }
 
     private boolean need(ItemKey key, long amount) {
@@ -82,14 +114,24 @@ public final class CraftingPlanner {
         // in storage, and only report missing items if none of them do.
         Pattern pattern = options.get(0);
         if (options.size() > 1) {
-            for (Pattern option : options) {
+            // try first the ways whose ingredients are already in storage ("any planks": the planks you have), so
+            // the first try usually works and big trees stay quick to plan
+            List<Pattern> ordered = new java.util.ArrayList<>(options);
+            ordered.sort(java.util.Comparator.comparingDouble(o -> -inStock(o, key, amount)));
+            for (Pattern option : ordered) {
                 Map<ItemKey, Long> savedAvailable = new HashMap<>(available);
                 Map<ItemKey, Long> savedMissing = new LinkedHashMap<>(plan.missing);
+                Map<BulkKey, Long> savedBulk = new HashMap<>(availableBulk);
+                Map<BulkKey, Long> savedMissingBulk = new LinkedHashMap<>(plan.missingBulk);
                 int savedSteps = plan.steps.size();
                 boolean savedLoop = plan.loop;
-                if (tryOption(option, key, amount) && plan.missing.equals(savedMissing) && !plan.loop) {
+                if (tryOption(option, key, amount) && plan.missing.equals(savedMissing) && plan.missingBulk.equals(savedMissingBulk) && !plan.loop) {
                     return true;
                 }
+                availableBulk.clear();
+                availableBulk.putAll(savedBulk);
+                plan.missingBulk.clear();
+                plan.missingBulk.putAll(savedMissingBulk);
                 available.clear();
                 available.putAll(savedAvailable);
                 plan.missing.clear();
@@ -103,6 +145,19 @@ public final class CraftingPlanner {
         return tryOption(pattern, key, amount);
     }
 
+    /** 0..1: how much of this way's ingredients for {@code amount} are in storage right now. */
+    private double inStock(Pattern p, ItemKey key, long amount) {
+        long per = Math.max(1, p.outputCount(key));
+        long times = (amount + per - 1) / per;
+        double have = 0, need = 0;
+        for (Map.Entry<ItemKey, Long> in : p.inputs().entrySet()) {
+            long n = in.getValue() * times;
+            need += n;
+            have += Math.min(n, available.getOrDefault(in.getKey(), 0L));
+        }
+        return need <= 0 ? 0 : have / need;
+    }
+
     private boolean tryOption(Pattern pattern, ItemKey key, long amount) {
         long per = pattern.outputCount(key);
         long times = (amount + per - 1) / per;
@@ -111,6 +166,9 @@ public final class CraftingPlanner {
         boolean ok = true;
         for (Map.Entry<ItemKey, Long> in : pattern.inputs().entrySet()) {
             ok &= need(in.getKey(), in.getValue() * times);
+        }
+        for (Map.Entry<BulkKey, Long> in : pattern.bulkInputs().entrySet()) {
+            ok &= needBulk(in.getKey(), in.getValue() * times);
         }
         path.pop();
 

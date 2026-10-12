@@ -45,6 +45,11 @@ public final class Payloads {
         r.playToClient(TerminalContents.TYPE, TerminalContents.CODEC, Payloads::onTerminalContents);
         r.playToClient(ControllerStatus.TYPE, ControllerStatus.CODEC, Payloads::onControllerStatus);
         r.playToClient(TerminalJobs.TYPE, TerminalJobs.CODEC, Payloads::onTerminalJobs);
+        r.playToClient(AccessInfo.TYPE, AccessInfo.CODEC, Payloads::onAccessInfo);
+        r.playToClient(Preview.TYPE, Preview.CODEC, Payloads::onPreview);
+        r.playToClient(CraftAlert.TYPE, CraftAlert.CODEC, Payloads::onCraftAlert);
+        r.playToServer(PreviewRequest.TYPE, PreviewRequest.CODEC, Payloads::onPreviewRequest);
+        r.playToServer(AccessEdit.TYPE, AccessEdit.CODEC, Payloads::onAccessEdit);
         r.playToServer(TerminalClick.TYPE, TerminalClick.CODEC, Payloads::onTerminalClick);
         r.playToServer(TerminalCraft.TYPE, TerminalCraft.CODEC, Payloads::onTerminalCraft);
         r.playToServer(CancelJob.TYPE, CancelJob.CODEC, Payloads::onCancelJob);
@@ -67,7 +72,8 @@ public final class Payloads {
         public static final Type<TerminalContents> TYPE = id("terminal_contents");
         private static final StreamCodec<RegistryFriendlyByteBuf, TerminalMenu.Entry> ENTRY = StreamCodec.composite(
                 ItemKey.STREAM_CODEC, TerminalMenu.Entry::key, ByteBufCodecs.VAR_LONG, TerminalMenu.Entry::count,
-                ByteBufCodecs.BOOL, TerminalMenu.Entry::craftable, ByteBufCodecs.BOOL, TerminalMenu.Entry::learned, TerminalMenu.Entry::new);
+                ByteBufCodecs.BOOL, TerminalMenu.Entry::craftable, ByteBufCodecs.BOOL, TerminalMenu.Entry::learned, ByteBufCodecs.VAR_LONG,
+                TerminalMenu.Entry::added, TerminalMenu.Entry::new);
         private static final StreamCodec<RegistryFriendlyByteBuf, TerminalMenu.BulkEntry> BULK = StreamCodec.composite(
                 BulkKey.STREAM_CODEC, TerminalMenu.BulkEntry::key, ByteBufCodecs.VAR_LONG, TerminalMenu.BulkEntry::amount,
                 TerminalMenu.BulkEntry::new);
@@ -348,6 +354,127 @@ public final class Payloads {
         }
     }
 
+    /** A craft you ordered is done (or has been stuck for a while). */
+    public record CraftAlert(ItemStack icon, long amount, boolean done, Component detail) implements CustomPacketPayload {
+        public static final Type<CraftAlert> TYPE = id("craft_alert");
+        public static final StreamCodec<RegistryFriendlyByteBuf, CraftAlert> CODEC = StreamCodec.composite(
+                ItemStack.STREAM_CODEC, CraftAlert::icon, ByteBufCodecs.VAR_LONG, CraftAlert::amount, ByteBufCodecs.BOOL, CraftAlert::done,
+                ComponentSerialization.STREAM_CODEC, CraftAlert::detail, CraftAlert::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    private static void onCraftAlert(CraftAlert p, IPayloadContext ctx) {
+        if (net.neoforged.fml.loading.FMLEnvironment.dist.isClient()) {
+            com.xtri6.grimstorage.client.CraftToast.show(p);
+        }
+    }
+
+    /** Terminal: what ordering this would do, before you confirm. */
+    public record PreviewRequest(int containerId, ItemStack key, int amount) implements CustomPacketPayload {
+        public static final Type<PreviewRequest> TYPE = id("preview_request");
+        public static final StreamCodec<RegistryFriendlyByteBuf, PreviewRequest> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, PreviewRequest::containerId, ItemStack.STREAM_CODEC, PreviewRequest::key, ByteBufCodecs.VAR_INT,
+                PreviewRequest::amount, PreviewRequest::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** One line of a preview: an item and an amount, with what makes it (for steps). */
+    public record PreviewLine(ItemStack item, long amount, Component by) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, PreviewLine> CODEC = StreamCodec.composite(
+                ItemStack.OPTIONAL_STREAM_CODEC, PreviewLine::item, ByteBufCodecs.VAR_LONG, PreviewLine::amount, ComponentSerialization.STREAM_CODEC,
+                PreviewLine::by, PreviewLine::new);
+    }
+
+    public record Preview(int containerId, int amount, boolean ok, List<PreviewLine> steps, List<PreviewLine> used, List<PreviewLine> missing,
+                          int seconds) implements CustomPacketPayload {
+        public static final Type<Preview> TYPE = id("preview");
+        public static final StreamCodec<RegistryFriendlyByteBuf, Preview> CODEC = StreamCodec.of(
+                (buf, p) -> {
+                    buf.writeVarInt(p.containerId);
+                    buf.writeVarInt(p.amount);
+                    buf.writeBoolean(p.ok);
+                    PreviewLine.CODEC.apply(ByteBufCodecs.list()).encode(buf, p.steps);
+                    PreviewLine.CODEC.apply(ByteBufCodecs.list()).encode(buf, p.used);
+                    PreviewLine.CODEC.apply(ByteBufCodecs.list()).encode(buf, p.missing);
+                    buf.writeVarInt(p.seconds);
+                },
+                buf -> new Preview(buf.readVarInt(), buf.readVarInt(), buf.readBoolean(), PreviewLine.CODEC.apply(ByteBufCodecs.list()).decode(buf),
+                        PreviewLine.CODEC.apply(ByteBufCodecs.list()).decode(buf), PreviewLine.CODEC.apply(ByteBufCodecs.list()).decode(buf),
+                        buf.readVarInt()));
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    private static void onPreviewRequest(PreviewRequest p, IPayloadContext ctx) {
+        ItemKey key = ItemKey.of(p.key());
+        if (key != null && ctx.player() instanceof ServerPlayer sp && sp.containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
+            Preview preview = m.preview(key, Math.max(1, Math.min(1_000_000, p.amount())));
+            com.xtri6.grimstorage.GrimStorage.LOGGER.debug("craft preview for {} x{}: {}", key, p.amount(), preview == null ? "no network" : preview.ok());
+            if (preview != null) {
+                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(sp, preview);
+            }
+        }
+    }
+
+    private static void onPreview(Preview p, IPayloadContext ctx) {
+        if (ctx.player().containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
+            m.clientPreview = p;
+        }
+    }
+
+    /** Controller screen: who owns the network and who else may use it. */
+    public record AccessInfo(int containerId, String owner, boolean canManage, boolean open, List<String> trusted) implements CustomPacketPayload {
+        public static final Type<AccessInfo> TYPE = id("access_info");
+        public static final StreamCodec<RegistryFriendlyByteBuf, AccessInfo> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, AccessInfo::containerId, ByteBufCodecs.STRING_UTF8, AccessInfo::owner, ByteBufCodecs.BOOL, AccessInfo::canManage,
+                ByteBufCodecs.BOOL, AccessInfo::open, ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list(256)), AccessInfo::trusted, AccessInfo::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** Controller screen: trust or untrust a player, open or close the network, or claim it. */
+    public record AccessEdit(int containerId, int action, String name) implements CustomPacketPayload {
+        public static final int TRUST = 0;
+        public static final int UNTRUST = 1;
+        public static final int TOGGLE_OPEN = 2;
+        public static final int CLAIM = 3;
+        public static final Type<AccessEdit> TYPE = id("access_edit");
+        public static final StreamCodec<RegistryFriendlyByteBuf, AccessEdit> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, AccessEdit::containerId, ByteBufCodecs.VAR_INT, AccessEdit::action, ByteBufCodecs.stringUtf8(32), AccessEdit::name,
+                AccessEdit::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    private static void onAccessInfo(AccessInfo p, IPayloadContext ctx) {
+        if (ctx.player().containerMenu instanceof ControllerMenu m && m.containerId == p.containerId()) {
+            m.clientAccess = p;
+        }
+    }
+
+    private static void onAccessEdit(AccessEdit p, IPayloadContext ctx) {
+        if (ctx.player() instanceof ServerPlayer sp && sp.containerMenu instanceof ControllerMenu m && m.containerId == p.containerId()) {
+            m.editAccess(sp, p.action(), p.name());
+        }
+    }
+
     /** JEI: set ghost slots (filters, card editors). */
     public record SetGhosts(int containerId, boolean clear, List<Integer> slots, List<ItemStack> stacks) implements CustomPacketPayload {
         public static final Type<SetGhosts> TYPE = id("set_ghosts");
@@ -451,6 +578,9 @@ public final class Payloads {
     private static void onSetStockTarget(SetStockTarget p, IPayloadContext ctx) {
         if (ctx.player().containerMenu instanceof BlockMenus.StockKeeper m && m.containerId == p.containerId()) {
             m.setTarget(p.rule(), p.target());
+        }
+        if (ctx.player().containerMenu instanceof BlockMenus.Emitter m && m.containerId == p.containerId()) {
+            m.setAmount(p.target());
         }
     }
 
