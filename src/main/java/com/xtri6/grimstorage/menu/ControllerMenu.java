@@ -68,7 +68,8 @@ public class ControllerMenu extends BlockMenus.AtBlock {
                 stats = net.stats();
                 types = net.contents().size();
                 for (CraftingJob job : net.jobs()) {
-                    jobs.add(new Payloads.JobInfo(job.id(), job.target().toStack(1), job.amount(), job.status(), job.progress(), job.source()));
+                    jobs.add(new Payloads.JobInfo(job.id(), job.target().toStack(1), job.amount(), job.status(), job.progress(), job.source(),
+                            job.priority(), job.paused()));
                 }
             }
         }

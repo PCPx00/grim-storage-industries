@@ -53,6 +53,7 @@ public final class Payloads {
         r.playToServer(TerminalClick.TYPE, TerminalClick.CODEC, Payloads::onTerminalClick);
         r.playToServer(TerminalCraft.TYPE, TerminalCraft.CODEC, Payloads::onTerminalCraft);
         r.playToServer(CancelJob.TYPE, CancelJob.CODEC, Payloads::onCancelJob);
+        r.playToServer(JobCommand.TYPE, JobCommand.CODEC, Payloads::onJobCommand);
         r.playToServer(SetStockTarget.TYPE, SetStockTarget.CODEC, Payloads::onSetStockTarget);
         r.playToServer(DumpInventory.TYPE, DumpInventory.CODEC, Payloads::onDumpInventory);
         r.playToServer(ClearGrid.TYPE, ClearGrid.CODEC, Payloads::onClearGrid);
@@ -110,11 +111,34 @@ public final class Payloads {
         }
     }
 
-    public record JobInfo(UUID id, ItemStack icon, long amount, Component status, float progress, String source) {
-        public static final StreamCodec<RegistryFriendlyByteBuf, JobInfo> CODEC = StreamCodec.composite(
-                UUIDUtil.STREAM_CODEC, JobInfo::id, ItemStack.STREAM_CODEC, JobInfo::icon, ByteBufCodecs.VAR_LONG, JobInfo::amount,
-                ComponentSerialization.STREAM_CODEC, JobInfo::status, ByteBufCodecs.FLOAT, JobInfo::progress,
-                ByteBufCodecs.STRING_UTF8, JobInfo::source, JobInfo::new);
+    public record JobInfo(UUID id, ItemStack icon, long amount, Component status, float progress, String source, int priority,
+                          boolean paused) {
+        public static final StreamCodec<RegistryFriendlyByteBuf, JobInfo> CODEC = StreamCodec.of(
+                (buf, j) -> {
+                    UUIDUtil.STREAM_CODEC.encode(buf, j.id);
+                    ItemStack.STREAM_CODEC.encode(buf, j.icon);
+                    buf.writeVarLong(j.amount);
+                    ComponentSerialization.STREAM_CODEC.encode(buf, j.status);
+                    buf.writeFloat(j.progress);
+                    buf.writeUtf(j.source);
+                    buf.writeVarInt(j.priority);
+                    buf.writeBoolean(j.paused);
+                },
+                buf -> new JobInfo(UUIDUtil.STREAM_CODEC.decode(buf), ItemStack.STREAM_CODEC.decode(buf), buf.readVarLong(),
+                        ComponentSerialization.STREAM_CODEC.decode(buf), buf.readFloat(), buf.readUtf(), buf.readVarInt(), buf.readBoolean()));
+    }
+
+    /** Pause / resume a job or move it in the queue (see {@link StorageNetwork.JobAction}). */
+    public record JobCommand(int containerId, UUID job, int action) implements CustomPacketPayload {
+        public static final Type<JobCommand> TYPE = id("job_command");
+        public static final StreamCodec<RegistryFriendlyByteBuf, JobCommand> CODEC = StreamCodec.composite(
+                ByteBufCodecs.VAR_INT, JobCommand::containerId, UUIDUtil.STREAM_CODEC, JobCommand::job, ByteBufCodecs.VAR_INT,
+                JobCommand::action, JobCommand::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
     }
 
     /** One step of a running job, for the terminal's crafting tab. */
@@ -572,6 +596,19 @@ public final class Payloads {
         }
         if (net != null) {
             net.cancel(p.job());
+        }
+    }
+
+    private static void onJobCommand(JobCommand p, IPayloadContext ctx) {
+        StorageNetwork net = null;
+        if (ctx.player().containerMenu instanceof ControllerMenu m && m.containerId == p.containerId()) {
+            net = m.network();
+        } else if (ctx.player().containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
+            net = m.network();
+        }
+        StorageNetwork.JobAction[] all = StorageNetwork.JobAction.values();
+        if (net != null && p.action() >= 0 && p.action() < all.length) {
+            net.jobAction(p.job(), all[p.action()]);
         }
     }
 

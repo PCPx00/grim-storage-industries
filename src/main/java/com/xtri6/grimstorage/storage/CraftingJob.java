@@ -37,7 +37,7 @@ public final class CraftingJob {
 
         /** Machine runs sent off and not back yet. */
         public long inMachines() {
-            long per = Math.max(1, pattern.outputCount(pattern.primary()));
+            long per = pattern.primaryAmount();
             return (awaiting + per - 1) / per;
         }
 
@@ -61,6 +61,29 @@ public final class CraftingJob {
     /** Ticks in a row it has been waiting on something (missing items, a full machine). */
     private int waitingTicks;
     private boolean warned;
+    /** Higher goes first. Moving a job up or down in the terminal changes it. */
+    private int priority;
+    private boolean paused;
+
+    public int priority() {
+        return priority;
+    }
+
+    void setPriority(int priority) {
+        this.priority = priority;
+    }
+
+    public boolean paused() {
+        return paused;
+    }
+
+    void setPaused(boolean paused) {
+        this.paused = paused;
+        if (paused) {
+            status = Component.translatable("gui.grimstorage.job.paused");
+        }
+        waitingTicks = 0;
+    }
 
     public boolean cancelled() {
         return cancelled;
@@ -134,11 +157,11 @@ public final class CraftingJob {
         cancelled = true;
     }
 
-    /** Processing outputs that came back from a machine; returns how many this job claimed. */
-    long claim(ItemKey key, long amount) {
+    /** Processing outputs (an item, or a fluid / chemical) that came back from a machine; returns how many this job claimed. */
+    long claim(Object key, long amount) {
         long claimed = 0;
         for (StepState s : steps) {
-            if (s.awaiting > 0 && s.pattern.kind() == Pattern.Kind.PROCESSING && s.pattern.primary().equals(key)) {
+            if (s.awaiting > 0 && s.pattern.kind() == Pattern.Kind.PROCESSING && s.pattern.primaryKey().equals(key)) {
                 long take = Math.min(s.awaiting, amount - claimed);
                 s.awaiting -= take;
                 claimed += take;
@@ -175,15 +198,15 @@ public final class CraftingJob {
             } else {
                 int sends = 0;
                 while (step.remaining > 0 && sends < 4) {
-                    Component problem = network.trySendProcessing(p);
-                    if (problem != null) {
+                    StorageNetwork.Sent sent = network.trySendProcessing(p, step.remaining);
+                    if (sent.runs() <= 0) {
                         if (waiting == null) {
-                            waiting = problem;
+                            waiting = sent.problem();
                         }
                         break;
                     }
-                    step.remaining--;
-                    step.awaiting += p.outputCount(p.primary());
+                    step.remaining -= sent.runs();
+                    step.awaiting += p.primaryAmount() * sent.runs();
                     sends++;
                 }
             }

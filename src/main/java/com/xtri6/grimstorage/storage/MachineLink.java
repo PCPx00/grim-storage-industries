@@ -32,6 +32,14 @@ public interface MachineLink {
     /** A recipe that also needs fluids or chemicals was just sent here: keep the machine supplied with them. */
     default void onSent(Pattern pattern) {}
 
+    /**
+     * Fills the machine with up to {@code amount} of a fluid or chemical from the network, for a recipe that only
+     * takes those. With {@code simulate}, how much it would take. Returns how much (none by default).
+     */
+    default long fillBulk(StorageNetwork network, BulkKey key, long amount, boolean simulate) {
+        return 0;
+    }
+
     /** The machine this link runs, for the terminal's crafting tab (null if nothing is there). */
     @Nullable
     default net.minecraft.network.chat.Component machineName() {

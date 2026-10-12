@@ -1670,6 +1670,7 @@ public final class SystemCheck {
             return order && never;
         }));
         addModMachineSteps();
+        addChainSteps();
         STEPS.add(new Step("network access: owner, trusted players, open mode", 0, () -> {
             com.xtri6.grimstorage.block.entity.ControllerBlockEntity c = (com.xtri6.grimstorage.block.entity.ControllerBlockEntity) level.getBlockEntity(MB);
             FakePlayer alice = FakePlayerFactory.get(level, new com.mojang.authlib.GameProfile(java.util.UUID.nameUUIDFromBytes("alice".getBytes()), "Alice"));
@@ -1822,6 +1823,226 @@ public final class SystemCheck {
                     info("{}: still {} jobs={}", id, have, n.jobs().isEmpty() ? "none" : n.jobs().get(0).status().getString());
                 }
                 return ok;
+            }));
+        }
+    }
+
+    // ------------------------------------------------------------------ chains of chemical machines, Source, the job queue
+
+    private static final BlockPos CHAIN = new BlockPos(48, 230, 48);
+
+    private static BulkKey mekChem(String id) {
+        return BulkKey.chemical(ResourceLocation.fromNamespaceAndPath("mekanism", id));
+    }
+
+    private static ItemKey modItem(String ns, String id) {
+        return ItemKey.of(new ItemStack(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(ns, id))));
+    }
+
+    private static StorageNetwork chainNet() {
+        return NetworkManager.get(level, CHAIN);
+    }
+
+    /** A machine with a Machine Bus on it, fed from cable {@code cable}: the bus sits on top, the machine north of it. */
+    private static void busOn(BlockPos cable, String ns, String id) {
+        level.setBlockAndUpdate(cable, Registration.CABLE.get().defaultBlockState());
+        level.setBlockAndUpdate(cable.above().north(), BuiltInRegistries.BLOCK.get(ResourceLocation.fromNamespaceAndPath(ns, id)).defaultBlockState());
+        level.setBlockAndUpdate(cable.above(), Registration.MACHINE_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.NORTH));
+    }
+
+    private static void addChainSteps() {
+        boolean mek = net.neoforged.fml.ModList.get().isLoaded("mekanism");
+        boolean ars = net.neoforged.fml.ModList.get().isLoaded("ars_nouveau");
+        STEPS.add(new Step("machine chains: build a Chemical Washer and a Crystallizer (and an Imbuement Chamber)", 60, () -> {
+            if (chainNet() == null) {
+                level.setChunkForced(CHAIN.getX() >> 4, CHAIN.getZ() >> 4, true);
+                level.setBlockAndUpdate(CHAIN, Registration.CONTROLLER.get().defaultBlockState());
+                level.setBlockAndUpdate(CHAIN.west(), Registration.DRIVE.get().defaultBlockState());
+                DriveBlockEntity d = (DriveBlockEntity) level.getBlockEntity(CHAIN.west());
+                d.cells().setStackInSlot(0, new ItemStack(Registration.CELLS.get(CellTier.GOLD).get()));
+                d.cells().setStackInSlot(1, new ItemStack(Registration.BULK_CELLS.get(BulkKind.ENERGY).get(CellTier.GOLD).get()));
+                d.cells().setStackInSlot(2, new ItemStack(Registration.BULK_CELLS.get(BulkKind.FLUID).get(CellTier.GOLD).get()));
+                if (mek) {
+                    d.cells().setStackInSlot(3, new ItemStack(Registration.BULK_CELLS.get(BulkKind.CHEMICAL).get(CellTier.GOLD).get()));
+                }
+                if (ars) {
+                    d.cells().setStackInSlot(4, new ItemStack(Registration.BULK_CELLS.get(BulkKind.SOURCE).get(CellTier.GOLD).get()));
+                }
+                level.setBlockAndUpdate(CHAIN.east(), Registration.CABLE.get().defaultBlockState());
+                if (mek) {
+                    busOn(CHAIN.east(2), "mekanism", "chemical_washer");
+                    level.setBlockAndUpdate(CHAIN.east(3), Registration.CABLE.get().defaultBlockState());
+                    busOn(CHAIN.east(4), "mekanism", "chemical_crystallizer");
+                }
+                level.setBlockAndUpdate(CHAIN.east(5), Registration.CABLE.get().defaultBlockState());
+                if (ars) {
+                    busOn(CHAIN.east(6), "ars_nouveau", "imbuement_chamber");
+                }
+                NetworkManager.markDirty();
+                return false;
+            }
+            StorageNetwork n = chainNet();
+            n.insertBulk(BulkKey.flat(BulkKind.ENERGY), 50_000_000, false);
+            return n.isActive();
+        }));
+        if (mek) {
+            STEPS.add(new Step("Chemical Washer: learns slurry recipes that take a chemical and water and make a chemical", 60, () -> {
+                var bus = (com.xtri6.grimstorage.block.entity.MachineBusBlockEntity) level.getBlockEntity(CHAIN.east(2).above());
+                List<com.xtri6.grimstorage.storage.Pattern> ps = bus.learnedPatterns();
+                long chemOnly = ps.stream().filter(p -> p.inputs().isEmpty() && p.outputs().isEmpty() && !p.bulkOutputs().isEmpty()).count();
+                boolean iron = ps.stream().anyMatch(p -> p.bulkOutputs().containsKey(mekChem("clean_iron")) && p.bulkInputs().containsKey(mekChem("dirty_iron"))
+                        && p.bulkInputs().containsKey(BulkKey.fluid(new FluidStack(Fluids.WATER, 1))));
+                info("washer recipes={} chemical-only={} iron one ok={}", ps.size(), chemOnly, iron);
+                return chemOnly > 3 && iron;
+            }));
+            STEPS.add(new Step("Chemical Crystallizer: learns slurry to crystal", 0, () -> {
+                var bus = (com.xtri6.grimstorage.block.entity.MachineBusBlockEntity) level.getBlockEntity(CHAIN.east(4).above());
+                boolean iron = bus.learnedPatterns().stream().anyMatch(p -> p.inputs().isEmpty()
+                        && p.bulkInputs().containsKey(mekChem("clean_iron")) && modItem("mekanism", "crystal_iron").equals(p.primary()));
+                info("crystallizer recipes={} iron crystal ok={}", bus.learnedPatterns().size(), iron);
+                return iron;
+            }));
+            STEPS.add(new Step("Mekanism chemical machines: every one's recipes can be read", 0, () -> {
+                String[] types = {"dissolution", "washing", "crystallizing", "oxidizing", "chemical_infusing", "activating", "centrifuging",
+                        "separating", "reaction", "pigment_extracting", "pigment_mixing", "painting"};
+                List<String> report = new ArrayList<>();
+                boolean all = true;
+                for (String t : types) {
+                    var type = BuiltInRegistries.RECIPE_TYPE.get(ResourceLocation.fromNamespaceAndPath("mekanism", t));
+                    if (type == null) {
+                        report.add(t + ": no such type");
+                        all = false;
+                        continue;
+                    }
+                    @SuppressWarnings({"unchecked", "rawtypes"})
+                    List<net.minecraft.world.item.crafting.RecipeHolder<?>> rs = (List) level.getRecipeManager().getAllRecipesFor((net.minecraft.world.item.crafting.RecipeType) type);
+                    long ok = rs.stream().map(h -> com.xtri6.grimstorage.storage.RecipeReader.read(h.value(), level.registryAccess()))
+                            .filter(r -> r != null && r.usable()).count();
+                    report.add(t + " " + ok + "/" + rs.size());
+                    all &= ok > 0;
+                }
+                info("mekanism chemical recipes read: {}", report);
+                return all;
+            }));
+            STEPS.add(new Step("machine chain: without dirty slurry, planning iron crystals says what's missing", 0, () -> {
+                CraftingPlanner.Plan p = chainNet().plan(modItem("mekanism", "crystal_iron"), 2);
+                info("plan ok={} missing bulk={}", p.ok(), p.missingBulk());
+                return !p.ok() && p.missingBulk().containsKey(mekChem("dirty_iron"));
+            }));
+            STEPS.add(new Step("machine chain: order iron crystals, the plan goes washer -> crystallizer", 0, () -> {
+                StorageNetwork n = chainNet();
+                n.insertBulk(mekChem("dirty_iron"), 4_000, false);
+                n.insertBulk(BulkKey.fluid(new FluidStack(Fluids.WATER, 1)), 40_000, false);
+                CraftingPlanner.Plan p = n.request(modItem("mekanism", "crystal_iron"), 2, "test");
+                List<String> steps = p.steps().stream().map(st -> st.pattern().primaryKey() instanceof BulkKey b ? b.id() + "x" + st.times()
+                        : st.pattern().primary().item() + "x" + st.times()).toList();
+                info("crystal plan ok={} steps={} missing={} {}", p.ok(), steps, p.missing(), p.missingBulk());
+                return p.ok() && p.steps().size() == 2 && p.steps().get(0).pattern().primaryKey().equals(mekChem("clean_iron"));
+            }));
+            STEPS.add(new Step("machine chain: crystals came back, clean slurry went through the network", 1200, () -> {
+                StorageNetwork n = chainNet();
+                long crystals = n.count(modItem("mekanism", "crystal_iron"));
+                long dirty = n.countBulk(mekChem("dirty_iron"));
+                if (stepTicks % 200 == 199 || crystals >= 2) {
+                    info("crystals={} dirty slurry left={} clean in storage={} jobs={}", crystals, dirty, n.countBulk(mekChem("clean_iron")),
+                            n.jobs().isEmpty() ? "none" : n.jobs().get(0).status().getString() + " " + n.jobs().get(0).steps().stream()
+                                    .map(s2 -> s2.finished() + "/" + s2.total() + " in " + s2.inMachines()).toList());
+                }
+                return crystals >= 2 && dirty < 4_000 && n.jobs().isEmpty();
+            }));
+            STEPS.add(new Step("job queue: one player can't take every job slot", 0, () -> {
+                StorageNetwork n = chainNet();
+                for (int i = 0; i < com.xtri6.grimstorage.ServerConfig.maxJobsPerPlayer() + 3; i++) {
+                    n.request(modItem("mekanism", "crystal_iron"), 1, "Spammer");
+                }
+                int theirs = n.jobsOf("Spammer");
+                boolean others = n.canStartJob("Someone");
+                for (var j : new ArrayList<>(n.jobs())) {
+                    n.cancel(j.id());
+                }
+                info("spammer jobs={} limit={} others can still order={}", theirs, com.xtri6.grimstorage.ServerConfig.maxJobsPerPlayer(), others);
+                return theirs == com.xtri6.grimstorage.ServerConfig.maxJobsPerPlayer() && others && n.jobs().isEmpty();
+            }));
+            final java.util.UUID[] queue = new java.util.UUID[2];
+            final long[] crystalsBefore = new long[1];
+            STEPS.add(new Step("job queue: pause one job, move the other to the top", 0, () -> {
+                StorageNetwork n = chainNet();
+                crystalsBefore[0] = n.count(modItem("mekanism", "crystal_iron"));
+                n.request(modItem("mekanism", "crystal_iron"), 1, "test");
+                n.request(modItem("mekanism", "crystal_iron"), 1, "test");
+                if (n.jobs().size() != 2) {
+                    return false;
+                }
+                queue[0] = n.jobs().get(0).id();
+                queue[1] = n.jobs().get(1).id();
+                n.jobAction(queue[0], StorageNetwork.JobAction.PAUSE);
+                n.jobAction(queue[1], StorageNetwork.JobAction.UP);
+                boolean order = n.jobs().get(0).id().equals(queue[1]);
+                boolean paused = n.jobs().get(1).paused() && !n.jobs().get(0).paused();
+                info("queue order ok={} paused ok={} priorities={}", order, paused, n.jobs().stream().map(j -> j.priority()).toList());
+                return order && paused;
+            }));
+            STEPS.add(new Step("job queue: the paused job waits while the other one finishes", 900, () -> {
+                StorageNetwork n = chainNet();
+                var paused = n.jobs().stream().filter(j -> j.id().equals(queue[0])).findFirst().orElse(null);
+                boolean otherDone = n.jobs().stream().noneMatch(j -> j.id().equals(queue[1]));
+                boolean untouched = paused != null && paused.steps().stream().allMatch(st -> st.remaining() == st.total());
+                if (otherDone) {
+                    info("other job done={} paused job untouched={} status={}", otherDone, untouched, paused == null ? "gone" : paused.status().getString());
+                }
+                return otherDone && untouched;
+            }));
+            STEPS.add(new Step("job queue: resumed, it finishes too", 900, () -> {
+                StorageNetwork n = chainNet();
+                n.jobs().stream().filter(j -> j.id().equals(queue[0]) && j.paused()).findFirst()
+                        .ifPresent(j -> n.jobAction(j.id(), StorageNetwork.JobAction.PAUSE));
+                long crystals = n.count(modItem("mekanism", "crystal_iron"));
+                return n.jobs().isEmpty() && crystals >= crystalsBefore[0] + 2;
+            }));
+        }
+        if (ars) {
+            final Object[] imbue = new Object[1];
+            STEPS.add(new Step("Imbuement Chamber: learns its Source recipes (and skips the pedestal ones)", 60, () -> {
+                var bus = (com.xtri6.grimstorage.block.entity.MachineBusBlockEntity) level.getBlockEntity(CHAIN.east(6).above());
+                List<com.xtri6.grimstorage.storage.Pattern> ps = bus.learnedPatterns();
+                long source = ps.stream().filter(p -> p.bulkInputs().containsKey(BulkKey.flat(BulkKind.SOURCE))).count();
+                info("imbuement recipes={} costing Source={}", ps.size(), source);
+                return !ps.isEmpty() && source == ps.size();
+            }));
+            STEPS.add(new Step("Imbuement Chamber: order something, the bus feeds it Source", 0, () -> {
+                StorageNetwork n = chainNet();
+                var bus = (com.xtri6.grimstorage.block.entity.MachineBusBlockEntity) level.getBlockEntity(CHAIN.east(6).above());
+                n.insertBulk(BulkKey.flat(BulkKind.SOURCE), 50_000, false);
+                for (com.xtri6.grimstorage.storage.Pattern p : bus.learnedPatterns()) {
+                    if (p.primary() == null || n.count(p.primary()) > 0 || !p.inputs().keySet().stream()
+                            .allMatch(k -> BuiltInRegistries.ITEM.getKey(k.item()).getNamespace().equals("minecraft"))) {
+                        continue;
+                    }
+                    p.inputs().forEach((k, c) -> n.insert(k, c, false));
+                    CraftingPlanner.Plan plan = n.request(p.primary(), p.outputCount(p.primary()), "test");
+                    imbue[0] = p;
+                    info("imbuing {} from {} with {} Source: ok={} missing={} {}", p.primary().item(), p.inputs(), p.bulkInputs(), plan.ok(),
+                            plan.missing(), plan.missingBulk());
+                    return plan.ok();
+                }
+                return false;
+            }));
+            STEPS.add(new Step("Imbuement Chamber: the result came back and Source was used", 1200, () -> {
+                StorageNetwork n = chainNet();
+                if (imbue[0] == null) {
+                    return false;
+                }
+                com.xtri6.grimstorage.storage.Pattern p = (com.xtri6.grimstorage.storage.Pattern) imbue[0];
+                long have = n.count(p.primary());
+                long src = n.countBulk(BulkKey.flat(BulkKind.SOURCE));
+                if (stepTicks % 200 == 199 || have > 0) {
+                    Object inside = level.getBlockEntity(CHAIN.east(6).above().north()) instanceof net.minecraft.world.Container c ? c.getItem(0) : "?";
+                    info("imbued {}={} Source left={} chamber holds={} inputs back in storage={} jobs={}", p.primary().item(), have, src, inside,
+                            p.inputs().keySet().stream().map(n::count).toList(), n.jobs().isEmpty() ? "none" : n.jobs().get(0).status().getString());
+                }
+                // only the recipe's Source is used: the chamber holds millions but is given just what the recipe costs
+                return have >= p.outputCount(p.primary()) && src < 50_000 && src >= 50_000 - 2 * p.bulkInputs().values().iterator().next()
+                        && n.jobs().isEmpty();
             }));
         }
     }

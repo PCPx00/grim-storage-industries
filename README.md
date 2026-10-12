@@ -34,7 +34,7 @@ Lost it? Craft one from a book and a Soulite Ingot.
 | Processing Interface | Faces any machine (any mod). Sends Processing Card inputs in and pulls the outputs back. |
 | Chest Link | Clips onto a chest, barrel or drawer and makes it part of storage: in and out, only in, or only out, and optionally filled before the cells. |
 | Redstone Emitter | Redstone signal when an item is at least or below an amount, or crafts the item up to that amount while powered. |
-| Machine Bus | Clips onto a machine like a bus and learns every recipe it can make, no cards needed: furnaces, smokers and blast furnaces, and machines from Mekanism, Create, Ender IO, Ars Nouveau, Immersive Engineering, Powah, Modern Industrialization, Oritech and Actually Additions (others by name, or add them with a `grimstorage_machines` datapack file). Keeps furnaces fuelled, powered machines charged and tanks topped up with fluids and chemicals from the network, takes back every output (extras like sawdust too), and opens Mekanism machine sides by itself. Several on several furnaces share big jobs. Holds 9 Processing Cards for any other machine. |
+| Machine Bus | Clips onto a machine like a bus and learns every recipe it can make, no cards needed: furnaces, smokers and blast furnaces, and machines from Mekanism, Create, Ender IO, Ars Nouveau, Immersive Engineering, Powah, Modern Industrialization, Oritech and Actually Additions (others by name, or add them with a `grimstorage_machines` datapack file). Keeps furnaces fuelled, powered machines charged and tanks topped up with fluids and chemicals from the network, takes back every output (extras like sawdust too, and fluids and chemicals the machine makes), and opens Mekanism machine sides by itself. Machines that only take and make chemicals (Chemical Washer, Crystallizer, Infuser, Separator) work too, so whole Mekanism ore lines plan as one craft. Gives an Ars Nouveau Imbuement Chamber exactly the Source each recipe costs. Several on several furnaces share big jobs. Holds 9 Processing Cards for any other machine. |
 | Stock Keeper | "Always keep N of this": up to 9 items it keeps crafted. |
 | Import Bus | Sticks onto the face of any block (chest, tank, furnace, generator, any modded machine) and pulls items, fluids, energy, XP, chemicals and Source from it into the network. Facing open air it picks up dropped items and XP orbs. 9-slot filter (whitelist/blacklist, exact or ignore-NBT) and an on/off switch per resource. |
 | Export Bus | The reverse: pushes from the network into the block it is on. Sends only the items you pick by default; switch on fluids, energy, XP, chemicals or Source to send those too. |
@@ -74,6 +74,12 @@ Put Recipe Cards in a Soul Assembler on the network. Craftable items show in the
 Click one (or ctrl-click / middle-click any craftable item), type an amount, and the network works out the
 whole tree: it uses what is stored, crafts what is missing (including sub-recipes), and tells you exactly
 what it is missing if it cannot. Machine steps use Processing Cards in a Processing Interface or Machine Bus, and a Machine Bus on a furnace learns its recipes by itself. When an item can be made more than one way, the network picks a way it has the ingredients for.
+Fluids and chemicals that machines make are planned as steps too: order Iron Crystals and the network runs the Chemical Washer
+and then the Crystallizer.
+
+The terminal's crafting tab is a queue: move jobs up or down (shift-click to send one to the top), pause and resume them, or
+cancel them. Jobs higher up get the Soul Assemblers and machines first. Each player can run up to 16 jobs on a network at once
+(`maxJobsPerPlayer` in `config/grimstorage-common.toml`, next to `maxJobsPerNetwork`).
 
 ## Progression
 
@@ -165,10 +171,11 @@ and chemical or Source cells are hidden when Mekanism or Ars Nouveau is not inst
 - Crafting jobs in progress are not saved when the world closes; restart the craft after loading.
   Stored items are always saved.
 - Quantum Links do not keep chunks loaded; the far side must be loaded (or chunk-loaded) to connect.
-- JEI shows Soul Infuser recipes, but has no "+" button for Recipe Cards or the terminal grid yet; fill those by clicking items in.
-- Autocrafting and Processing Cards work with items only; fluids, chemicals, energy, XP and Source are stored and moved, not crafted.
-- New Mekanism tanks and machines start with their chemical sides closed. Open the side the bus touches with a Configurator,
-  the same as for any pipe.
+- Processing Cards hold items only. Fluid and chemical steps come from what a Machine Bus learns from the machine.
+- You order items. A fluid or chemical can't be ordered on its own, only made as a step towards an item.
+- Ars Nouveau recipes that need items on pedestals are not learned (the network can't place those).
+- New Mekanism tanks start with their chemical sides closed. Open the side a bus touches with a Configurator, the same as
+  for any pipe. (A Machine Bus on a Mekanism machine opens the sides it needs by itself, only ones you haven't set.)
 
 ## Building
 

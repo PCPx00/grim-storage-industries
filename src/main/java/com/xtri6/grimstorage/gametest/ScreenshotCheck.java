@@ -93,6 +93,9 @@ public final class ScreenshotCheck {
         SHOTS.add(new Shot("t04_guide_good_to_know", true, sp -> {}, () -> book(7, 5)));
         SHOTS.add(new Shot("t05_guide_chest_link", true, sp -> {}, () -> book(8, 3)));
         SHOTS.add(new Shot("t06_guide_emitter", true, sp -> {}, () -> book(8, 4)));
+        SHOTS.add(new Shot("t07_guide_queue", true, sp -> {}, () -> book(3, 5)));
+        SHOTS.add(new Shot("t08_guide_chains", true, sp -> {}, () -> book(7, 6)));
+        SHOTS.add(new Shot("t09_guide_source", true, sp -> {}, () -> book(7, 7)));
         SHOTS.add(new Shot("s01_mod_machines", true, sp -> {
             sp.serverLevel().setDayTime(6000);
             sp.teleportTo(sp.serverLevel(), mod.getX() + 5.5, mod.getY() + 3.0, mod.getZ() + 4.5, 180f, 22f);
@@ -117,6 +120,29 @@ public final class ScreenshotCheck {
                 n.request(ItemKey.of(new ItemStack(Items.STICK)), 4, sp.getGameProfile().getName());
             }
         }, none));
+        SHOTS.add(new Shot("s09_job_queue", true, sp -> {
+            BlockPos chain = new BlockPos(48, 230, 48);
+            var lvl = sp.serverLevel();
+            lvl.setBlockAndUpdate(chain.below(), com.xtri6.grimstorage.Registration.TERMINAL.get().defaultBlockState());
+            com.xtri6.grimstorage.storage.NetworkManager.markDirty();
+            sp.teleportTo(lvl, chain.getX() + 0.5, chain.getY() - 1.0, chain.getZ() + 2.5, 180f, 20f);
+            StorageNetwork n = NetworkManager.get(lvl, chain);
+            if (n != null && net.neoforged.fml.ModList.get().isLoaded("mekanism")) {
+                var dirty = com.xtri6.grimstorage.storage.BulkKey.chemical(net.minecraft.resources.ResourceLocation.parse("mekanism:dirty_iron"));
+                n.insertBulk(dirty, 20_000, false);
+                n.insertBulk(com.xtri6.grimstorage.storage.BulkKey.fluid(new net.neoforged.neoforge.fluids.FluidStack(
+                        net.minecraft.world.level.material.Fluids.WATER, 1)), 200_000, false);
+                ItemKey crystal = ItemKey.of(new ItemStack(net.minecraft.core.registries.BuiltInRegistries.ITEM.get(
+                        net.minecraft.resources.ResourceLocation.parse("mekanism:crystal_iron"))));
+                n.request(crystal, 24, sp.getGameProfile().getName());
+                n.request(crystal, 8, "Alice");
+                if (n.jobs().size() == 2) {
+                    n.jobAction(n.jobs().get(0).id(), StorageNetwork.JobAction.PAUSE);
+                    n.jobAction(n.jobs().get(1).id(), StorageNetwork.JobAction.UP);
+                }
+            }
+            Menus.openTerminal(sp, chain.below());
+        }, () -> setField("jobs", true)));
         SHOTS.add(new Shot("s08_recipe_card_any", true, sp -> {
             sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.RECIPE_CARD.get()));
             Menus.openRecipeCard(sp, InteractionHand.MAIN_HAND);

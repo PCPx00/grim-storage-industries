@@ -29,10 +29,23 @@ public final class RecipeReader {
     /** One ingredient: any of {@code options}, {@code count} of them. */
     public record Input(List<ItemKey> options, long count) {}
 
-    /** A machine recipe: these inputs (and fluids / chemicals) make {@code outCount} of {@code output}. */
-    public record Read(List<Input> inputs, ItemKey output, long outCount, Map<BulkKey, Long> bulk) {
+    /**
+     * A machine recipe: these inputs (and fluids / chemicals / Source) make {@code outCount} of {@code output}, and
+     * the fluids or chemicals in {@code bulkOut}. {@code output} is null for a recipe that only makes fluids or
+     * chemicals; {@code inputs} is empty for one that only takes them.
+     */
+    public record Read(List<Input> inputs, @Nullable ItemKey output, long outCount, Map<BulkKey, Long> bulk, Map<BulkKey, Long> bulkOut) {
         public Read(List<Input> inputs, ItemKey output, long outCount) {
-            this(inputs, output, outCount, Map.of());
+            this(inputs, output, outCount, Map.of(), Map.of());
+        }
+
+        public Read(List<Input> inputs, ItemKey output, long outCount, Map<BulkKey, Long> bulk) {
+            this(inputs, output, outCount, bulk, Map.of());
+        }
+
+        /** It makes something and needs something. */
+        public boolean usable() {
+            return (output != null || !bulkOut.isEmpty()) && (!inputs.isEmpty() || !bulk.isEmpty());
         }
     }
 
@@ -50,17 +63,28 @@ public final class RecipeReader {
                     return mek;
                 }
             }
+            if (hasPedestalItems(recipe)) {
+                // items that go on pedestals around the machine (Ars Nouveau): the network can't place those
+                return null;
+            }
             Map<BulkKey, Long> bulk = new LinkedHashMap<>();
             if (!fluidInputs(recipe, bulk)) {
                 return null;
             }
+            source(recipe, bulk);
             List<Input> inputs = inputs(recipe);
             if (inputs.isEmpty()) {
                 return null;
             }
             ItemStack out = output(recipe, registries);
             ItemKey key = ItemKey.of(out);
-            return key == null ? null : new Read(inputs, key, Math.max(1, out.getCount()), bulk);
+            if (key != null) {
+                return new Read(inputs, key, Math.max(1, out.getCount()), bulk);
+            }
+            // a recipe that makes a fluid instead of an item (melting, squeezing, mixing)
+            Map<BulkKey, Long> fluidOut = new LinkedHashMap<>();
+            fluidOutputs(recipe, fluidOut);
+            return fluidOut.isEmpty() ? null : new Read(inputs, null, 0, bulk, fluidOut);
         } catch (RuntimeException | LinkageError e) {
             return null;
         }
@@ -235,6 +259,44 @@ public final class RecipeReader {
         }
         out.merge(BulkKey.fluid(stack), Math.max(1, amount), Long::sum);
         return true;
+    }
+
+    /** A recipe that costs Source (Ars Nouveau's Imbuement Chamber): the Machine Bus feeds it from Source cells. */
+    private static void source(Recipe<?> recipe, Map<BulkKey, Long> out) {
+        if (!recipe.getClass().getName().contains("arsnouveau")) {
+            return;
+        }
+        Object cost = call(recipe, "getSource", "source");
+        if (cost instanceof Number n && n.longValue() > 0) {
+            out.put(BulkKey.flat(BulkKind.SOURCE), n.longValue());
+        }
+    }
+
+    private static boolean hasPedestalItems(Recipe<?> recipe) {
+        Object pedestals = call(recipe, "getPedestalItems", "pedestalItems");
+        return pedestals instanceof Collection<?> c && !c.isEmpty();
+    }
+
+    /** Fluids the recipe makes, from the usual result methods. */
+    private static void fluidOutputs(Recipe<?> recipe, Map<BulkKey, Long> out) {
+        for (String n : new String[] {"getFluidResult", "getResultFluid", "getFluidOutput", "getOutputFluid", "fluidResult", "fluidOutput",
+                "getFluidResults", "getFluidOutputs", "getResult", "result", "getOutput", "output", "getResults", "getOutputs"}) {
+            Object o = call(recipe, n);
+            Collection<?> values;
+            if (o instanceof Collection<?> c) {
+                values = c;
+            } else {
+                values = o == null ? List.of() : List.of(o);
+            }
+            for (Object v : values) {
+                if (v instanceof net.neoforged.neoforge.fluids.FluidStack fs && !fs.isEmpty()) {
+                    out.merge(BulkKey.fluid(fs), (long) Math.max(1, fs.getAmount()), Long::sum);
+                }
+            }
+            if (!out.isEmpty()) {
+                return;
+            }
+        }
     }
 
     private static boolean isEmptyStack(Object v) {

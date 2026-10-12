@@ -108,6 +108,28 @@ final class MekanismCompat implements Compat.Chemicals {
             }
 
             @Override
+            public long offer(StorageNetwork net, BulkKey k, long amount, boolean simulate) {
+                IChemicalHandler h = cache.getCapability();
+                if (h == null) {
+                    return -1;
+                }
+                ChemicalStack want = stack(k, amount);
+                if (want.isEmpty()) {
+                    return 0;
+                }
+                long accepted = amount - h.insertChemical(want, Action.SIMULATE).getAmount();
+                if (simulate || accepted <= 0) {
+                    return Math.max(0, accepted);
+                }
+                long got = net.extractBulk(k, accepted, false);
+                ChemicalStack left = h.insertChemical(stack(k, got), Action.EXECUTE);
+                if (!left.isEmpty()) {
+                    net.insertBulk(k, left.getAmount(), false);
+                }
+                return got - left.getAmount();
+            }
+
+            @Override
             public long push(StorageNetwork net, long max, Iterable<BulkKey> candidates) {
                 IChemicalHandler h = cache.getCapability();
                 if (h == null) {

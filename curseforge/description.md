@@ -10,6 +10,8 @@
 - **No limits to learn:** cells count items, not types. No channels, no cable rules, no network size cap.
 - **Full autocrafting:** whole crafting trees, sub-recipes, machine steps from any mod, and a clear list of anything missing.
 - **Machine Bus:** clip it onto a furnace or a machine from Mekanism, Create, Ender IO, Ars Nouveau, Immersive Engineering and more, and the network learns every recipe it can make, fluids and chemicals included. It keeps the machine fuelled, powered and topped up, takes back every output, and shares big jobs across all your machines. No cards needed.
+- **Whole machine lines:** machines that make fluids and chemicals are steps too. Order Iron Crystals and the network runs the Chemical Washer, then the Crystallizer.
+- **A real crafting queue:** move jobs up and down, pause them, and keep one player from filling every slot.
 - **Craft preview:** see every step, what it uses and what's missing before you order, and get a pop-up when it's done.
 - **Any planks will do:** Recipe Cards accept any variant the recipe takes.
 - **Chest Link:** make any chest, barrel or drawer part of your storage.
@@ -61,7 +63,10 @@ The **Grim Storage Guide** you get when you first join explains every block and 
 - **Recipe Cards:** click items into the grid to teach the network a recipe, then put the card in a **Soul Assembler**. Speed Upgrades double its speed, up to 16x.
 - **No items needed to write cards:** press JEI's **+** on any recipe and the card is written, crafting or any mod's machine. Drag items from JEI onto any card or filter slot. JEI's + in the terminal fills the crafting grid from storage, and the pencil button writes it onto a card.
 - **Machine Bus:** clip it onto a furnace, blast furnace or smoker, or a machine from **Mekanism, Create, Ender IO, Ars Nouveau, Immersive Engineering, Powah, Modern Industrialization, Oritech or Actually Additions**, and it learns every recipe that machine can make, even ones that need a fluid or chemical. No cards at all. It keeps furnaces fuelled, machines powered and tanks filled from your network, takes back every output (extras like sawdust too), opens Mekanism machine sides by itself, and several machines share one big job. Pack makers can add any machine with a datapack file.
+- **Chemical chains:** the Machine Bus also learns machines that take and make **fluids and chemicals** (Mekanism's Dissolution Chamber, Chemical Washer, Crystallizer, Oxidizer, Infuser, Separator, Centrifuge, Reaction Chamber and more) and pulls what they make back into your cells. Whole ore lines plan as one craft.
+- **Source machines:** a Machine Bus on an Ars Nouveau **Imbuement Chamber** gives it exactly the Source each recipe costs, straight from your Source cells. No jars.
 - **Processing Cards** in a **Machine Bus** or **Processing Interface** run machines from **any mod** as steps in a craft.
+- **Crafting queue:** in the terminal's crafting tab, move jobs up or down (shift-click to send one to the top), pause and resume them, or cancel them. Jobs at the top get the assemblers and machines first. Each player can run up to 16 jobs on a network at once, changeable in the config.
 - When something can be made more than one way, the network picks the way you have ingredients for.
 - **Stock Keeper:** "always keep 500 of this", and it crafts to keep it topped up.
 - Order a craft from the terminal. The network works out the whole tree, uses what you have, crafts the rest and tells you exactly what's missing.

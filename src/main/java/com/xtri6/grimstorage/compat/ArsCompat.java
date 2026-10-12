@@ -57,6 +57,25 @@ final class ArsCompat implements Compat.Source {
             }
 
             @Override
+            public long offer(StorageNetwork net, BulkKey k, long amount, boolean simulate) {
+                ISourceCap cap = cache.getCapability();
+                if (cap == null) {
+                    return -1;
+                }
+                int room = Math.max(0, cap.getSourceCapacity() - cap.getSource());
+                int accepted = room <= 0 ? 0 : cap.receiveSource((int) Math.min(Math.min(amount, room), Integer.MAX_VALUE), true);
+                if (simulate || accepted <= 0) {
+                    return Math.max(0, accepted);
+                }
+                long got = net.extractBulk(KEY, accepted, false);
+                int in = cap.receiveSource((int) got, false);
+                if (in < got) {
+                    net.insertBulk(KEY, got - in, false);
+                }
+                return in;
+            }
+
+            @Override
             public long push(StorageNetwork net, long max, Iterable<BulkKey> candidates) {
                 ISourceCap cap = cache.getCapability();
                 if (cap == null) {

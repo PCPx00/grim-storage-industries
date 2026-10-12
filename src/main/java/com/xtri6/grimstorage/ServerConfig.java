@@ -10,9 +10,26 @@ public final class ServerConfig {
             .comment("Give each player a Grim Storage Guide the first time they join a world.")
             .define("giveGuideOnFirstJoin", true);
 
+    public static final ModConfigSpec.IntValue MAX_JOBS = BUILDER
+            .comment("Most crafting jobs one network runs at the same time.")
+            .defineInRange("maxJobsPerNetwork", 32, 1, 256);
+
+    public static final ModConfigSpec.IntValue MAX_JOBS_PER_PLAYER = BUILDER
+            .comment("Most crafting jobs one player can have running on a network at the same time, so one big order",
+                    "can't take every slot on a shared network. Set it to the same as maxJobsPerNetwork for no limit.")
+            .defineInRange("maxJobsPerPlayer", 16, 1, 256);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private ServerConfig() {}
+
+    public static int maxJobs() {
+        return SPEC.isLoaded() ? MAX_JOBS.get() : 32;
+    }
+
+    public static int maxJobsPerPlayer() {
+        return SPEC.isLoaded() ? MAX_JOBS_PER_PLAYER.get() : 16;
+    }
 
     public static boolean giveGuide() {
         return !SPEC.isLoaded() || GIVE_GUIDE.get();

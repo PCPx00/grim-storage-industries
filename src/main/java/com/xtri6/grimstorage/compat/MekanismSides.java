@@ -33,6 +33,12 @@ public final class MekanismSides {
             changed |= set(config, "ENERGY", side, "INPUT");
             changed |= set(config, "CHEMICAL", side, "INPUT", "INPUT_1");
             changed |= set(config, "FLUID", side, "INPUT", "INPUT_1");
+            // the rest of a chemical machine's tanks (a second input, the outputs) go on sides nobody uses yet, so
+            // the bus can reach every tank through them; sides a player set are never touched
+            for (String extra : new String[] {"INPUT_2", "OUTPUT", "OUTPUT_1", "OUTPUT_2"}) {
+                changed |= spare(config, "CHEMICAL", side, extra);
+                changed |= spare(config, "FLUID", side, extra);
+            }
             if (changed) {
                 be.setChanged();
                 level.invalidateCapabilities(pos);
@@ -40,6 +46,40 @@ public final class MekanismSides {
         } catch (ReflectiveOperationException | RuntimeException | LinkageError e) {
             GrimStorage.LOGGER.debug("Machine Bus could not open the side of {}", be, e);
         }
+    }
+
+    /** Puts one tank type on a side that is still off, unless some side already has it. */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private static boolean spare(Object config, String transmission, RelativeSide touched, String wanted) throws ReflectiveOperationException {
+        Class tt = Class.forName("mekanism.common.lib.transmitter.TransmissionType", true, config.getClass().getClassLoader());
+        Object type = Enum.valueOf(tt, transmission);
+        if (!(Boolean) config.getClass().getMethod("supports", tt).invoke(config, type)) {
+            return false;
+        }
+        Object info = config.getClass().getMethod("getConfig", tt).invoke(config, type);
+        if (info == null) {
+            return false;
+        }
+        Class dt = Class.forName("mekanism.common.tile.component.config.DataType", true, config.getClass().getClassLoader());
+        Object want = Enum.valueOf(dt, wanted);
+        if (!(Boolean) info.getClass().getMethod("supports", dt).invoke(info, want)) {
+            return false;
+        }
+        RelativeSide free = null;
+        for (RelativeSide s : RelativeSide.values()) {
+            Object now = info.getClass().getMethod("getDataType", RelativeSide.class).invoke(info, s);
+            if (now == want) {
+                return false;
+            }
+            if (free == null && s != touched && now != null && "NONE".equals(((Enum) now).name())) {
+                free = s;
+            }
+        }
+        if (free != null && (Boolean) info.getClass().getMethod("setDataType", dt, RelativeSide.class).invoke(info, want, free)) {
+            config.getClass().getMethod("sideChanged", tt, RelativeSide.class).invoke(config, type, free);
+            return true;
+        }
+        return false;
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
