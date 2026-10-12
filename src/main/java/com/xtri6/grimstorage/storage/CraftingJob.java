@@ -58,6 +58,22 @@ public final class CraftingJob {
     final List<StepState> steps = new ArrayList<>();
     Component status = Component.translatable("gui.grimstorage.job.starting");
     private boolean cancelled;
+    /** Ticks in a row it has been waiting on something (missing items, a full machine). */
+    private int waitingTicks;
+    private boolean warned;
+
+    public boolean cancelled() {
+        return cancelled;
+    }
+
+    /** True once, when it has been stuck for a minute, so the player can be told. */
+    boolean shouldWarnStuck() {
+        if (!warned && waitingTicks >= 1200) {
+            warned = true;
+            return true;
+        }
+        return false;
+    }
 
     CraftingJob(ItemKey target, long amount, String source, CraftingPlanner.Plan plan) {
         this.target = target;
@@ -174,7 +190,9 @@ public final class CraftingJob {
         }
         if (waiting != null) {
             status = waiting;
+            waitingTicks++;
         } else {
+            waitingTicks = 0;
             boolean machines = steps.stream().anyMatch(s -> s.remaining <= 0 && s.awaiting > 0);
             status = Component.translatable(machines ? "gui.grimstorage.job.processing" : "gui.grimstorage.job.crafting");
         }

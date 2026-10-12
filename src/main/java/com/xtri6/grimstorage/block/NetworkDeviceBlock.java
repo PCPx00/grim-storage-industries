@@ -68,10 +68,21 @@ public class NetworkDeviceBlock extends Block implements EntityBlock, NetworkMem
         if (opener == null) {
             return InteractionResult.PASS;
         }
-        if (!level.isClientSide && player instanceof ServerPlayer sp) {
+        if (!level.isClientSide && player instanceof ServerPlayer sp && com.xtri6.grimstorage.storage.NetworkAccess.check(sp, level, pos)) {
             opener.open(sp, pos);
         }
         return InteractionResult.sidedSuccess(level.isClientSide);
+    }
+
+    @Override
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @javax.annotation.Nullable net.minecraft.world.entity.LivingEntity placer,
+                            net.minecraft.world.item.ItemStack stack) {
+        super.setPlacedBy(level, pos, state, placer, stack);
+        // whoever places a controller owns the network
+        if (!level.isClientSide && placer instanceof Player p && !(p instanceof net.neoforged.neoforge.common.util.FakePlayer)
+                && level.getBlockEntity(pos) instanceof com.xtri6.grimstorage.block.entity.ControllerBlockEntity c && c.owner() == null) {
+            c.setOwner(p);
+        }
     }
 
     @Override

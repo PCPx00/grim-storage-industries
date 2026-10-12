@@ -152,7 +152,7 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
         if (sides.isEmpty()) {
             return null;
         }
-        // machines with side settings (Mekanism, Thermal and friends) often don't take items on every face: try the
+        // machines with side settings (Mekanism and friends) often don't take items on every face: try the
         // face we touch first, then the machine's other sides, so it works whatever its sides are set to
         return sides.size() == 1 ? sides.get(0) : new EitherInput(sides);
     }
@@ -253,6 +253,85 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
         return learned;
     }
 
+    // ------------------------------------------------------------------ fluids and chemicals for the machine
+
+    /** Fluids and chemicals recent jobs need here, with when they were last needed. */
+    private final java.util.Map<com.xtri6.grimstorage.storage.BulkKey, Long> feeding = new java.util.LinkedHashMap<>();
+    /** How long to keep a machine supplied after the last job that needed it was sent (1 minute). */
+    private static final long FEED_FOR = 1200;
+    private static final long FEED_PER_CHECK = 4000;
+    private final java.util.Map<Direction, com.xtri6.grimstorage.compat.Compat.BulkLink> chemicalLinks = new java.util.EnumMap<>(Direction.class);
+
+    @Override
+    public void onSent(Pattern pattern) {
+        if (level != null) {
+            for (com.xtri6.grimstorage.storage.BulkKey k : pattern.bulkInputs().keySet()) {
+                feeding.put(k, level.getGameTime());
+            }
+        }
+    }
+
+    /** Tops the machine's tanks up with what its jobs need, from the network. */
+    private void feed(StorageNetwork network) {
+        if (feeding.isEmpty() || !(level instanceof net.minecraft.server.level.ServerLevel sl)) {
+            return;
+        }
+        long now = level.getGameTime();
+        feeding.values().removeIf(t -> now - t > FEED_FOR);
+        for (com.xtri6.grimstorage.storage.BulkKey k : feeding.keySet()) {
+            if (k.kind() == com.xtri6.grimstorage.storage.BulkKind.FLUID) {
+                feedFluid(network, k);
+            } else if (k.kind() == com.xtri6.grimstorage.storage.BulkKind.CHEMICAL) {
+                com.xtri6.grimstorage.compat.Compat.Chemicals chem = com.xtri6.grimstorage.compat.Compat.chemicals();
+                if (chem == null) {
+                    continue;
+                }
+                for (Direction d : sidesFaceFirst()) {
+                    com.xtri6.grimstorage.compat.Compat.BulkLink link = chemicalLinks.computeIfAbsent(d,
+                            side -> chem.link(sl, target(), side, () -> !isRemoved(), () -> {}));
+                    if (link.push(network, FEED_PER_CHECK, List.of(k)) > 0) {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    private void feedFluid(StorageNetwork network, com.xtri6.grimstorage.storage.BulkKey k) {
+        for (Direction d : sidesFaceFirst()) {
+            net.neoforged.neoforge.fluids.capability.IFluidHandler h = level.getCapability(Capabilities.FluidHandler.BLOCK, target(), d);
+            if (h == null) {
+                continue;
+            }
+            long have = network.extractBulk(k, FEED_PER_CHECK, true);
+            if (have <= 0) {
+                return;
+            }
+            int fits = h.fill(k.fluid((int) have), net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.SIMULATE);
+            if (fits <= 0) {
+                continue;
+            }
+            long got = network.extractBulk(k, fits, false);
+            int took = h.fill(k.fluid((int) got), net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+            if (took < got) {
+                network.insertBulk(k, got - took, false);
+            }
+            return;
+        }
+    }
+
+    private List<Direction> sidesFaceFirst() {
+        Direction f = facing().getOpposite();
+        List<Direction> order = new ArrayList<>(6);
+        order.add(f);
+        for (Direction d : Direction.values()) {
+            if (d != f) {
+                order.add(d);
+            }
+        }
+        return order;
+    }
+
     private static final boolean MEKANISM = net.neoforged.fml.ModList.get() != null && net.neoforged.fml.ModList.get().isLoaded("mekanism");
     private int sideChecks;
 
@@ -299,7 +378,7 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
     }
 
     /**
-     * Any other machine: its recipe types come from the datapack table (Mekanism, Thermal, Ender IO, Immersive
+     * Any other machine: its recipe types come from the datapack table (Mekanism, Create, Ender IO, Immersive
      * Engineering, Create, Ars Nouveau and more ship with the mod) or a matching name, and each recipe is read by
      * {@link com.xtri6.grimstorage.storage.RecipeReader}.
      */
@@ -331,7 +410,7 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
                     if (in.containsKey(read.output()) || !seen.add(in + ">" + read.output() + "x" + read.outCount())) {
                         continue;
                     }
-                    out.add(Pattern.learned(in, read.output(), read.outCount(), this));
+                    out.add(Pattern.learned(in, read.output(), read.outCount(), this, read.bulk()));
                     if (out.size() >= MAX_LEARNED) {
                         return out;
                     }
@@ -394,6 +473,7 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
         if (fuel) {
             power(network);
         }
+        feed(network);
         if (learn && !learned.isEmpty()) {
             for (IItemHandler side : sideHandlers()) {
                 pullFinished(network, side);

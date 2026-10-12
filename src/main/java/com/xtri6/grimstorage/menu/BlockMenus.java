@@ -200,6 +200,167 @@ public final class BlockMenus {
         }
     }
 
+    // ------------------------------------------------------------------ chest link
+    public static class ChestLink extends AtBlock {
+        public static final int MODE = 0;
+        public static final int FIRST = 1;
+        public final BlockPos pos;
+        private final ContainerData data;
+        @javax.annotation.Nullable
+        private final com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity be;
+
+        public ChestLink(int id, Inventory inv, ContainerData data, BlockPos pos, ContainerLevelAccess access, Block block,
+                         @javax.annotation.Nullable com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity be) {
+            super(Registration.CHEST_LINK_MENU.get(), id, access, block);
+            this.pos = pos;
+            this.data = data;
+            this.be = be;
+            addDataSlots(data);
+        }
+
+        public static ChestLink server(int id, Inventory inv, com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity be) {
+            ContainerData data = new ContainerData() {
+                @Override
+                public int get(int index) {
+                    long[] u = be.usage();
+                    return switch (index) {
+                        case 0 -> be.mode() | (be.fillFirst() ? 4 : 0) | (be.handler() == null ? 8 : 0);
+                        case 1 -> lo((int) Math.min(Integer.MAX_VALUE, u[0]));
+                        case 2 -> hi((int) Math.min(Integer.MAX_VALUE, u[0]));
+                        case 3 -> lo((int) Math.min(Integer.MAX_VALUE, u[1]));
+                        default -> hi((int) Math.min(Integer.MAX_VALUE, u[1]));
+                    };
+                }
+
+                @Override
+                public void set(int index, int value) {}
+
+                @Override
+                public int getCount() {
+                    return 5;
+                }
+            };
+            return new ChestLink(id, inv, data, be.getBlockPos(), ContainerLevelAccess.create(be.getLevel(), be.getBlockPos()),
+                    be.getBlockState().getBlock(), be);
+        }
+
+        public static ChestLink client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
+            return new ChestLink(id, inv, new SimpleContainerData(5), buf.readBlockPos(), ContainerLevelAccess.NULL, null, null);
+        }
+
+        public int mode() {
+            return data.get(0) & 3;
+        }
+
+        public boolean fillFirst() {
+            return (data.get(0) & 4) != 0;
+        }
+
+        public boolean linked() {
+            return (data.get(0) & 8) == 0;
+        }
+
+        public int used() {
+            return join(data.get(1), data.get(2));
+        }
+
+        public int capacity() {
+            return join(data.get(3), data.get(4));
+        }
+
+        @Override
+        public boolean clickMenuButton(Player player, int id) {
+            if (be == null) {
+                return false;
+            }
+            if (id == MODE) {
+                be.cycleMode();
+            } else if (id == FIRST) {
+                be.toggleFillFirst();
+            }
+            return true;
+        }
+    }
+
+    // ------------------------------------------------------------------ redstone emitter
+    public static class Emitter extends AtBlock {
+        public static final int MODE = 0;
+        private final ContainerData data;
+        @javax.annotation.Nullable
+        private final com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity be;
+
+        public Emitter(int id, Inventory inv, GhostContainer filter, ContainerData data, ContainerLevelAccess access, Block block,
+                       @javax.annotation.Nullable com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity be) {
+            super(Registration.EMITTER_MENU.get(), id, access, block);
+            this.data = data;
+            this.be = be;
+            addSlot(new GhostSlot(filter, 0, 26, 24, false));
+            addDataSlots(data);
+            addPlayerInventory(inv, 8, 84);
+        }
+
+        public static Emitter server(int id, Inventory inv, com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity be) {
+            ContainerData data = new ContainerData() {
+                @Override
+                public int get(int index) {
+                    long stored = be.stored();
+                    int st = (int) Math.max(-1, Math.min(Integer.MAX_VALUE, stored));
+                    return switch (index) {
+                        case 0 -> be.mode() | (be.emitting() ? 4 : 0);
+                        case 1 -> lo(be.amount());
+                        case 2 -> hi(be.amount());
+                        case 3 -> lo(st);
+                        default -> hi(st);
+                    };
+                }
+
+                @Override
+                public void set(int index, int value) {}
+
+                @Override
+                public int getCount() {
+                    return 5;
+                }
+            };
+            return new Emitter(id, inv, be.filter(), data, ContainerLevelAccess.create(be.getLevel(), be.getBlockPos()), be.getBlockState().getBlock(), be);
+        }
+
+        public static Emitter client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
+            return new Emitter(id, inv, new GhostContainer(1, false, () -> {}), new SimpleContainerData(5), ContainerLevelAccess.NULL, null, null);
+        }
+
+        public int mode() {
+            return data.get(0) & 3;
+        }
+
+        public boolean emitting() {
+            return (data.get(0) & 4) != 0;
+        }
+
+        public int amount() {
+            return join(data.get(1), data.get(2));
+        }
+
+        public int stored() {
+            return join(data.get(3), data.get(4));
+        }
+
+        public void setAmount(int v) {
+            if (be != null) {
+                be.setAmount(v);
+            }
+        }
+
+        @Override
+        public boolean clickMenuButton(Player player, int id) {
+            if (be != null && id == MODE) {
+                be.cycleMode();
+                return true;
+            }
+            return false;
+        }
+    }
+
     // ------------------------------------------------------------------ filters (void filter, network interface)
     public static class Filter extends AtBlock {
         /** Which block this is, so the screen can show the right hint (void filter or interface). */

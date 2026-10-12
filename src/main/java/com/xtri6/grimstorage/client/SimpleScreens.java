@@ -166,6 +166,25 @@ public final class SimpleScreens {
             super(menu, inv, title, 176, 166);
         }
 
+        private com.xtri6.grimstorage.client.ui.GrimButton variants;
+
+        @Override
+        protected void init() {
+            super.init();
+            variants = addRenderableWidget(new com.xtri6.grimstorage.client.ui.GrimButton(leftPos + 116, topPos + 4, 40, 12, Component.empty(), b -> {
+                if (minecraft != null && minecraft.gameMode != null) {
+                    minecraft.gameMode.handleInventoryButtonClick(menu.containerId, 0);
+                }
+            }));
+            variants.setTooltip(net.minecraft.client.gui.components.Tooltip.create(Component.translatable("gui.grimstorage.card.variants.tooltip")));
+        }
+
+        @Override
+        protected void containerTick() {
+            super.containerTick();
+            variants.setMessage(Component.translatable(menu.exact() ? "gui.grimstorage.card.exact" : "gui.grimstorage.card.any"));
+        }
+
         @Override
         protected void drawExtraBg(GuiGraphics g, int mouseX, int mouseY) {
             Ui.arrow(g, t(), leftPos + 92, topPos + 38, menu.getSlot(9).hasItem() ? 1 : 0, false);

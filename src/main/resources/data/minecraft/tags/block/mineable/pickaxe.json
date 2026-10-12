@@ -21,6 +21,8 @@
     "grimstorage:soul_infuser",
     "grimstorage:import_bus",
     "grimstorage:export_bus",
-    "grimstorage:machine_bus"
+    "grimstorage:machine_bus",
+    "grimstorage:chest_link",
+    "grimstorage:redstone_emitter"
   ]
 }

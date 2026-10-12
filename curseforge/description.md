@@ -9,7 +9,13 @@
 - **One network for everything:** items, fluids, energy (FE), experience, Mekanism chemicals and Ars Nouveau Source.
 - **No limits to learn:** cells count items, not types. No channels, no cable rules, no network size cap.
 - **Full autocrafting:** whole crafting trees, sub-recipes, machine steps from any mod, and a clear list of anything missing.
-- **Machine Bus:** clip it onto a furnace or a machine from Mekanism, Thermal, Ender IO, Immersive Engineering, Create, Ars Nouveau and more, and the network learns every recipe it can make. It keeps the machine fuelled or powered, takes back every output, and shares big jobs across all your machines. No cards needed.
+- **Machine Bus:** clip it onto a furnace or a machine from Mekanism, Create, Ender IO, Ars Nouveau, Immersive Engineering and more, and the network learns every recipe it can make, fluids and chemicals included. It keeps the machine fuelled, powered and topped up, takes back every output, and shares big jobs across all your machines. No cards needed.
+- **Craft preview:** see every step, what it uses and what's missing before you order, and get a pop-up when it's done.
+- **Any planks will do:** Recipe Cards accept any variant the recipe takes.
+- **Chest Link:** make any chest, barrel or drawer part of your storage.
+- **Redstone Emitter:** a signal when you have enough (or too little) of something, or craft on redstone.
+- **Server-ready:** networks belong to the player who built them; trust friends by name.
+- **JEI, EMI and REI:** the + button, drag and drop, and search sync work with all three.
 - **Import and Export Buses** that clip onto cable, with filters, and pipes from any mod can plug into them.
 - **A terminal you'll actually like:** an Everything tab that shows every item and resource in one list, search, `@mod` search, category tabs, a Craftable tab, a Crafting jobs tab that shows every step as it runs, Shift to keep everything in place while you take, search shared with JEI, a size that fits your screen (or Tall and Taller), a built-in crafting grid that refills itself, and dark mode by default.
 - **Soul Wrench:** cut or rejoin cable connections, take buses off cable, turn machines, and pick up your blocks.
@@ -54,7 +60,7 @@ The **Grim Storage Guide** you get when you first join explains every block and 
 
 - **Recipe Cards:** click items into the grid to teach the network a recipe, then put the card in a **Soul Assembler**. Speed Upgrades double its speed, up to 16x.
 - **No items needed to write cards:** press JEI's **+** on any recipe and the card is written, crafting or any mod's machine. Drag items from JEI onto any card or filter slot. JEI's + in the terminal fills the crafting grid from storage, and the pencil button writes it onto a card.
-- **Machine Bus:** clip it onto a furnace, blast furnace or smoker, or a machine from **Mekanism, Thermal, Ender IO, Immersive Engineering, Create, Ars Nouveau, Powah, Modern Industrialization, Oritech or Actually Additions**, and it learns every recipe that machine can make. No cards at all. It keeps furnaces fuelled and machines powered from your network, takes back every output (extras like sawdust too), opens Mekanism machine sides by itself, and several machines share one big job. Pack makers can add any machine with a datapack file.
+- **Machine Bus:** clip it onto a furnace, blast furnace or smoker, or a machine from **Mekanism, Create, Ender IO, Ars Nouveau, Immersive Engineering, Powah, Modern Industrialization, Oritech or Actually Additions**, and it learns every recipe that machine can make, even ones that need a fluid or chemical. No cards at all. It keeps furnaces fuelled, machines powered and tanks filled from your network, takes back every output (extras like sawdust too), opens Mekanism machine sides by itself, and several machines share one big job. Pack makers can add any machine with a datapack file.
 - **Processing Cards** in a **Machine Bus** or **Processing Interface** run machines from **any mod** as steps in a craft.
 - When something can be made more than one way, the network picks the way you have ingredients for.
 - **Stock Keeper:** "always keep 500 of this", and it crafts to keep it topped up.
@@ -81,7 +87,7 @@ The **Grim Storage Guide** you get when you first join explains every block and 
 <img src="https://raw.githubusercontent.com/PCPx00/grim-storage-industries/main/media/section-compat.gif" alt="Compatibility" width="1200">
 
 - **Requires:** NeoForge for Minecraft 1.21.1.
-- **Optional:** JEI (Soul Infuser recipes get their own page), Mekanism (chemical storage), Ars Nouveau (Source storage). Without them, nothing breaks. The extra cells are just hidden.
+- **Optional:** JEI, EMI or REI (recipe + button, drag and drop, shared search; Soul Infuser recipes get their own JEI page), Mekanism (chemical storage), Ars Nouveau (Source storage). Without them, nothing breaks. The extra cells are just hidden.
 - **Any pipe mod** that uses standard NeoForge capabilities works with the buses and the Network Interface.
 - **Pack makers:** every recipe, loot table and ore feature is a datapack file, the guide text can be replaced with a resource pack, and the first-join book can be turned off in the config.
 

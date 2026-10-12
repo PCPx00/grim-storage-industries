@@ -29,6 +29,8 @@ public class ControllerMenu extends BlockMenus.AtBlock {
     private int ticks;
 
     public Payloads.ControllerStatus clientStatus;
+    @Nullable
+    public Payloads.AccessInfo clientAccess;
 
     public ControllerMenu(int id, Inventory inv, @Nullable ControllerBlockEntity controller, ContainerLevelAccess access) {
         super(Registration.CONTROLLER_MENU.get(), id, access, controller == null ? null : controller.getBlockState().getBlock());
@@ -81,6 +83,40 @@ public class ControllerMenu extends BlockMenus.AtBlock {
         Payloads.ControllerStatus status = new Payloads.ControllerStatus(containerId, active, problem, stats[0], stats[1], stats[3],
                 types, (int) stats[2], drives, members, jobs, bulk);
         PacketDistributor.sendToPlayer(sp, status);
+        PacketDistributor.sendToPlayer(sp, new Payloads.AccessInfo(containerId, controller.owner() == null ? "" : controller.ownerName(),
+                controller.canManage(sp), controller.isOpen(), new ArrayList<>(controller.trusted().values())));
+    }
+
+    /** Owner (or operator) only; anyone may claim a network nobody owns. */
+    public void editAccess(ServerPlayer sp, int action, String name) {
+        if (controller == null || !controller.canManage(sp)) {
+            return;
+        }
+        switch (action) {
+            case Payloads.AccessEdit.CLAIM -> {
+                if (controller.owner() == null) {
+                    controller.setOwner(sp);
+                }
+            }
+            case Payloads.AccessEdit.TOGGLE_OPEN -> controller.toggleOpen();
+            case Payloads.AccessEdit.UNTRUST -> controller.untrust(name);
+            case Payloads.AccessEdit.TRUST -> {
+                net.minecraft.server.MinecraftServer server = sp.server;
+                ServerPlayer online = server.getPlayerList().getPlayerByName(name);
+                java.util.Optional<com.mojang.authlib.GameProfile> profile = online != null ? java.util.Optional.of(online.getGameProfile())
+                        : server.getProfileCache() == null ? java.util.Optional.empty() : server.getProfileCache().get(name);
+                if (profile.isPresent()) {
+                    controller.trust(profile.get().getId(), profile.get().getName());
+                    sp.displayClientMessage(Component.translatable("message.grimstorage.access.trusted", profile.get().getName()), true);
+                } else {
+                    sp.displayClientMessage(Component.translatable("message.grimstorage.access.unknown", name)
+                            .withStyle(net.minecraft.ChatFormatting.RED), true);
+                }
+            }
+            default -> {
+            }
+        }
+        ticks = 0;
     }
 
     @Override

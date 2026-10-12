@@ -137,6 +137,14 @@
             "- **Sneak-click** any Grim Storage block to pick it up."
           ],
           "recipe": "grimstorage:soul_wrench"
+        },
+        {
+          "title": "Who can use it",
+          "text": [
+            "The player who places a **Network Controller** owns the network. Nobody else can open its blocks, use a wireless terminal on it, or break or add its blocks.",
+            "Open the controller and click the **key** to trust other players by name, or to open the network to everyone.",
+            "A network nobody owns (built before this, or placed by a machine) is open, and anyone can **claim** it there. Server operators can always get in."
+          ]
         }
       ]
     },
@@ -166,7 +174,7 @@
           "title": "Finding things",
           "text": [
             "Type in the search box to filter. Start with `@` to search by mod, for example `@mekanism`. Right-click the box to clear it.",
-            "The button next to it changes the sort: by amount, by name or by mod.",
+            "The button next to it changes the sort: by amount, by name, by mod or **recently added**. **Alt-click** an item to **pin** it to the top.",
             "The **tabs on the left** filter by type: ores, ingots, weapons and tools, armor, food, mob drops, farming, building blocks and misc. The last one, **Craftable**, shows only what your network can craft."
           ]
         },
@@ -352,10 +360,17 @@
           "recipe": "grimstorage:recipe_card"
         },
         {
-          "title": "Cards from JEI",
+          "title": "Any planks will do",
+          "text": [
+            "A Recipe Card uses **any variant** the recipe takes. A chest card made with oak planks also crafts from birch, spruce or any other planks you have.",
+            "The **Any / Exact** button at the top of the card switches this off, for when it must be exactly the items on the card."
+          ]
+        },
+        {
+          "title": "Cards from JEI or EMI",
           "text": [
             "You don't need the items to write a card.",
-            "- Open the card, then find the recipe in **JEI** and press its **+** button. The card is written.",
+            "- Open the card, then find the recipe in **JEI, EMI or REI** and press its **+** button. The card is written.",
             "- Or **drag** items from JEI's list onto the card's slots. This works on every filter slot too.",
             "- **Processing Cards** take the + button on a recipe of **any mod**: what goes in and what comes out are both filled in.",
             "- In the terminal, the **pencil** next to the crafting grid writes the grid's recipe on a Recipe Card you carry."
@@ -380,7 +395,9 @@
             "- Items with **0 stored** show **Craft**. Just click them.",
             "- To craft more of something you already have, **ctrl-click** or **middle-click** it.",
             "- Watch or cancel jobs in the **Network Controller**.",
-            "If storage is full, the job pauses and says so."
+            "If storage is full, the job pauses and says so.",
+            "Before it starts, the order window shows the **whole plan**: every step and what makes it, what it takes from storage, anything **missing** in red, and about how long it will take.",
+            "When a craft you ordered finishes (or has been stuck for a minute), a **pop-up** in the corner tells you, wherever you are."
           ]
         }
       ]
@@ -427,15 +444,16 @@
         {
           "title": "Modded machines",
           "text": [
-            "The Machine Bus learns recipes from **Mekanism** (Enrichment Chamber, Crusher, Precision Sawmill, Combiner, Energized Smelter and their factories), **Thermal**, **Ender IO**, **Immersive Engineering**, **Create** (Millstone), **Ars Nouveau** (Imbuement Chamber), **Powah**, **Modern Industrialization**, **Oritech** and **Actually Additions**.",
+            "The Machine Bus learns recipes from **Mekanism** (all its item machines and factories, the Purification Chamber and Osmium Compressor too), **Create** (Millstone), **Ender IO** (SAG Mill, Alloy Smelter), **Ars Nouveau** (Imbuement Chamber), **Immersive Engineering**, **Powah**, **Modern Industrialization**, **Oritech** and **Actually Additions**.",
             "Other mods' machines often work too when the machine's name matches its recipes (a crusher crushes).",
-            "On Mekanism machines it opens the side it touches for items and power by itself. No Configurator needed."
+            "On Mekanism machines it opens the side it touches by itself. No Configurator needed."
           ]
         },
         {
           "title": "Good to know",
           "text": [
-            "- Only **item recipes** are learned. A recipe that also needs a fluid or a chemical is left out, so a job never waits on something the bus can't give.",
+            "- Recipes that need a **fluid or a chemical** work too: the bus keeps the machine's tank topped up from your network (oxygen for a Purification Chamber, say).",
+            "- Machines that need a part to run (an Ender IO capacitor, a Create motor) still need it.",
             "- **Pack makers:** add any machine in a datapack: `data/<pack>/grimstorage_machines/<name>.json` with `\"machines\"` and `\"recipe_types\"` lists.",
             "- Need something special? A **Processing Card** in the bus still works for any machine."
           ]
@@ -487,6 +505,22 @@
             "Works with Grim Pipe Industries and other pipe mods. For no pipes at all, use an Import or Export Bus."
           ],
           "recipe": "grimstorage:network_interface"
+        },
+        {
+          "title": "Chest Link",
+          "text": [
+            "The **Chest Link** clips onto a chest, barrel, drawer or any inventory and makes it part of your storage. Its items show in the terminal, crafts use them, and new items can go in.",
+            "In its screen: **in and out**, **only put in** or **only take out**, and whether it fills up **before your cells**."
+          ],
+          "recipe": "grimstorage:chest_link"
+        },
+        {
+          "title": "Redstone Emitter",
+          "text": [
+            "Pick an item and an amount. The **Redstone Emitter** gives a redstone signal when the network has **at least** that many, or **fewer** (switch a mob farm off at 10,000 bones).",
+            "Set to **Craft while powered**, it does the opposite: while it gets a redstone signal, it crafts the item up to that amount."
+          ],
+          "recipe": "grimstorage:redstone_emitter"
         }
       ]
     },

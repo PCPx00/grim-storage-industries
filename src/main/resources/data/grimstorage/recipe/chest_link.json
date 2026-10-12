@@ -1,0 +1,27 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "pattern": [
+    " C ",
+    "IXI",
+    " S "
+  ],
+  "key": {
+    "C": {
+      "tag": "c:chests"
+    },
+    "I": {
+      "item": "grimstorage:import_bus"
+    },
+    "X": {
+      "tag": "c:ingots/soulite"
+    },
+    "S": {
+      "item": "grimstorage:soul_cable"
+    }
+  },
+  "result": {
+    "count": 1,
+    "id": "grimstorage:chest_link"
+  }
+}

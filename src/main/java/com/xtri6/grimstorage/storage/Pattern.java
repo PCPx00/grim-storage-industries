@@ -38,6 +38,8 @@ public final class Pattern {
     private int nextMachine;
     /** Learned from a machine rather than written on a card. */
     private final boolean learned;
+    /** Fluids and chemicals the machine also needs (learned machine recipes only). */
+    private Map<BulkKey, Long> bulkInputs = Map.of();
 
     private Pattern(Kind kind, Map<ItemKey, Long> inputs, Map<ItemKey, Long> outputs, List<ItemStack> grid,
                     @Nullable RecipeHolder<CraftingRecipe> recipe, @Nullable MachineLink processor, boolean learned) {
@@ -84,6 +86,79 @@ public final class Pattern {
         return new Pattern(Kind.CRAFTING, in, outs, List.copyOf(grid), found.get(), null, false);
     }
 
+    /** Most variants one card turns into ("any planks" is up to this many patterns). */
+    private static final int MAX_VARIANTS = 24;
+
+    /**
+     * A Recipe Card and, unless it is set to exact items, the same recipe with other items the recipe also accepts
+     * (birch planks where the card shows oak). The card's own items come first. Each variant is a pattern of its
+     * own, so the planner simply uses whichever one you have the items for.
+     */
+    public static List<Pattern> craftingVariants(Level level, ItemStack card) {
+        Pattern base = crafting(level, card);
+        if (base == null) {
+            return List.of();
+        }
+        List<Pattern> out = new ArrayList<>();
+        out.add(base);
+        if (Boolean.TRUE.equals(card.get(Registration.RECIPE_EXACT.get()))) {
+            return out;
+        }
+        CraftingRecipe recipe = base.recipe.value();
+        // the card item with the most stand-ins is the one to swap (all of its slots at once, so the recipe still matches)
+        ItemKey swap = null;
+        List<ItemStack> options = List.of();
+        for (ItemKey k : base.inputs.keySet()) {
+            for (net.minecraft.world.item.crafting.Ingredient ing : recipe.getIngredients()) {
+                if (!ing.isEmpty() && ing.test(k.stack())) {
+                    ItemStack[] items = ing.getItems();
+                    if (items.length > options.size()) {
+                        swap = k;
+                        options = java.util.Arrays.asList(items);
+                    }
+                    break;
+                }
+            }
+        }
+        if (swap == null || options.size() <= 1) {
+            return out;
+        }
+        java.util.Set<ItemKey> seen = new java.util.HashSet<>();
+        seen.add(swap);
+        for (ItemStack opt : options) {
+            ItemKey ok = ItemKey.of(opt);
+            if (ok == null || !seen.add(ok)) {
+                continue;
+            }
+            List<ItemStack> grid = new ArrayList<>(9);
+            for (ItemStack s : base.grid) {
+                grid.add(!s.isEmpty() && swap.equals(ItemKey.of(s)) ? ok.toStack(1) : s.copy());
+            }
+            CraftingInput input = CraftingInput.of(3, 3, grid);
+            if (!recipe.matches(input, level)) {
+                continue;
+            }
+            ItemStack result = recipe.assemble(input, level.registryAccess());
+            if (!result.is(base.primary().item())) {
+                continue;
+            }
+            Map<ItemKey, Long> in = new LinkedHashMap<>();
+            for (ItemStack s : grid) {
+                ItemKey k = ItemKey.of(s);
+                if (k != null) {
+                    in.merge(k, 1L, Long::sum);
+                }
+            }
+            Map<ItemKey, Long> outs = new LinkedHashMap<>();
+            outs.put(base.primary(), (long) result.getCount());
+            out.add(new Pattern(Kind.CRAFTING, in, outs, List.copyOf(grid), base.recipe, null, false));
+            if (out.size() >= MAX_VARIANTS) {
+                break;
+            }
+        }
+        return out;
+    }
+
     @Nullable
     public static Pattern processing(ItemStack card, MachineLink processor) {
         CardData.Processing data = card.get(Registration.PROCESSING_CARD_DATA.get());
@@ -121,9 +196,20 @@ public final class Pattern {
 
     /** A machine recipe a Machine Bus learned, with any number of inputs. */
     public static Pattern learned(Map<ItemKey, Long> inputs, ItemKey output, long outCount, MachineLink machine) {
+        return learned(inputs, output, outCount, machine, Map.of());
+    }
+
+    /** The same, also needing fluids or chemicals the network feeds the machine. */
+    public static Pattern learned(Map<ItemKey, Long> inputs, ItemKey output, long outCount, MachineLink machine, Map<BulkKey, Long> bulk) {
         Map<ItemKey, Long> outs = new LinkedHashMap<>();
         outs.put(output, outCount);
-        return new Pattern(Kind.PROCESSING, new LinkedHashMap<>(inputs), outs, List.of(), null, machine, true);
+        Pattern p = new Pattern(Kind.PROCESSING, new LinkedHashMap<>(inputs), outs, List.of(), null, machine, true);
+        p.bulkInputs = bulk.isEmpty() ? Map.of() : Collections.unmodifiableMap(new LinkedHashMap<>(bulk));
+        return p;
+    }
+
+    public Map<BulkKey, Long> bulkInputs() {
+        return bulkInputs;
     }
 
     public boolean learned() {
@@ -132,7 +218,7 @@ public final class Pattern {
 
     /** Same kind, same ingredients, same results: two machines offering this can share the work. */
     public boolean sameRecipe(Pattern o) {
-        return kind == o.kind && inputs.equals(o.inputs) && outputs.equals(o.outputs);
+        return kind == o.kind && inputs.equals(o.inputs) && outputs.equals(o.outputs) && bulkInputs.equals(o.bulkInputs);
     }
 
     public void addMachines(Pattern o) {

@@ -81,5 +81,7 @@ public class RecipeCardItem extends Item {
             }
         }
         counts.forEach((k, n) -> tooltip.add(Component.literal("  " + n + "x ").append(k.stack().getHoverName()).withStyle(ChatFormatting.GRAY)));
+        tooltip.add(Component.translatable(Boolean.TRUE.equals(stack.get(Registration.RECIPE_EXACT.get()))
+                ? "tooltip.grimstorage.card.exact" : "tooltip.grimstorage.card.any").withStyle(ChatFormatting.DARK_AQUA));
     }
 }

@@ -38,6 +38,16 @@ repositories {
         url = 'https://maven.blamejared.com'
         content { includeGroup 'com.hollingsworth.ars_nouveau'; includeGroup 'mezz.jei'; includeGroupByRegex 'net[.]mezzdev.*' }
     }
+    maven {
+        name = 'TerraformersMC'
+        url = 'https://maven.terraformersmc.com/'
+        content { includeGroup 'dev.emi' }
+    }
+    maven {
+        name = 'Shedaniel'
+        url = 'https://maven.shedaniel.me/'
+        content { includeGroup 'me.shedaniel'; includeGroup 'me.shedaniel.cloth'; includeGroup 'dev.architectury' }
+    }
 }
 
 base {
@@ -99,6 +109,10 @@ neoForge {
             gameDirectory = project.file('run-shots')
             programArguments.addAll '--quickPlaySingleplayer', 'syscheck', '--width', '1280', '--height', '720'
             systemProperty 'grimstorage.shots', 'true'
+            systemProperty 'grimstorage.emi', project.hasProperty('withEmi') ? 'true' : 'false'
+            if (project.hasProperty('only')) {
+                systemProperty 'grimstorage.only', project.property('only')
+            }
         }
 
         gameTestServer {
@@ -156,7 +170,16 @@ dependencies {
     // Ars Nouveau Source (optional), API only.
     compileOnly "mezz.jei:jei-${minecraft_version}-common-api:${jei_version}"
     compileOnly "mezz.jei:jei-${minecraft_version}-neoforge-api:${jei_version}"
-    localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    // dev runs use JEI; -PwithEmi swaps it for EMI to test the EMI plugin
+    if (project.hasProperty('withEmi')) {
+        localRuntime "dev.emi:emi-neoforge:${emi_version}"
+    } else {
+        localRuntime "mezz.jei:jei-${minecraft_version}-neoforge:${jei_version}"
+    }
+    // EMI and REI (optional), API only: the same JEI features (recipe +, drag and drop, search sync) for packs using them.
+    compileOnly "dev.emi:emi-neoforge:${emi_version}:api"
+    compileOnly "me.shedaniel:RoughlyEnoughItems-api-neoforge:${rei_version}"
+    compileOnly "me.shedaniel.cloth:basic-math:0.6.1"
     // Dev runs only: any mod jars dropped in libs-dev/ (for example Grim Pipe Industries, to test real pipes on the buses).
     localRuntime fileTree(dir: 'libs-dev', include: '*.jar')
     compileOnly("com.hollingsworth.ars_nouveau:ars_nouveau-1.21.1:${ars_version}") { transitive = false }

@@ -10,7 +10,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 
 /**
  * Mekanism machines start with every side switched off. A Machine Bus clipped onto one opens the side it touches
- * for items (in and out) and power, like a player would with a Configurator, so it works straight away. Sides a
+ * for items (in and out), power, and chemicals and fluids going in, like a player would with a Configurator, so it works straight away. Sides a
  * player already set are left as they are. Mekanism keeps these settings out of its API, so this is done with
  * care through reflection and simply does nothing if Mekanism changes them.
  */
@@ -31,6 +31,8 @@ public final class MekanismSides {
             RelativeSide side = RelativeSide.fromDirections(front, touched);
             boolean changed = set(config, "ITEM", side, "INPUT_OUTPUT", "INPUT");
             changed |= set(config, "ENERGY", side, "INPUT");
+            changed |= set(config, "CHEMICAL", side, "INPUT", "INPUT_1");
+            changed |= set(config, "FLUID", side, "INPUT", "INPUT_1");
             if (changed) {
                 be.setChanged();
                 level.invalidateCapabilities(pos);

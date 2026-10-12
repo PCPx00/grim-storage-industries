@@ -59,6 +59,11 @@ public final class StorageNetwork {
 
     private final Set<GlobalPos> members = new HashSet<>();
     private final List<DriveBlockEntity> drives = new ArrayList<>();
+    /** Chests (and any other inventory) linked into storage by Chest Links. */
+    private final List<com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity> links = new ArrayList<>();
+    private Map<ItemKey, Long> linkSnapshot = Map.of();
+    private long linkRevision;
+    private long linkEpoch = -1;
     private final List<AssemblerBlockEntity> assemblers = new ArrayList<>();
     private final List<MachineLink> processors = new ArrayList<>();
     private final List<StockKeeperBlockEntity> keepers = new ArrayList<>();
@@ -74,6 +79,42 @@ public final class StorageNetwork {
     private long cacheVersion = -1;
     private long cacheEpoch = -1;
     private long statsVersion = -1;
+
+    /** Crafts the Soul Assemblers manage per second, all together. */
+    public double craftsPerSecond() {
+        long speed = 0;
+        for (AssemblerBlockEntity a : assemblers) {
+            if (!a.isRemoved()) {
+                speed += a.speed();
+            }
+        }
+        return speed * 20.0 / CRAFT_COST;
+    }
+
+    /** Tells the player who ordered a job that it is done (or stuck), with a toast. */
+    private void alert(CraftingJob job, boolean done) {
+        if (server == null) {
+            return;
+        }
+        net.minecraft.server.level.ServerPlayer p = server.getPlayerList().getPlayerByName(job.source());
+        if (p != null) {
+            net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(p, new com.xtri6.grimstorage.net.Payloads.CraftAlert(
+                    job.target().toStack(1), job.amount(), done, done ? Component.empty() : job.status()));
+        }
+    }
+
+    /** Whether this player may use the network (see {@link NetworkAccess}). */
+    public boolean allows(net.minecraft.world.entity.player.Player player) {
+        return controller.allows(player);
+    }
+
+    public String ownerName() {
+        return controller.ownerName();
+    }
+
+    public ControllerBlockEntity controller() {
+        return controller;
+    }
 
     public StorageNetwork(ControllerBlockEntity controller) {
         this.controller = controller;
@@ -125,6 +166,7 @@ public final class StorageNetwork {
         processors.clear();
         keepers.clear();
         voids.clear();
+        links.clear();
 
         int controllers = 0;
         record Node(ServerLevel level, BlockPos pos) {}
@@ -155,6 +197,8 @@ public final class StorageNetwork {
                 keepers.add(k);
             } else if (be instanceof VoidFilterBlockEntity v) {
                 voids.add(v);
+            } else if (be instanceof com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity c) {
+                links.add(c);
             } else if (be instanceof QuantumLinkBlockEntity q) {
                 GlobalPos partner = q.linkedPartner(server);
                 if (partner != null && seen.add(partner)) {
@@ -187,8 +231,7 @@ public final class StorageNetwork {
         Map<ItemKey, List<Pattern>> map = new HashMap<>();
         for (AssemblerBlockEntity a : assemblers) {
             for (ItemStack card : a.cards()) {
-                Pattern p = Pattern.crafting(a.getLevel(), card);
-                if (p != null) {
+                for (Pattern p : Pattern.craftingVariants(a.getLevel(), card)) {
                     map.computeIfAbsent(p.primary(), k -> new ArrayList<>()).add(p);
                 }
             }
@@ -272,6 +315,19 @@ public final class StorageNetwork {
         return out;
     }
 
+    /** When each item last came in (network ticks), for the terminal's "recently added" sort. */
+    private final java.util.LinkedHashMap<ItemKey, Long> added = new java.util.LinkedHashMap<>(256, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(Map.Entry<ItemKey, Long> e) {
+            return size() > 4096;
+        }
+    };
+
+    public long lastAdded(ItemKey key) {
+        Long t = added.get(key);
+        return t == null ? 0 : t;
+    }
+
     /** Puts items in. Returns how many were accepted. */
     public long insert(@Nullable ItemKey key, long amount, boolean simulate) {
         if (!isActive() || key == null || amount <= 0) {
@@ -284,15 +340,22 @@ public final class StorageNetwork {
                 left -= c.contents().insert(key, left, c.tier().capacity(), simulate);
             }
         }
+        left -= insertLinks(key, left, simulate, true, true);
+        left -= insertLinks(key, left, simulate, true, false);
         for (CellRef c : cells) {
             if (left > 0 && !c.tier().singular() && c.contents().count(key) > 0) {
                 left -= c.contents().insert(key, left, c.tier().capacity(), simulate);
             }
         }
+        left -= insertLinks(key, left, simulate, false, true);
         for (CellRef c : cells) {
             if (left > 0 && !c.tier().singular()) {
                 left -= c.contents().insert(key, left, c.tier().capacity(), simulate);
             }
+        }
+        left -= insertLinks(key, left, simulate, false, false);
+        if (!simulate && left < amount) {
+            added.put(key, tickCount + 1);
         }
         if (left > 0) {
             for (VoidFilterBlockEntity v : voids) {
@@ -303,6 +366,40 @@ public final class StorageNetwork {
             }
         }
         return amount - left;
+    }
+
+    /** Chest Links set to fill first (or the rest), where the item already is (or anywhere). */
+    private long insertLinks(ItemKey key, long amount, boolean simulate, boolean firstOnes, boolean onlyIfPresent) {
+        long done = 0;
+        for (com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity l : links) {
+            if (amount - done <= 0) {
+                break;
+            }
+            if (l.fillFirst() == firstOnes) {
+                done += l.insert(key, amount - done, simulate, onlyIfPresent);
+            }
+        }
+        if (done > 0 && !simulate) {
+            refreshLinks();
+        }
+        return done;
+    }
+
+    /** Looks inside every linked inventory again (they can change behind our back: hoppers, players). */
+    private void refreshLinks() {
+        Map<ItemKey, Long> map = new HashMap<>();
+        for (com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity l : links) {
+            l.snapshot().forEach((k, v) -> map.merge(k, v, Long::sum));
+        }
+        if (!map.equals(linkSnapshot)) {
+            linkSnapshot = map;
+            linkRevision++;
+        }
+    }
+
+    /** Changes whenever anything stored changes, cells or linked chests. */
+    public long contentVersion() {
+        return CellStorage.version() * 1_000_003L + linkRevision;
     }
 
     public long insert(ItemStack stack, boolean simulate) {
@@ -321,6 +418,17 @@ public final class StorageNetwork {
                 left -= c.contents().extract(key, left, simulate);
             }
         }
+        long fromLinks = 0;
+        for (com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity l : links) {
+            if (left - fromLinks <= 0) {
+                break;
+            }
+            fromLinks += l.extract(key, left - fromLinks, simulate);
+        }
+        left -= fromLinks;
+        if (fromLinks > 0 && !simulate) {
+            refreshLinks();
+        }
         for (CellRef c : cells) {
             if (left > 0 && c.tier().singular()) {
                 left -= c.contents().extract(key, left, simulate);
@@ -335,13 +443,14 @@ public final class StorageNetwork {
 
     /** Everything stored, merged across cells. Cached until something changes. */
     public Map<ItemKey, Long> contents() {
-        long version = CellStorage.version();
+        long version = contentVersion();
         if (version != cacheVersion || builtEpoch != cacheEpoch) {
             Map<ItemKey, Long> map = new HashMap<>();
             if (isActive()) {
                 for (CellRef c : cells()) {
                     c.contents().view().forEach((k, v) -> map.merge(k, v, Long::sum));
                 }
+                linkSnapshot.forEach((k, v) -> map.merge(k, v, Long::sum));
             }
             cache = Collections.unmodifiableMap(map);
             cacheVersion = version;
@@ -361,6 +470,11 @@ public final class StorageNetwork {
                 cap += c.tier().capacity();
             }
             count++;
+        }
+        for (com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity l : links) {
+            long[] u = l.usage();
+            used += u[0];
+            cap += u[1];
         }
         return new long[] {used, cap, count, singular};
     }
@@ -566,7 +680,13 @@ public final class StorageNetwork {
                 return Component.translatable("gui.grimstorage.job.waiting", in.getKey().stack().getHoverName());
             }
         }
+        for (Map.Entry<BulkKey, Long> in : pattern.bulkInputs().entrySet()) {
+            if (countBulk(in.getKey()) <= 0) {
+                return Component.translatable("gui.grimstorage.job.waiting", in.getKey().name());
+            }
+        }
         // the first machine (taking turns) that has room for every ingredient
+        MachineLink chosen = null;
         IItemHandler machine = null;
         boolean any = false;
         for (MachineLink link : pattern.machinesInTurn()) {
@@ -588,6 +708,7 @@ public final class StorageNetwork {
             }
             if (fits) {
                 machine = h;
+                chosen = link;
                 pattern.usedMachine(link);
                 break;
             }
@@ -599,6 +720,9 @@ public final class StorageNetwork {
             long got = extract(in.getKey(), in.getValue(), false);
             ItemStack rest = ItemHandlerHelper.insertItemStacked(machine, in.getKey().toStack((int) got), false);
             insertOrBuffer(rest);
+        }
+        if (!pattern.bulkInputs().isEmpty()) {
+            chosen.onSent(pattern);
         }
         return null;
     }
@@ -621,6 +745,10 @@ public final class StorageNetwork {
             return;
         }
         tickCount++;
+        if (!links.isEmpty() && (tickCount % 10 == 0 || builtEpoch != linkEpoch)) {
+            linkEpoch = builtEpoch;
+            refreshLinks();
+        }
 
         if (!overflow.isEmpty()) {
             Iterator<ItemStack> it = overflow.iterator();
@@ -650,6 +778,11 @@ public final class StorageNetwork {
             job.tick(this);
             if (job.finished()) {
                 it.remove();
+                if (!job.cancelled()) {
+                    alert(job, true);
+                }
+            } else if (job.shouldWarnStuck()) {
+                alert(job, false);
             }
         }
 
