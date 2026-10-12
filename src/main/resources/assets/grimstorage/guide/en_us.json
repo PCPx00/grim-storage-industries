@@ -460,7 +460,7 @@
         {
           "title": "Good to know",
           "text": [
-            "- Recipes that need a **fluid or a chemical** work too: the bus fills the machine's tanks from your network (oxygen for a Purification Chamber, say).",
+            "- Recipes that need a **fluid or a chemical** work too: the bus fills the machine's tanks from your network. Mekanism chemicals that come from items (**redstone dust** for infusing) are sent as those items.",
             "- Machines that need a part to run (an Ender IO capacitor, a Create motor) still need it.",
             "- **Pack makers:** add any machine in a datapack: `data/<pack>/grimstorage_machines/<name>.json` with `\"machines\"` and `\"recipe_types\"` lists.",
             "- Need something special? A **Processing Card** in the bus still works for any machine."

@@ -564,44 +564,56 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
             @SuppressWarnings({"unchecked", "rawtypes"})
             List<RecipeHolder<?>> recipes = (List) level.getRecipeManager().getAllRecipesFor((RecipeType) type);
             for (RecipeHolder<?> holder : recipes) {
-                com.xtri6.grimstorage.storage.RecipeReader.Read read =
+                com.xtri6.grimstorage.storage.RecipeReader.Read first =
                         com.xtri6.grimstorage.storage.RecipeReader.read(holder.value(), level.registryAccess());
-                if (read == null || !read.usable()) {
+                if (first == null || !first.usable()) {
                     continue;
                 }
-                java.util.Map<ItemKey, Long> outs = new java.util.LinkedHashMap<>();
-                if (read.output() != null) {
-                    outs.put(read.output(), read.outCount());
-                }
-                if (read.inputs().isEmpty()) {
-                    // only fluids and chemicals go in (a Chemical Washer): one pattern
-                    if (seen.add(read.bulk() + ">" + outs + read.bulkOut())) {
-                        out.add(Pattern.learned(java.util.Map.of(), outs, read.bulk(), read.bulkOut(), this));
-                    }
-                    if (out.size() >= MAX_LEARNED) {
-                        return out;
-                    }
-                    continue;
-                }
-                // one pattern per choice of the ingredient with the most choices ("any log"), the rest take their first
-                int vary = 0;
-                for (int i = 1; i < read.inputs().size(); i++) {
-                    if (read.inputs().get(i).options().size() > read.inputs().get(vary).options().size()) {
-                        vary = i;
+                // Mekanism: a chemical the machine turns items into (redstone dust into redstone infuse) can also be
+                // given as those items. That way comes first, so a missing ingredient shows as the item you'd add.
+                List<com.xtri6.grimstorage.storage.RecipeReader.Read> reads = new ArrayList<>(2);
+                if (MEKANISM) {
+                    com.xtri6.grimstorage.storage.RecipeReader.Read items = com.xtri6.grimstorage.compat.MekanismRecipeReader.withItems(first, level);
+                    if (items != null) {
+                        reads.add(items);
                     }
                 }
-                for (ItemKey choice : read.inputs().get(vary).options()) {
-                    java.util.Map<ItemKey, Long> in = new java.util.LinkedHashMap<>();
-                    for (int i = 0; i < read.inputs().size(); i++) {
-                        com.xtri6.grimstorage.storage.RecipeReader.Input input = read.inputs().get(i);
-                        in.merge(i == vary ? choice : input.options().get(0), input.count(), Long::sum);
+                reads.add(first);
+                for (com.xtri6.grimstorage.storage.RecipeReader.Read read : reads) {
+                    java.util.Map<ItemKey, Long> outs = new java.util.LinkedHashMap<>();
+                    if (read.output() != null) {
+                        outs.put(read.output(), read.outCount());
                     }
-                    if ((read.output() != null && in.containsKey(read.output())) || !seen.add(in + ">" + outs + read.bulkOut())) {
+                    if (read.inputs().isEmpty()) {
+                        // only fluids and chemicals go in (a Chemical Washer): one pattern
+                        if (seen.add(read.bulk() + ">" + outs + read.bulkOut())) {
+                            out.add(Pattern.learned(java.util.Map.of(), outs, read.bulk(), read.bulkOut(), this));
+                        }
+                        if (out.size() >= MAX_LEARNED) {
+                            return out;
+                        }
                         continue;
                     }
-                    out.add(Pattern.learned(in, outs, read.bulk(), read.bulkOut(), this));
-                    if (out.size() >= MAX_LEARNED) {
-                        return out;
+                    // one pattern per choice of the ingredient with the most choices ("any log"), the rest take their first
+                    int vary = 0;
+                    for (int i = 1; i < read.inputs().size(); i++) {
+                        if (read.inputs().get(i).options().size() > read.inputs().get(vary).options().size()) {
+                            vary = i;
+                        }
+                    }
+                    for (ItemKey choice : read.inputs().get(vary).options()) {
+                        java.util.Map<ItemKey, Long> in = new java.util.LinkedHashMap<>();
+                        for (int i = 0; i < read.inputs().size(); i++) {
+                            com.xtri6.grimstorage.storage.RecipeReader.Input input = read.inputs().get(i);
+                            in.merge(i == vary ? choice : input.options().get(0), input.count(), Long::sum);
+                        }
+                        if ((read.output() != null && in.containsKey(read.output())) || !seen.add(in + ">" + outs + read.bulkOut())) {
+                            continue;
+                        }
+                        out.add(Pattern.learned(in, outs, read.bulk(), read.bulkOut(), this));
+                        if (out.size() >= MAX_LEARNED) {
+                            return out;
+                        }
                     }
                 }
             }
