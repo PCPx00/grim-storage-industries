@@ -46,7 +46,6 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 /** Everything connected to one controller: its storage, its crafting patterns and its running jobs. */
 public final class StorageNetwork {
     private static final int MAX_BLOCKS = 16_384;
-    private static final int MAX_JOBS = 32;
     private static final int CRAFT_COST = 10;
 
     private record CellRef(CellTier tier, CellContents<ItemKey> contents, @Nullable ItemKey lock) {}
@@ -69,6 +68,8 @@ public final class StorageNetwork {
     private final List<StockKeeperBlockEntity> keepers = new ArrayList<>();
     private final List<VoidFilterBlockEntity> voids = new ArrayList<>();
     private Map<ItemKey, List<Pattern>> patterns = Map.of();
+    /** Machine recipes by the fluid or chemical they make. */
+    private Map<BulkKey, List<Pattern>> bulkPatterns = Map.of();
 
     private final List<CraftingJob> jobs = new ArrayList<>();
     private final List<ItemStack> overflow = new ArrayList<>();
@@ -253,6 +254,7 @@ public final class StorageNetwork {
             }
         }
         Set<ItemKey> explicit = new HashSet<>(map.keySet());
+        Map<BulkKey, List<Pattern>> bulk = new HashMap<>();
         for (Pattern p : machine) {
             for (ItemKey out : p.outputs().keySet()) {
                 map.computeIfAbsent(out, k -> new ArrayList<>()).add(p);
@@ -260,8 +262,12 @@ public final class StorageNetwork {
                     explicit.add(out);
                 }
             }
+            for (BulkKey out : p.bulkOutputs().keySet()) {
+                bulk.computeIfAbsent(out, k -> new ArrayList<>()).add(p);
+            }
         }
         patterns = map;
+        bulkPatterns = bulk;
         explicitCraftables = explicit;
     }
 
@@ -284,6 +290,16 @@ public final class StorageNetwork {
 
     public List<Pattern> patternsFor(ItemKey key) {
         return patterns.getOrDefault(key, List.of());
+    }
+
+    /** Machine recipes that make this fluid or chemical. */
+    public List<Pattern> patternsFor(BulkKey key) {
+        return bulkPatterns.getOrDefault(key, List.of());
+    }
+
+    /** Fluids and chemicals some machine on the network can make. */
+    public Set<BulkKey> bulkCraftables() {
+        return bulkPatterns.keySet();
     }
 
     public Set<ItemKey> craftables() {
@@ -611,14 +627,31 @@ public final class StorageNetwork {
     /** Plans and starts a job; returns the plan so callers can report what is missing. */
     public CraftingPlanner.Plan request(ItemKey key, long amount, String source) {
         CraftingPlanner.Plan plan = plan(key, amount);
-        if (plan.ok() && jobs.size() < MAX_JOBS) {
-            jobs.add(new CraftingJob(key, amount, source, plan));
+        if (plan.ok() && canStartJob(source)) {
+            CraftingJob job = new CraftingJob(key, amount, source, plan);
+            jobs.add(job);
+            sortJobs();
         }
         return plan;
     }
 
     public boolean canStartJob() {
-        return jobs.size() < MAX_JOBS;
+        return jobs.size() < com.xtri6.grimstorage.ServerConfig.maxJobs();
+    }
+
+    /** Room on the network, and this player has not used up their share of it. */
+    public boolean canStartJob(String player) {
+        return canStartJob() && jobsOf(player) < com.xtri6.grimstorage.ServerConfig.maxJobsPerPlayer();
+    }
+
+    public int jobsOf(String player) {
+        int n = 0;
+        for (CraftingJob j : jobs) {
+            if (j.source().equals(player)) {
+                n++;
+            }
+        }
+        return n;
     }
 
     public void cancel(UUID id) {
@@ -629,6 +662,48 @@ public final class StorageNetwork {
             }
             return false;
         });
+    }
+
+    /** What the jobs list in a terminal can do to a job. */
+    public enum JobAction { CANCEL, PAUSE, UP, DOWN, TOP }
+
+    /**
+     * Pauses / resumes a job, or moves it in the queue. Jobs higher in the queue get the Soul Assemblers and the
+     * machines first; a job moved up gets a higher priority than the one it passes.
+     */
+    public void jobAction(UUID id, JobAction action) {
+        int i = -1;
+        for (int n = 0; n < jobs.size(); n++) {
+            if (jobs.get(n).id().equals(id)) {
+                i = n;
+                break;
+            }
+        }
+        if (i < 0) {
+            return;
+        }
+        CraftingJob job = jobs.get(i);
+        switch (action) {
+            case CANCEL -> cancel(id);
+            case PAUSE -> job.setPaused(!job.paused());
+            case UP -> {
+                if (i > 0) {
+                    job.setPriority(Math.max(job.priority(), jobs.get(i - 1).priority() + 1));
+                }
+            }
+            case DOWN -> {
+                if (i + 1 < jobs.size()) {
+                    job.setPriority(Math.min(job.priority(), jobs.get(i + 1).priority() - 1));
+                }
+            }
+            case TOP -> job.setPriority(jobs.get(0).priority() + (i == 0 ? 0 : 1));
+        }
+        sortJobs();
+    }
+
+    /** Highest priority first; the same priority keeps the order they were asked for. */
+    private void sortJobs() {
+        jobs.sort(java.util.Comparator.comparingInt(CraftingJob::priority).reversed());
     }
 
     boolean spendCraft() {
@@ -670,6 +745,59 @@ public final class StorageNetwork {
             insertOrBuffer(r);
         }
         return null;
+    }
+
+    /** Most runs of a fluid-and-chemical-only recipe sent to one machine at once. */
+    private static final long MAX_BULK_RUNS = 4000;
+
+    /** What one try at sending a machine recipe did: how many runs went, or why none did. */
+    record Sent(long runs, @Nullable Component problem) {}
+
+    /**
+     * Sends a machine recipe to a machine: one run, or for a recipe that only takes fluids and chemicals (a Chemical
+     * Washer, a Crystallizer), as many of the {@code want} runs as the machine's tanks hold.
+     */
+    Sent trySendProcessing(Pattern pattern, long want) {
+        if (pattern.bulkOnlyInputs()) {
+            return sendBulk(pattern, want);
+        }
+        Component problem = trySendProcessing(pattern);
+        return problem == null ? new Sent(1, null) : new Sent(0, problem);
+    }
+
+    private Sent sendBulk(Pattern pattern, long want) {
+        long runs = Math.min(want, MAX_BULK_RUNS);
+        for (Map.Entry<BulkKey, Long> in : pattern.bulkInputs().entrySet()) {
+            long per = Math.max(1, in.getValue());
+            runs = Math.min(runs, countBulk(in.getKey()) / per);
+            if (runs <= 0) {
+                return new Sent(0, Component.translatable("gui.grimstorage.job.waiting", in.getKey().name()));
+            }
+        }
+        boolean any = false;
+        for (MachineLink link : pattern.machinesInTurn()) {
+            if (link.linkRemoved()) {
+                continue;
+            }
+            any = true;
+            long fit = runs;
+            for (Map.Entry<BulkKey, Long> in : pattern.bulkInputs().entrySet()) {
+                long per = Math.max(1, in.getValue());
+                fit = Math.min(fit, link.fillBulk(this, in.getKey(), per * fit, true) / per);
+                if (fit <= 0) {
+                    break;
+                }
+            }
+            if (fit <= 0) {
+                continue;
+            }
+            for (Map.Entry<BulkKey, Long> in : pattern.bulkInputs().entrySet()) {
+                link.fillBulk(this, in.getKey(), Math.max(1, in.getValue()) * fit, false);
+            }
+            pattern.usedMachine(link);
+            return new Sent(fit, null);
+        }
+        return new Sent(0, Component.translatable(any ? "gui.grimstorage.job.machine_busy" : "gui.grimstorage.job.no_machine"));
     }
 
     /** Sends one batch of a processing card into its machine. Returns null on success, or why it could not. */
@@ -727,6 +855,17 @@ public final class StorageNetwork {
         return null;
     }
 
+    /** Called by a Machine Bus when a machine hands back a fluid or chemical it made. */
+    public void onProcessingOutput(BulkKey key, long amount) {
+        long left = amount;
+        for (CraftingJob job : jobs) {
+            if (left <= 0) {
+                break;
+            }
+            left -= job.claim(key, left);
+        }
+    }
+
     /** Called by processing interfaces when a machine hands back an output. */
     public void onProcessingOutput(ItemKey key, long amount) {
         long left = amount;
@@ -775,6 +914,9 @@ public final class StorageNetwork {
         Iterator<CraftingJob> it = jobs.iterator();
         while (it.hasNext()) {
             CraftingJob job = it.next();
+            if (job.paused()) {
+                continue;
+            }
             job.tick(this);
             if (job.finished()) {
                 it.remove();

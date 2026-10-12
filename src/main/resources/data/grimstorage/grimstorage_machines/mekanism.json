@@ -107,6 +107,102 @@
       "recipe_types": [
         "mekanism:metallurgic_infusing"
       ]
+    },
+    {
+      "machines": [
+        "mekanism:chemical_dissolution_chamber"
+      ],
+      "recipe_types": [
+        "mekanism:dissolution"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:chemical_washer"
+      ],
+      "recipe_types": [
+        "mekanism:washing"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:chemical_crystallizer"
+      ],
+      "recipe_types": [
+        "mekanism:crystallizing"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:chemical_oxidizer"
+      ],
+      "recipe_types": [
+        "mekanism:oxidizing"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:chemical_infuser"
+      ],
+      "recipe_types": [
+        "mekanism:chemical_infusing"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:solar_neutron_activator"
+      ],
+      "recipe_types": [
+        "mekanism:activating"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:isotopic_centrifuge"
+      ],
+      "recipe_types": [
+        "mekanism:centrifuging"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:electrolytic_separator"
+      ],
+      "recipe_types": [
+        "mekanism:separating"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:pressurized_reaction_chamber"
+      ],
+      "recipe_types": [
+        "mekanism:reaction"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:pigment_extractor"
+      ],
+      "recipe_types": [
+        "mekanism:pigment_extracting"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:pigment_mixer"
+      ],
+      "recipe_types": [
+        "mekanism:pigment_mixing"
+      ]
+    },
+    {
+      "machines": [
+        "mekanism:painting_machine"
+      ],
+      "recipe_types": [
+        "mekanism:painting"
+      ]
     }
   ]
 }

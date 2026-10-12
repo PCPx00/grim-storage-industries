@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.14.0
+- Machine Bus: machines that make fluids and chemicals work now. The bus pulls what they make into your fluid and
+  chemical cells, and fills machines that only take fluids and chemicals with exactly what each run needs, many runs
+  at a time.
+- Whole machine lines plan as one craft: order Iron Crystals and the network runs the Chemical Washer, then the
+  Crystallizer, each with its own Machine Bus. Missing fluids or chemicals are crafted when a machine can make them.
+- New Mekanism machines learned: Chemical Dissolution Chamber, Chemical Washer, Chemical Crystallizer, Chemical
+  Oxidizer, Chemical Infuser, Solar Neutron Activator, Isotopic Centrifuge, Electrolytic Separator, Pressurized
+  Reaction Chamber, Pigment Extractor, Pigment Mixer and Painting Machine. On these the bus also opens spare sides (only
+  ones nobody has set) for second inputs and outputs.
+- Ars Nouveau Imbuement Chamber: the bus now runs it. It gives the chamber exactly the Source each recipe costs from
+  your Source cells (no jars), and recipes that need pedestal items are left out.
+- Fixed: a Machine Bus on a one-slot machine could pull an ingredient back out before the machine used it.
+- Crafting queue: the terminal's crafting tab has up / down / pause / cancel buttons on every job. Shift-click up
+  sends a job to the top. Jobs higher up get the Soul Assemblers and machines first.
+- Each player can run up to 16 jobs on a network at once, so one big order can't take every slot on a shared network.
+  `maxJobsPerPlayer` and `maxJobsPerNetwork` are in `config/grimstorage-common.toml`.
+- Machine steps in the preview and crafting tab show the fluid or chemical they make.
+
 ## 1.13.0
 - Networks belong to the player who places the controller. Others can't open its blocks, use wireless terminals on
   it, or break or add its blocks. Trust players by name, or open the network to everyone, from the controller (the

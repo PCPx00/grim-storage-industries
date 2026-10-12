@@ -250,8 +250,34 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
     @Override
     public List<Pattern> learnedPatterns() {
         learned = learn ? learn() : List.of();
+        java.util.Set<com.xtri6.grimstorage.storage.BulkKey> outs = new java.util.HashSet<>();
+        java.util.Set<com.xtri6.grimstorage.storage.BulkKey> ins = new java.util.HashSet<>();
+        for (Pattern p : learned) {
+            outs.addAll(p.bulkOutputs().keySet());
+            ins.addAll(p.bulkInputs().keySet());
+        }
+        // a tank that is both (a slurry one recipe makes and another uses) is left alone: it may be an input
+        outs.removeAll(ins);
+        bulkResults = outs;
+        java.util.Set<ItemKey> itemIns = new java.util.HashSet<>();
+        java.util.Set<ItemKey> itemOuts = new java.util.HashSet<>();
+        for (Pattern p : learned) {
+            itemIns.addAll(p.inputs().keySet());
+            itemOuts.addAll(p.outputs().keySet());
+        }
+        itemIns.removeAll(itemOuts);
+        ingredientsOnly = itemIns;
         return learned;
     }
+
+    /**
+     * Items this machine's recipes only ever use, never make: they are never pulled back out, whatever the slot
+     * says (a one-slot machine like the Imbuement Chamber reports its full slot as not taking items).
+     */
+    private java.util.Set<ItemKey> ingredientsOnly = java.util.Set.of();
+
+    /** Fluids and chemicals this machine makes and never takes: pulled out of it into the network. */
+    private java.util.Set<com.xtri6.grimstorage.storage.BulkKey> bulkResults = java.util.Set.of();
 
     // ------------------------------------------------------------------ fluids and chemicals for the machine
 
@@ -262,18 +288,42 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
     private static final long FEED_PER_CHECK = 4000;
     private final java.util.Map<Direction, com.xtri6.grimstorage.compat.Compat.BulkLink> chemicalLinks = new java.util.EnumMap<>(Direction.class);
 
+    /**
+     * Source still to give the machine for recipes already sent. Source machines hold far more than a recipe needs
+     * (an Imbuement Chamber takes millions), so they get exactly what each recipe costs and no more.
+     */
+    private long sourceOwed;
+
     @Override
     public void onSent(Pattern pattern) {
         if (level != null) {
-            for (com.xtri6.grimstorage.storage.BulkKey k : pattern.bulkInputs().keySet()) {
-                feeding.put(k, level.getGameTime());
+            for (java.util.Map.Entry<com.xtri6.grimstorage.storage.BulkKey, Long> e : pattern.bulkInputs().entrySet()) {
+                if (e.getKey().kind() == com.xtri6.grimstorage.storage.BulkKind.SOURCE) {
+                    sourceOwed += e.getValue();
+                } else {
+                    feeding.put(e.getKey(), level.getGameTime());
+                }
             }
         }
     }
 
     /** Tops the machine's tanks up with what its jobs need, from the network. */
     private void feed(StorageNetwork network) {
-        if (feeding.isEmpty() || !(level instanceof net.minecraft.server.level.ServerLevel sl)) {
+        if (!(level instanceof net.minecraft.server.level.ServerLevel sl)) {
+            return;
+        }
+        if (sourceOwed > 0) {
+            com.xtri6.grimstorage.storage.BulkKey src = com.xtri6.grimstorage.storage.BulkKey.flat(com.xtri6.grimstorage.storage.BulkKind.SOURCE);
+            for (Direction d : sidesFaceFirst()) {
+                com.xtri6.grimstorage.compat.Compat.BulkLink link = bulkLink(sl, com.xtri6.grimstorage.storage.BulkKind.SOURCE, d);
+                long moved = link == null ? 0 : link.offer(network, src, Math.min(sourceOwed, FEED_PER_CHECK), false);
+                if (moved > 0) {
+                    sourceOwed -= moved;
+                    break;
+                }
+            }
+        }
+        if (feeding.isEmpty()) {
             return;
         }
         long now = level.getGameTime();
@@ -282,18 +332,143 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
             if (k.kind() == com.xtri6.grimstorage.storage.BulkKind.FLUID) {
                 feedFluid(network, k);
             } else if (k.kind() == com.xtri6.grimstorage.storage.BulkKind.CHEMICAL) {
-                com.xtri6.grimstorage.compat.Compat.Chemicals chem = com.xtri6.grimstorage.compat.Compat.chemicals();
-                if (chem == null) {
-                    continue;
-                }
                 for (Direction d : sidesFaceFirst()) {
-                    com.xtri6.grimstorage.compat.Compat.BulkLink link = chemicalLinks.computeIfAbsent(d,
-                            side -> chem.link(sl, target(), side, () -> !isRemoved(), () -> {}));
-                    if (link.push(network, FEED_PER_CHECK, List.of(k)) > 0) {
+                    com.xtri6.grimstorage.compat.Compat.BulkLink link = bulkLink(sl, k.kind(), d);
+                    if (link != null && link.push(network, FEED_PER_CHECK, List.of(k)) > 0) {
                         break;
                     }
                 }
             }
+        }
+    }
+
+    private final java.util.Map<Direction, com.xtri6.grimstorage.compat.Compat.BulkLink> sourceLinks = new java.util.EnumMap<>(Direction.class);
+
+    /** The machine's chemical tanks or Source buffer as seen from one side (null without Mekanism / Ars Nouveau). */
+    @Nullable
+    private com.xtri6.grimstorage.compat.Compat.BulkLink bulkLink(net.minecraft.server.level.ServerLevel sl,
+            com.xtri6.grimstorage.storage.BulkKind kind, Direction d) {
+        if (kind == com.xtri6.grimstorage.storage.BulkKind.CHEMICAL) {
+            com.xtri6.grimstorage.compat.Compat.Chemicals chem = com.xtri6.grimstorage.compat.Compat.chemicals();
+            return chem == null ? null : chemicalLinks.computeIfAbsent(d, side -> chem.link(sl, target(), side, () -> !isRemoved(), () -> {}));
+        }
+        if (kind == com.xtri6.grimstorage.storage.BulkKind.SOURCE) {
+            com.xtri6.grimstorage.compat.Compat.Source src = com.xtri6.grimstorage.compat.Compat.source();
+            return src == null ? null : sourceLinks.computeIfAbsent(d, side -> src.link(sl, target(), side, () -> !isRemoved(), () -> {}));
+        }
+        return null;
+    }
+
+    /** Fills the machine's tanks with exactly this much, for recipes that only take fluids and chemicals. */
+    @Override
+    public long fillBulk(StorageNetwork network, com.xtri6.grimstorage.storage.BulkKey key, long amount, boolean simulate) {
+        if (!(level instanceof net.minecraft.server.level.ServerLevel sl) || amount <= 0) {
+            return 0;
+        }
+        long done = 0;
+        for (Direction d : sidesFaceFirst()) {
+            if (done >= amount) {
+                break;
+            }
+            long want = amount - done;
+            if (key.kind() == com.xtri6.grimstorage.storage.BulkKind.FLUID) {
+                net.neoforged.neoforge.fluids.capability.IFluidHandler h = level.getCapability(Capabilities.FluidHandler.BLOCK, target(), d);
+                if (h == null) {
+                    continue;
+                }
+                int fits = h.fill(key.fluid((int) Math.min(want, Integer.MAX_VALUE)), net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.SIMULATE);
+                if (fits <= 0) {
+                    continue;
+                }
+                if (simulate) {
+                    done += fits;
+                    continue;
+                }
+                long got = network.extractBulk(key, fits, false);
+                int took = h.fill(key.fluid((int) got), net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+                if (took < got) {
+                    network.insertBulk(key, got - took, false);
+                }
+                done += took;
+            } else {
+                com.xtri6.grimstorage.compat.Compat.BulkLink link = bulkLink(sl, key.kind(), d);
+                long moved = link == null ? 0 : link.offer(network, key, want, simulate);
+                if (moved > 0) {
+                    done += moved;
+                }
+            }
+            if (simulate && done > 0) {
+                // every side is the same tank on most machines: one side's answer is the answer
+                break;
+            }
+        }
+        return done;
+    }
+
+    /** Most of a fluid or chemical pulled out of the machine each check. */
+    private static final long PULL_PER_CHECK = 64_000;
+
+    /** Moves the fluids and chemicals this machine made into the network, and tells waiting jobs. */
+    private void pullBulk(StorageNetwork network) {
+        if (bulkResults.isEmpty() || !(level instanceof net.minecraft.server.level.ServerLevel sl)) {
+            return;
+        }
+        boolean chemicals = false;
+        for (com.xtri6.grimstorage.storage.BulkKey k : bulkResults) {
+            if (k.kind() == com.xtri6.grimstorage.storage.BulkKind.FLUID) {
+                pullFluid(network, k);
+            } else if (k.kind() == com.xtri6.grimstorage.storage.BulkKind.CHEMICAL) {
+                chemicals = true;
+            }
+        }
+        if (!chemicals) {
+            return;
+        }
+        for (Direction d : sidesFaceFirst()) {
+            com.xtri6.grimstorage.compat.Compat.BulkLink link = bulkLink(sl, com.xtri6.grimstorage.storage.BulkKind.CHEMICAL, d);
+            if (link == null) {
+                return;
+            }
+            java.util.Set<com.xtri6.grimstorage.storage.BulkKey> seen = new java.util.LinkedHashSet<>();
+            java.util.Map<com.xtri6.grimstorage.storage.BulkKey, Long> before = new java.util.HashMap<>();
+            long moved = link.pull(network, PULL_PER_CHECK, k -> {
+                if (!bulkResults.contains(k)) {
+                    return false;
+                }
+                if (seen.add(k)) {
+                    before.put(k, network.countBulk(k));
+                }
+                return true;
+            });
+            if (moved > 0) {
+                for (com.xtri6.grimstorage.storage.BulkKey k : seen) {
+                    long got = network.countBulk(k) - before.get(k);
+                    if (got > 0) {
+                        network.onProcessingOutput(k, got);
+                    }
+                }
+                return;
+            }
+        }
+    }
+
+    private void pullFluid(StorageNetwork network, com.xtri6.grimstorage.storage.BulkKey k) {
+        for (Direction d : sidesFaceFirst()) {
+            net.neoforged.neoforge.fluids.capability.IFluidHandler h = level.getCapability(Capabilities.FluidHandler.BLOCK, target(), d);
+            if (h == null) {
+                continue;
+            }
+            net.neoforged.neoforge.fluids.FluidStack can = h.drain(k.fluid((int) PULL_PER_CHECK), net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.SIMULATE);
+            long fits = can.isEmpty() ? 0 : network.insertBulk(k, can.getAmount(), true);
+            if (fits <= 0) {
+                continue;
+            }
+            net.neoforged.neoforge.fluids.FluidStack got = h.drain(k.fluid((int) fits), net.neoforged.neoforge.fluids.capability.IFluidHandler.FluidAction.EXECUTE);
+            if (!got.isEmpty()) {
+                network.insertBulk(k, got.getAmount(), false);
+                network.onProcessingOutput(k, got.getAmount());
+            }
+            return;
         }
     }
 
@@ -391,7 +566,21 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
             for (RecipeHolder<?> holder : recipes) {
                 com.xtri6.grimstorage.storage.RecipeReader.Read read =
                         com.xtri6.grimstorage.storage.RecipeReader.read(holder.value(), level.registryAccess());
-                if (read == null) {
+                if (read == null || !read.usable()) {
+                    continue;
+                }
+                java.util.Map<ItemKey, Long> outs = new java.util.LinkedHashMap<>();
+                if (read.output() != null) {
+                    outs.put(read.output(), read.outCount());
+                }
+                if (read.inputs().isEmpty()) {
+                    // only fluids and chemicals go in (a Chemical Washer): one pattern
+                    if (seen.add(read.bulk() + ">" + outs + read.bulkOut())) {
+                        out.add(Pattern.learned(java.util.Map.of(), outs, read.bulk(), read.bulkOut(), this));
+                    }
+                    if (out.size() >= MAX_LEARNED) {
+                        return out;
+                    }
                     continue;
                 }
                 // one pattern per choice of the ingredient with the most choices ("any log"), the rest take their first
@@ -407,10 +596,10 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
                         com.xtri6.grimstorage.storage.RecipeReader.Input input = read.inputs().get(i);
                         in.merge(i == vary ? choice : input.options().get(0), input.count(), Long::sum);
                     }
-                    if (in.containsKey(read.output()) || !seen.add(in + ">" + read.output() + "x" + read.outCount())) {
+                    if ((read.output() != null && in.containsKey(read.output())) || !seen.add(in + ">" + outs + read.bulkOut())) {
                         continue;
                     }
-                    out.add(Pattern.learned(in, read.output(), read.outCount(), this, read.bulk()));
+                    out.add(Pattern.learned(in, outs, read.bulk(), read.bulkOut(), this));
                     if (out.size() >= MAX_LEARNED) {
                         return out;
                     }
@@ -474,9 +663,12 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
             power(network);
         }
         feed(network);
+        if (learn) {
+            pullBulk(network);
+        }
         if (learn && !learned.isEmpty()) {
             for (IItemHandler side : sideHandlers()) {
-                pullFinished(network, side);
+                pullFinished(network, side, ingredientsOnly);
             }
         }
         Set<ItemKey> wanted = new HashSet<>();
@@ -506,10 +698,10 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
      * (sawdust, slag, a chance output) so nothing clogs it. Slots that still take items are its inputs and are left
      * alone, even when they hold something another recipe makes.
      */
-    private static void pullFinished(StorageNetwork network, IItemHandler machine) {
+    private static void pullFinished(StorageNetwork network, IItemHandler machine, java.util.Set<ItemKey> ingredientsOnly) {
         for (int slot = 0; slot < machine.getSlots(); slot++) {
             ItemStack in = machine.getStackInSlot(slot);
-            if (in.isEmpty()) {
+            if (in.isEmpty() || ingredientsOnly.contains(ItemKey.of(in))) {
                 continue;
             }
             boolean full = in.getCount() >= Math.min(machine.getSlotLimit(slot), in.getMaxStackSize());
@@ -641,6 +833,7 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
         tag.put("cards", cards.serializeNBT(registries));
         tag.putBoolean("learn", learn);
         tag.putBoolean("fuel", fuel);
+        tag.putLong("sourceOwed", sourceOwed);
     }
 
     @Override
@@ -651,6 +844,7 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
             learn = tag.getBoolean("learn");
             fuel = tag.getBoolean("fuel");
         }
+        sourceOwed = tag.getLong("sourceOwed");
     }
 
     /** One slot of a bigger inventory, so ingredients only ever go into a furnace's input slot. */

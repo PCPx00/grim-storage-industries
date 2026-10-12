@@ -192,7 +192,15 @@
           "text": [
             "The **last tab along the top** shows everything the network is crafting right now.",
             "Each job shows how far along it is and what it is waiting for. Under it, every step: which machine makes it, how many are done and how many are **in machines** right now.",
-            "Click the **x** on a job to cancel it. Anything already made stays in storage."
+            "The buttons on a job **move it up or down**, **pause** it, or **cancel** it (the **x**). Anything already made stays in storage."
+          ]
+        },
+        {
+          "title": "The queue",
+          "text": [
+            "Jobs at the **top** get the Soul Assemblers and machines first. **Shift-click** the up arrow to send a job straight to the top.",
+            "A **paused** job (yellow edge) waits and takes nothing until you press play.",
+            "On shared networks each player can run **16 jobs** at once, so one big order can't block everyone (pack makers can change it in the config)."
           ]
         },
         {
@@ -452,10 +460,25 @@
         {
           "title": "Good to know",
           "text": [
-            "- Recipes that need a **fluid or a chemical** work too: the bus keeps the machine's tank topped up from your network (oxygen for a Purification Chamber, say).",
+            "- Recipes that need a **fluid or a chemical** work too: the bus fills the machine's tanks from your network (oxygen for a Purification Chamber, say).",
             "- Machines that need a part to run (an Ender IO capacitor, a Create motor) still need it.",
             "- **Pack makers:** add any machine in a datapack: `data/<pack>/grimstorage_machines/<name>.json` with `\"machines\"` and `\"recipe_types\"` lists.",
             "- Need something special? A **Processing Card** in the bus still works for any machine."
+          ]
+        },
+        {
+          "title": "Chemical chains",
+          "text": [
+            "Machines that make **fluids or chemicals** work too: the bus pulls them back into your fluid and chemical cells.",
+            "So whole lines plan in one go. Order **Iron Crystals** and the network runs the **Chemical Washer**, then the **Crystallizer**, each with its own bus.",
+            "Works with Mekanism's Dissolution Chamber, Washer, Crystallizer, Oxidizer, Infuser, Separator, Centrifuge, Reaction Chamber and more."
+          ]
+        },
+        {
+          "title": "Source machines",
+          "text": [
+            "Put a **Source cell** in a drive and a Machine Bus on an Ars Nouveau **Imbuement Chamber**: the bus gives it exactly the Source each recipe costs, no jars needed.",
+            "Recipes that need items on **pedestals** around the chamber are left out: the network can't place those for you."
           ]
         },
         {

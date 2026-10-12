@@ -35,6 +35,12 @@ public final class Compat {
         long pull(StorageNetwork net, long max, Predicate<BulkKey> ok);
 
         long push(StorageNetwork net, long max, Iterable<BulkKey> candidates);
+
+        /**
+         * Moves up to {@code amount} of one thing from the network into the block. With {@code simulate}, says how
+         * much the block would take (without looking at what the network has). -1 when the block is not there.
+         */
+        long offer(StorageNetwork net, BulkKey key, long amount, boolean simulate);
     }
 
     public interface Chemicals {

@@ -16,6 +16,7 @@ import com.xtri6.grimstorage.menu.TerminalMenu;
 import com.xtri6.grimstorage.net.Payloads;
 import com.xtri6.grimstorage.storage.BulkKind;
 import com.xtri6.grimstorage.storage.ItemKey;
+import com.xtri6.grimstorage.storage.StorageNetwork;
 import com.xtri6.grimstorage.util.Fmt;
 
 import net.minecraft.ChatFormatting;
@@ -902,23 +903,72 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         return leftPos + GX + COLS * 18 - 1;
     }
 
-    /** The cancel cross of the job whose header starts at {@code y}. */
-    private boolean onCancel(double mx, double my, int y) {
-        return mx >= jobsRight() - 12 && mx < jobsRight() - 1 && my >= y + 1 && my < y + 11;
+    /** Controls on a job's header, right to left: cancel, pause / resume, move down, move up. */
+    private static final StorageNetwork.JobAction[] CONTROLS = {StorageNetwork.JobAction.CANCEL, StorageNetwork.JobAction.PAUSE,
+            StorageNetwork.JobAction.DOWN, StorageNetwork.JobAction.UP};
+    private static final int CONTROL_W = 10;
+
+    /** Which control of the job whose header starts at {@code y} the mouse is on, or -1. */
+    private int controlAt(double mx, double my, int y) {
+        if (my < y + 1 || my >= y + 11) {
+            return -1;
+        }
+        for (int c = 0; c < CONTROLS.length; c++) {
+            int right = jobsRight() - 1 - c * CONTROL_W;
+            if (mx >= right - CONTROL_W + 1 && mx < right) {
+                return c;
+            }
+        }
+        return -1;
     }
 
-    /** Header top of the job under the mouse's cancel cross, or null. */
+    private record JobControl(Payloads.JobView job, StorageNetwork.JobAction action) {}
+
+    /** The job control under the mouse, or null. */
     @Nullable
-    private Payloads.JobView cancelAt(double mx, double my) {
+    private JobControl jobControlAt(double mx, double my) {
         List<JobLine> lines = jobLines();
         int top = topPos + GY - 1;
         for (int i = Math.max(0, scroll - 1); i < lines.size() && i - scroll < rows * 18 / LINE; i++) {
             JobLine l = lines.get(i);
-            if (l.step() == null && l.part() == 0 && onCancel(mx, my, top + (i - scroll) * LINE)) {
-                return l.job();
+            if (l.step() == null && l.part() == 0) {
+                int c = controlAt(mx, my, top + (i - scroll) * LINE);
+                if (c >= 0) {
+                    return new JobControl(l.job(), CONTROLS[c]);
+                }
             }
         }
         return null;
+    }
+
+    private void drawControl(GuiGraphics g, Theme t, StorageNetwork.JobAction a, boolean paused, int x, int y, boolean hot) {
+        int c = hot ? (a == StorageNetwork.JobAction.CANCEL ? t.danger() : t.accent()) : t.textFaint();
+        int cx = x + CONTROL_W / 2;
+        switch (a) {
+            case CANCEL -> g.drawString(font, "\u00d7", cx - 3, y + 2, c, false);
+            case PAUSE -> {
+                if (paused) {
+                    // play: a small triangle pointing right
+                    for (int i = 0; i < 4; i++) {
+                        g.fill(cx - 2 + i, y + 3 + i, cx - 1 + i, y + 10 - i, c);
+                    }
+                } else {
+                    g.fill(cx - 3, y + 3, cx - 1, y + 9, c);
+                    g.fill(cx + 1, y + 3, cx + 3, y + 9, c);
+                }
+            }
+            case UP -> {
+                for (int i = 0; i < 4; i++) {
+                    g.fill(cx - i, y + 4 + i, cx + i + 1, y + 5 + i, c);
+                }
+            }
+            case DOWN -> {
+                for (int i = 0; i < 4; i++) {
+                    g.fill(cx - 3 + i, y + 4 + i, cx + 4 - i, y + 5 + i, c);
+                }
+            }
+            default -> {}
+        }
     }
 
     /** Draws the running jobs; returns a tooltip for what the mouse is over. */
@@ -952,16 +1002,32 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                 // header: icon, amount and name, status, progress bar, cancel cross
                 g.fill(x0, y, x1, y + 2 * LINE - 1, Theme.withAlpha(t.panelTop() & 0xFFFFFF, 0xC0));
                 g.renderItem(info.icon(), x0 + 2, y + 2);
+                if (info.paused()) {
+                    g.fill(x0, y, x0 + 2, y + 2 * LINE - 1, t.warn());
+                }
                 String name = Fmt.compact(info.amount()) + "x " + info.icon().getHoverName().getString();
-                g.drawString(font, font.plainSubstrByWidth(name, x1 - x0 - 34), x0 + 21, y + 2, t.text(), false);
+                g.drawString(font, font.plainSubstrByWidth(name, x1 - x0 - 24 - CONTROLS.length * CONTROL_W), x0 + 21, y + 2,
+                        info.paused() ? t.textDim() : t.text(), false);
                 small(g, font.plainSubstrByWidth(info.status().getString(), (int) ((x1 - x0 - 50) / 0.75f)), x0 + 21, y + 10, t.textDim());
                 String pct = Math.round(info.progress() * 100) + "%";
                 small(g, pct, x1 - 3 - (int) (font.width(pct) * 0.75f), y + 10, t.accent());
                 Ui.bar(g, t, x0 + 21, y + 16, x1 - x0 - 24, 3, info.progress(), t.accent());
-                boolean hot = onCancel(mouseX, mouseY, y) && mouseY >= y0 && mouseY < y1;
-                g.drawString(font, "\u00d7", x1 - 9, y + 2, hot ? t.danger() : t.textFaint(), false);
-                if (hot) {
-                    tip = List.of(Component.translatable("gui.grimstorage.jobs.cancel"));
+                int hotControl = mouseY >= y0 && mouseY < y1 ? controlAt(mouseX, mouseY, y) : -1;
+                for (int c = 0; c < CONTROLS.length; c++) {
+                    drawControl(g, t, CONTROLS[c], info.paused(), x1 - 1 - (c + 1) * CONTROL_W, y, c == hotControl);
+                }
+                if (hotControl >= 0) {
+                    String key = switch (CONTROLS[hotControl]) {
+                        case CANCEL -> "gui.grimstorage.jobs.cancel";
+                        case PAUSE -> info.paused() ? "gui.grimstorage.jobs.resume" : "gui.grimstorage.jobs.pause";
+                        case UP -> "gui.grimstorage.jobs.up";
+                        case DOWN -> "gui.grimstorage.jobs.down";
+                        default -> "gui.grimstorage.jobs.top";
+                    };
+                    tip = new ArrayList<>(List.of(Component.translatable(key)));
+                    if (CONTROLS[hotControl] == StorageNetwork.JobAction.UP) {
+                        tip.add(Component.translatable("gui.grimstorage.jobs.up_hint").withStyle(ChatFormatting.GRAY));
+                    }
                 } else if (mouseX >= x0 && mouseX < x1 && mouseY >= Math.max(y, y0) && mouseY < Math.min(y + 2 * LINE, y1)) {
                     tip = List.of(info.icon().getHoverName(), Component.literal(info.status().getString()).withStyle(ChatFormatting.GRAY),
                             Component.translatable("gui.grimstorage.jobs.ordered_by", info.source()).withStyle(ChatFormatting.DARK_GRAY));
@@ -975,7 +1041,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                 g.pose().scale(0.5f, 0.5f, 1f);
                 g.renderItem(st.output(), 0, 0);
                 g.pose().popPose();
-                String text = st.machine().getString() + " \u00b7 " + st.finished() + "/" + st.total();
+                String text = Fmt.compact(st.finished()) + "/" + Fmt.compact(st.total()) + " \u00b7 " + st.machine().getString();
                 if (busy) {
                     text += " \u00b7 " + Component.translatable("gui.grimstorage.jobs.in_machines", st.inMachines()).getString();
                 }
@@ -1228,10 +1294,15 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         if (jobs) {
             if (inGrid(mx, my)) {
                 search.setFocused(false);
-                Payloads.JobView job = cancelAt(mx, my);
-                if (job != null) {
-                    PacketDistributor.sendToServer(new Payloads.CancelJob(menu.containerId, job.info().id()));
-                    minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 0.5f));
+                JobControl control = jobControlAt(mx, my);
+                if (control != null) {
+                    StorageNetwork.JobAction a = control.action();
+                    if (a == StorageNetwork.JobAction.UP && hasShiftDown()) {
+                        a = StorageNetwork.JobAction.TOP;
+                    }
+                    PacketDistributor.sendToServer(new Payloads.JobCommand(menu.containerId, control.job().info().id(), a.ordinal()));
+                    minecraft.getSoundManager().play(SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f,
+                            a == StorageNetwork.JobAction.CANCEL ? 0.5f : 0.8f));
                 }
                 return true;
             }

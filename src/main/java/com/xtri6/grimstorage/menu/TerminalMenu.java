@@ -366,7 +366,11 @@ public class TerminalMenu extends GrimMenu {
                 by = name == null ? Component.translatable("gui.grimstorage.jobs.machine") : machines > 1 ? name.copy().append(" x" + machines) : name;
                 machineRuns += (st.times() + Math.max(1, machines) - 1) / Math.max(1, machines);
             }
-            steps.add(new Payloads.PreviewLine(p.primary().toStack(1), st.times() * p.outputCount(p.primary()), by));
+            Object made = p.primaryKey();
+            if (made instanceof com.xtri6.grimstorage.storage.BulkKey b) {
+                by = b.name().copy().append(" (" + (b.kind() == BulkKind.SOURCE ? "Source" : "mB") + ") · ").append(by);
+            }
+            steps.add(new Payloads.PreviewLine(p.icon(), st.times() * p.primaryAmount(), by));
         }
         // newest step last in the plan is the item asked for: show it first
         java.util.Collections.reverse(steps);
@@ -376,7 +380,7 @@ public class TerminalMenu extends GrimMenu {
         List<Payloads.PreviewLine> missing = new ArrayList<>();
         plan.missing().forEach((k, n) -> missing.add(new Payloads.PreviewLine(k.toStack(1), n, Component.empty())));
         plan.missingBulk().forEach((k, n) -> missing.add(new Payloads.PreviewLine(ItemStack.EMPTY, n,
-                k.name().copy().append(k.kind() == BulkKind.FLUID ? " (mB)" : ""))));
+                k.name().copy().append(k.kind() == BulkKind.SOURCE ? "" : " (mB)"))));
         double cps = net.craftsPerSecond();
         // machines: about 10 seconds a run (a furnace), shared between machines
         long seconds = (long) Math.ceil((cps > 0 ? crafts / cps : 0) + machineRuns * 10.0);
@@ -478,10 +482,13 @@ public class TerminalMenu extends GrimMenu {
                     machine = name == null ? Component.translatable("gui.grimstorage.jobs.machine") : count > 1
                             ? name.copy().append(" x" + count) : name;
                 }
-                steps.add(new Payloads.StepView(p.primary().toStack(1), processing, st.total(), st.finished(), st.inMachines(), machine));
+                if (p.primaryKey() instanceof com.xtri6.grimstorage.storage.BulkKey b) {
+                    machine = b.name().copy().append(" · ").append(machine);
+                }
+                steps.add(new Payloads.StepView(p.icon(), processing, st.total(), st.finished(), st.inMachines(), machine));
             }
             out.add(new Payloads.JobView(new Payloads.JobInfo(job.id(), job.target().toStack(1), job.amount(), job.status(), job.progress(),
-                    job.source()), steps));
+                    job.source(), job.priority(), job.paused()), steps));
         }
         return out;
     }
@@ -631,6 +638,11 @@ public class TerminalMenu extends GrimMenu {
             sp.displayClientMessage(Component.translatable("message.grimstorage.craft.busy").withStyle(ChatFormatting.RED), false);
             return;
         }
+        if (!net.canStartJob(sp.getGameProfile().getName())) {
+            sp.displayClientMessage(Component.translatable("message.grimstorage.craft.your_limit",
+                    com.xtri6.grimstorage.ServerConfig.maxJobsPerPlayer()).withStyle(ChatFormatting.RED), false);
+            return;
+        }
         CraftingPlanner.Plan plan = net.request(key, Math.min(amount, 1_000_000), sp.getGameProfile().getName());
         if (plan.ok()) {
             sp.displayClientMessage(Component.translatable("message.grimstorage.craft.started", Fmt.big(amount), key.stack().getHoverName())
@@ -646,6 +658,13 @@ public class TerminalMenu extends GrimMenu {
             }
             msg.append(Component.literal("\n  " + Fmt.big(m.getValue()) + "x ").withStyle(ChatFormatting.GRAY))
                     .append(m.getKey().stack().getHoverName().copy().withStyle(ChatFormatting.GRAY));
+        }
+        for (Map.Entry<com.xtri6.grimstorage.storage.BulkKey, Long> m : plan.missingBulk().entrySet()) {
+            if (shown++ >= 6) {
+                break;
+            }
+            msg.append(Component.literal("\n  " + Fmt.big(m.getValue()) + " " + (m.getKey().kind() == BulkKind.SOURCE ? "" : "mB ")).withStyle(ChatFormatting.GRAY))
+                    .append(m.getKey().name().copy().withStyle(ChatFormatting.GRAY));
         }
         sp.displayClientMessage(msg, false);
     }

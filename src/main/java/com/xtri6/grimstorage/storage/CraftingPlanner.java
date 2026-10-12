@@ -56,7 +56,7 @@ public final class CraftingPlanner {
     private final Map<ItemKey, Long> available;
     /** Fluids and chemicals in storage, used up as the plan takes them. */
     private final Map<BulkKey, Long> availableBulk = new HashMap<>();
-    private final Deque<ItemKey> path = new ArrayDeque<>();
+    private final Deque<Object> path = new ArrayDeque<>();
     private final Plan plan = new Plan();
 
     private CraftingPlanner(StorageNetwork network) {
@@ -77,16 +77,23 @@ public final class CraftingPlanner {
         return planner.plan;
     }
 
-    /** Fluids and chemicals come from storage only (nothing crafts them). */
+    /**
+     * Fluids and chemicals come from storage first; what is missing is made by machines that make it (a Chemical
+     * Washer making clean slurry, say), so long chains of machines plan in one go.
+     */
     private boolean needBulk(BulkKey key, long amount) {
         long have = availableBulk.computeIfAbsent(key, network::countBulk);
         long take = Math.min(have, amount);
         availableBulk.put(key, have - take);
-        if (take < amount) {
-            plan.missingBulk.merge(key, amount - take, Long::sum);
+        long rest = amount - take;
+        if (rest <= 0) {
+            return true;
+        }
+        if (network.patternsFor(key).isEmpty()) {
+            plan.missingBulk.merge(key, rest, Long::sum);
             return false;
         }
-        return true;
+        return craft(key, rest);
     }
 
     private boolean need(ItemKey key, long amount) {
@@ -99,15 +106,16 @@ public final class CraftingPlanner {
         return rest <= 0 || craft(key, rest);
     }
 
-    private boolean craft(ItemKey key, long amount) {
-        List<Pattern> options = network.patternsFor(key);
+    /** Makes {@code amount} of an item ({@link ItemKey}) or a fluid / chemical ({@link BulkKey}). */
+    private boolean craft(Object key, long amount) {
+        List<Pattern> options = key instanceof BulkKey b ? network.patternsFor(b) : network.patternsFor((ItemKey) key);
         if (options.isEmpty()) {
-            plan.missing.merge(key, amount, Long::sum);
+            missing(key, amount);
             return false;
         }
         if (path.contains(key) || path.size() >= MAX_DEPTH) {
             plan.loop = true;
-            plan.missing.merge(key, amount, Long::sum);
+            missing(key, amount);
             return false;
         }
         // Several ways to make it (a furnace and a crafting recipe, say): use the first one that works with what is
@@ -145,9 +153,17 @@ public final class CraftingPlanner {
         return tryOption(pattern, key, amount);
     }
 
+    private void missing(Object key, long amount) {
+        if (key instanceof BulkKey b) {
+            plan.missingBulk.merge(b, amount, Long::sum);
+        } else {
+            plan.missing.merge((ItemKey) key, amount, Long::sum);
+        }
+    }
+
     /** 0..1: how much of this way's ingredients for {@code amount} are in storage right now. */
-    private double inStock(Pattern p, ItemKey key, long amount) {
-        long per = Math.max(1, p.outputCount(key));
+    private double inStock(Pattern p, Object key, long amount) {
+        long per = Math.max(1, p.amountOf(key));
         long times = (amount + per - 1) / per;
         double have = 0, need = 0;
         for (Map.Entry<ItemKey, Long> in : p.inputs().entrySet()) {
@@ -155,11 +171,16 @@ public final class CraftingPlanner {
             need += n;
             have += Math.min(n, available.getOrDefault(in.getKey(), 0L));
         }
+        for (Map.Entry<BulkKey, Long> in : p.bulkInputs().entrySet()) {
+            long n = in.getValue() * times;
+            need += n;
+            have += Math.min(n, availableBulk.computeIfAbsent(in.getKey(), network::countBulk));
+        }
         return need <= 0 ? 0 : have / need;
     }
 
-    private boolean tryOption(Pattern pattern, ItemKey key, long amount) {
-        long per = pattern.outputCount(key);
+    private boolean tryOption(Pattern pattern, Object key, long amount) {
+        long per = Math.max(1, pattern.amountOf(key));
         long times = (amount + per - 1) / per;
 
         path.push(key);
@@ -178,6 +199,13 @@ public final class CraftingPlanner {
             long made = out.getValue() * times - (out.getKey().equals(key) ? amount : 0);
             if (made > 0) {
                 available.merge(out.getKey(), made, Long::sum);
+            }
+        }
+        for (Map.Entry<BulkKey, Long> out : pattern.bulkOutputs().entrySet()) {
+            long made = out.getValue() * times - (out.getKey().equals(key) ? amount : 0);
+            if (made > 0) {
+                availableBulk.computeIfAbsent(out.getKey(), network::countBulk);
+                availableBulk.merge(out.getKey(), made, Long::sum);
             }
         }
         return ok;
