@@ -1,0 +1,19 @@
+{
+  "entries": [
+    {
+      "machines": [
+        "ironfurnaces:iron_furnace",
+        "ironfurnaces:gold_furnace",
+        "ironfurnaces:diamond_furnace",
+        "ironfurnaces:copper_furnace",
+        "ironfurnaces:emerald_furnace",
+        "ironfurnaces:obsidian_furnace",
+        "ironfurnaces:netherite_furnace",
+        "ironfurnaces:crystal_furnace"
+      ],
+      "recipe_types": [
+        "minecraft:smelting"
+      ]
+    }
+  ]
+}

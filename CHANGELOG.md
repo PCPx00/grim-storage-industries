@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.16.6
+- New server setting `assemblerSpeedMultiplier` (default 1.0): how fast Soul Assemblers craft. At 1.0 a stack of 64
+  repeaters takes about 32 seconds on one plain Assembler; a pack can raise it, and Speed Upgrades still stack on top.
+
+## 1.16.5
+- Machine Bus has an explicit table entry for Iron Furnaces (`ironfurnaces:netherite_furnace` and its metal tiers), so
+  they smelt through the Machine Bus with no name guessing.
+
 ## 1.16.4
 - Press **R** over an item in the terminal to open its recipes in REI too (JEI and EMI already worked).
 - Terminal search forgives small typos: "medning" finds Mending, and a 4 to 6 letter word can be one letter off, a

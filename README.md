@@ -109,7 +109,7 @@ cancel them. Jobs higher up get the Soul Assemblers and machines first. Each pla
 - Turn off the first-join book with `giveGuideOnFirstJoin` in `config/grimstorage-common.toml`.
 - Balance settings live in the world's `serverconfig/grimstorage-server.toml`: `itemCellCapacities` (the four item
   cell sizes), a `<kind>CellCapacities` list for each fluid/chemical/energy/XP/Source cell, `busSpeedMultiplier`
-  (0.25 to 64) and `wirelessRange` (blocks). Also there: `maxNetworkBlocks`, `maxJobsPerNetwork`, `maxJobsPerPlayer`.
+  (0.25 to 64), `assemblerSpeedMultiplier` (0.25 to 64) and `wirelessRange` (blocks). Also there: `maxNetworkBlocks`, `maxJobsPerNetwork`, `maxJobsPerPlayer`.
 - The mod and its guide ship in English, Chinese (zh_cn), Russian, Portuguese (pt_br), Spanish, German and French.
 
 - Common `c:` tags throughout (`c:ores/soulite`, `c:ingots/soulite`, `c:gems/echo_soulite`, ...).
