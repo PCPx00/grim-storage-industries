@@ -622,7 +622,8 @@ public final class Payloads {
             return false;
         }
         String name = sp.getGameProfile().getName();
-        if (sp.hasPermissions(2) || name.equals(net.ownerName())) {
+        // the owner by UUID, so a name change doesn't lock them out
+        if (sp.hasPermissions(2) || sp.getUUID().equals(net.controller().owner())) {
             return true;
         }
         for (CraftingJob job : net.jobs()) {

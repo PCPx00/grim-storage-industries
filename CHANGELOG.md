@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.15.2
+- The network owner is recognised by their player UUID when managing other players' crafting jobs, so changing
+  your Minecraft name no longer takes away control of your own network's jobs.
+
 ## 1.15.1
 - Network size limit is a config value now, `maxNetworkBlocks` (default 16,384, up to 1,048,576). A network bigger
   than the limit used to be cut off silently; now its Network Controller shows a red warning, and the guide and the
