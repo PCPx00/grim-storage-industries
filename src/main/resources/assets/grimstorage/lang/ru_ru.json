@@ -116,6 +116,7 @@
   "gui.grimstorage.processing_card.hint": "ПКМ по слоту: ещё один",
   "key.categories.grimstorage": "Grim Storage Industries",
   "key.grimstorage.dump": "Сбросить инвентарь в сеть",
+  "key.grimstorage.wireless": "Открыть беспроводной терминал",
   "gui.grimstorage.job.full": "Хранилище заполнено",
   "gui.grimstorage.controller.singular": "+ %s в ячейках сингулярности",
   "gui.grimstorage.stock.clear": "Очистить",

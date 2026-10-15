@@ -116,6 +116,7 @@
   "gui.grimstorage.processing_card.hint": "Botão direito no slot: mais um",
   "key.categories.grimstorage": "Grim Storage Industries",
   "key.grimstorage.dump": "Despejar o inventário na rede",
+  "key.grimstorage.wireless": "Abrir terminal sem fio",
   "gui.grimstorage.job.full": "Armazenamento cheio",
   "gui.grimstorage.controller.singular": "+ %s em Células de Singularidade",
   "gui.grimstorage.stock.clear": "Limpar",

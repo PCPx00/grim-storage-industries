@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.16.3
+- Machine Bus reads furnaces from other mods: a furnace whose recipe type can't be read is now learned by its block
+  name, the same way other machines are. Before, it learned nothing and gave no sign why.
+- "Open wireless terminal" key name is translated in all six languages.
+
 ## 1.16.2
 - Press R over an item in the terminal to open its recipes in JEI or EMI. (REI is not wired yet.)
 
