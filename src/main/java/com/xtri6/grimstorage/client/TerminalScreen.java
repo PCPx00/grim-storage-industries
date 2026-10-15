@@ -298,7 +298,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             ench = s.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
         }
         for (Holder<Enchantment> h : ench.keySet()) {
-            if (h.value().description().getString().toLowerCase(Locale.ROOT).contains(needle)) {
+            if (SearchMatch.matches(h.value().description().getString().toLowerCase(Locale.ROOT), needle)) {
                 return true;
             }
         }
@@ -346,7 +346,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             if (!needle.isEmpty()) {
                 ItemStack s = e.key().stack();
                 String hay = byMod ? BuiltInRegistries.ITEM.getKey(s.getItem()).getNamespace() : s.getHoverName().getString().toLowerCase(Locale.ROOT);
-                if (!hay.contains(needle) && (byMod || !enchantmentsMatch(s, needle))) {
+                if (!SearchMatch.matches(hay, needle) && (byMod || !enchantmentsMatch(s, needle))) {
                     continue;
                 }
             }

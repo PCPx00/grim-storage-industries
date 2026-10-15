@@ -211,7 +211,8 @@
             "- **Suche mit JEI abgleichen:** Terminal und JEI teilen sich eine Suche.",
             "- **Beim Öffnen gleich suchen:** sofort lostippen, sobald es offen ist.",
             "- **Suche beim Schließen behalten:** deine Suche ist beim nächsten Mal noch da.",
-            "- **Größe:** Auto passt sich deinem Bildschirm an. Normal, Hoch und Höher zeigen 6, 9 oder 12 Reihen."
+            "- **Größe:** Auto passt sich deinem Bildschirm an. Normal, Hoch und Höher zeigen 6, 9 oder 12 Reihen.",
+            "Fahre über einen Gegenstand und **drücke R**, um seine Rezepte in JEI, EMI oder REI zu sehen. Die Suche findet auch Verzauberungen und verzeiht kleine Tippfehler: „medning“ findet Mending."
           ]
         },
         {
@@ -658,7 +659,8 @@
           "title": "Drahtloses Terminal",
           "text": [
             "Ein Terminal für die Tasche. **Benutze es schleichend an einem Netzwerk-Controller**, um es zu verbinden, dann nutze es überall innerhalb von 128 Blöcken in derselben Dimension (Modpack-Ersteller können die Reichweite ändern).",
-            "Es hat dieselben Tabs und dasselbe Herstellungsraster wie der Block."
+            "Es hat dieselben Tabs und dasselbe Herstellungsraster wie der Block.",
+            "Drücke **Y**, um es von überall zu öffnen (Taste unter Steuerung ändern)."
           ],
           "recipe": "grimstorage:wireless_terminal"
         },

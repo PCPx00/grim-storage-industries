@@ -28,7 +28,7 @@ Lost it? Craft one from a book and a Soulite Ingot.
 |---|---|
 | Network Controller | The heart of a network. Exactly one per network. Open it to see storage use and crafting jobs (and cancel them). |
 | Soul Drive | Holds 8 storage cells. Cells keep their contents when moved. |
-| Soul Terminal | An Everything tab shows items and every other resource in one list. Browse, search (`@mod` searches by mod), filter with the side tabs (ores, ingots, tools, armor, food, mob drops, farming, building, misc, and Craftable for everything the network can make), take, store, order crafts, and craft by hand in the built-in 3x3 grid that refills itself from storage. Hold Shift and nothing moves, so you can shift-click the same spot again and again. A Crafting jobs tab shows every running craft step by step. Settings (the gear): share the search with JEI, type to search on open, keep the search, and size (Auto, Normal, Tall, Taller). |
+| Soul Terminal | An Everything tab shows items and every other resource in one list. Browse, search (`@mod` searches by mod; it also finds enchanted books by enchantment, and forgives small typos), filter with the side tabs (ores, ingots, tools, armor, food, mob drops, farming, building, misc, and Craftable for everything the network can make), take, store, order crafts, and craft by hand in the built-in 3x3 grid that refills itself from storage. Hold Shift and nothing moves, so you can shift-click the same spot again and again. A Crafting jobs tab shows every running craft step by step. Settings (the gear): share the search with JEI, type to search on open, keep the search, and size (Auto, Normal, Tall, Taller). |
 | Soul Cable / Soulite Glass | Connect network blocks. Cable is 4 px thick and each of its sides can hold an Import or Export Bus. One cable carries everything (items, fluids, energy, XP, chemicals, Source) to every bus, interface and machine on the network. The glass is decorative and see-through. |
 | Soul Assembler | Holds 9 Recipe Cards and runs them. Up to 4 Speed Upgrades, each doubling its speed. |
 | Processing Interface | Faces any machine (any mod). Sends Processing Card inputs in and pulls the outputs back. |
@@ -64,6 +64,8 @@ Lost it? Craft one from a book and a Soulite Ingot.
 
 **Look and feel:** every screen uses a translucent dark theme by default. Click the sun/moon button in a screen's
 corner to switch to light mode; panel opacity is in the mod's Config screen (mod list) or `config/grimstorage-client.toml`.
+
+**Keys:** **Y** (default) opens the wireless terminal from anywhere, and **R** over an item in the terminal opens its recipes in JEI, EMI or REI. Both can be changed under Controls.
 
 **Dump key (G by default):** while carrying a bound wireless terminal, press it to send your main inventory
 (not hotbar or armor) into the network.

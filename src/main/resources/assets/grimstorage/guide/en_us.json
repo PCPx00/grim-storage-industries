@@ -211,7 +211,8 @@
             "- **Sync search with JEI:** the terminal and JEI share one search.",
             "- **Type to search on open:** start typing as soon as it opens.",
             "- **Keep search when closed:** your search is still there next time.",
-            "- **Size:** Auto fits your screen. Normal, Tall and Taller show 6, 9 or 12 rows."
+            "- **Size:** Auto fits your screen. Normal, Tall and Taller show 6, 9 or 12 rows.",
+            "Hover an item and **press R** to see its recipes in JEI, EMI or REI. Search also finds enchantments and forgives small typos: \"medning\" finds Mending."
           ]
         },
         {
@@ -658,7 +659,8 @@
           "title": "Wireless Terminal",
           "text": [
             "A terminal in your pocket. **Sneak and use it on a Network Controller** to link it, then use it anywhere within 128 blocks in the same dimension (pack makers can change the range).",
-            "It has the same tabs and crafting grid as the block."
+            "It has the same tabs and crafting grid as the block.",
+            "Press **Y** to open it from anywhere (change the key in Controls)."
           ],
           "recipe": "grimstorage:wireless_terminal"
         },

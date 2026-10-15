@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.16.4
+- Press **R** over an item in the terminal to open its recipes in REI too (JEI and EMI already worked).
+- Terminal search forgives small typos: "medning" finds Mending, and a 4 to 6 letter word can be one letter off, a
+  7 letter or longer word two. Short words still need an exact match, so "stin" does not match "stone".
+- The guide, README and CurseForge description cover the Y and R keys and the new search.
+- System check: a search test, and a timed check that the terminal's cached network reads stay fast.
+
 ## 1.16.3
 - Machine Bus reads furnaces from other mods: a furnace whose recipe type can't be read is now learned by its block
   name, the same way other machines are. Before, it learned nothing and gave no sign why.
