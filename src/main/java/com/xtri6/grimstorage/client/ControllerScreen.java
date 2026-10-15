@@ -261,12 +261,13 @@ public class ControllerScreen extends GrimScreen<ControllerMenu> {
             g.drawString(font, Component.translatable("gui.grimstorage.controller.loading"), 8, 20, t.textDim(), false);
             return;
         }
-        Component state = !s.active()
-                ? (s.problem().getString().isEmpty() ? Component.translatable("gui.grimstorage.controller.offline") : s.problem())
-                : Component.translatable("gui.grimstorage.controller.online");
-        int dot = s.active() ? t.ok() : t.danger();
+        boolean warn = !s.problem().getString().isEmpty();
+        Component state = warn
+                ? s.problem()
+                : Component.translatable(s.active() ? "gui.grimstorage.controller.online" : "gui.grimstorage.controller.offline");
+        int dot = warn ? t.danger() : (s.active() ? t.ok() : t.danger());
         g.fill(8, 21, 12, 25, dot);
-        g.drawString(font, state, 16, 19, s.active() ? t.text() : t.danger(), false);
+        g.drawString(font, state, 16, 19, warn ? t.danger() : (s.active() ? t.text() : t.danger()), false);
         String used = Fmt.big(s.used()) + " / " + Fmt.big(s.capacity());
         g.drawString(font, used, 8, 43, t.textDim(), false);
         if (s.singular() > 0) {

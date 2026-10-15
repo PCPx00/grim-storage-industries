@@ -94,6 +94,7 @@
   "gui.grimstorage.controller.jobs": "Crafting jobs: %s",
   "gui.grimstorage.controller.no_jobs": "Nothing crafting",
   "gui.grimstorage.problem.controllers": "More than one controller connected!",
+  "gui.grimstorage.problem.too_big": "Network too large: only the first %s blocks are connected. Raise maxNetworkBlocks or split the network.",
   "gui.grimstorage.job.starting": "Starting",
   "gui.grimstorage.job.crafting": "Crafting",
   "gui.grimstorage.job.processing": "Waiting for machines",

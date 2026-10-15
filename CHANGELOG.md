@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.15.1
+- Network size limit is a config value now, `maxNetworkBlocks` (default 16,384, up to 1,048,576). A network bigger
+  than the limit used to be cut off silently; now its Network Controller shows a red warning, and the guide and the
+  CurseForge description no longer claim there is no size limit.
+- Crafting jobs belong to the player who ordered them: cancel, pause and move up/down now only work for that
+  player, the network owner, or a server operator. Anyone with the terminal open used to be able to manage
+  another player's jobs on a shared network.
+- The mod ships a logo (`logo.png`), so it has an icon in the mod list and on CurseForge, and the LICENSE the
+  metadata points at is now included in the jar.
+
 ## 1.15.0
 - Crafting jobs are saved with the world. A restart, a crash or a server reboot no longer loses them: running jobs
   carry on, paused jobs stay paused, and items already in machines are still counted when they come back. Each step

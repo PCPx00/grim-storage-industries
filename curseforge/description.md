@@ -7,7 +7,7 @@
 <img src="https://raw.githubusercontent.com/PCPx00/grim-storage-industries/main/media/section-features.gif" alt="Features" width="1200">
 
 - **One network for everything:** items, fluids, energy (FE), experience, Mekanism chemicals and Ars Nouveau Source.
-- **No limits to learn:** cells count items, not types. No channels, no cable rules, no network size cap.
+- **No limits to learn:** cells count items, not types. No channels, no cable rules, and a network can join thousands of blocks (the size limit is a config value pack makers can raise).
 - **Full autocrafting:** whole crafting trees, sub-recipes, machine steps from any mod, and a clear list of anything missing.
 - **Machine Bus:** clip it onto a furnace or a machine from Mekanism, Create, Ender IO, Ars Nouveau, Immersive Engineering and more, and the network learns every recipe it can make, fluids and chemicals included. It keeps the machine fuelled, powered and topped up, takes back every output, and shares big jobs across all your machines. No cards needed.
 - **Whole machine lines:** machines that make fluids and chemicals are steps too. Order Iron Crystals and the network runs the Chemical Washer, then the Crystallizer.
