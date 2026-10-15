@@ -50,7 +50,7 @@ public class AssemblerBlockEntity extends NetworkBlockEntity implements DropsCon
         for (int i = 0; i < UPGRADE_SLOTS; i++) {
             n += upgrades.getStackInSlot(i).isEmpty() ? 0 : 1;
         }
-        return 1 << n;
+        return Math.max(1, (int) Math.round((1 << n) * com.xtri6.grimstorage.BalanceConfig.assemblerSpeed()));
     }
 
     @Override

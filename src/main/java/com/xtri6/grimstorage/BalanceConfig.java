@@ -43,6 +43,11 @@ public final class BalanceConfig {
                     "A bus never goes slower than its normal speed without upgrades.")
             .defineInRange("busSpeedMultiplier", 1.0, 0.25, 64.0);
 
+    public static final ModConfigSpec.DoubleValue ASSEMBLER_SPEED = BUILDER
+            .comment("How fast Soul Assemblers craft, as a multiple of the normal speed (Speed Upgrades multiply on top).",
+                    "At 1.0 a plain Assembler makes one craft every half second, so a stack of 64 takes about 32 seconds.")
+            .defineInRange("assemblerSpeedMultiplier", 1.0, 0.25, 64.0);
+
     public static final ModConfigSpec.IntValue WIRELESS_RANGE = BUILDER
             .comment("How far a Wireless Terminal reaches from its controller, in blocks (same dimension only).",
                     "The Singularity Terminal always reaches everywhere.")
@@ -77,6 +82,10 @@ public final class BalanceConfig {
     /** The capacity setting of one kind of resource cell. */
     public static ModConfigSpec.ConfigValue<List<? extends Long>> bulkCells(BulkKind kind) {
         return BULK_CELLS.get(kind);
+    }
+
+    public static double assemblerSpeed() {
+        return SPEC.isLoaded() ? ASSEMBLER_SPEED.get() : 1.0;
     }
 
     public static double busSpeed() {
