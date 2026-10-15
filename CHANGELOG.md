@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.16.2
+- Press R over an item in the terminal to open its recipes in JEI or EMI. (REI is not wired yet.)
+
 ## 1.16.1
 - Search finds enchanted books and items by their enchantments, so typing "mending" shows the Mending books.
 - The terminal keeps its order while counts change, so items no longer jump under the cursor during a craft.
