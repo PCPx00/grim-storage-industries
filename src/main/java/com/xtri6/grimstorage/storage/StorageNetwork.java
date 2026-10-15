@@ -94,6 +94,9 @@ public final class StorageNetwork {
 
     /** Tells the player who ordered a job that it is done (or stuck), with a toast. */
     private void alert(CraftingJob job, boolean done) {
+        if (!done) {
+            DebugLog.note("job stuck a minute: " + job.amount() + "x " + job.target() + " for " + job.source() + ": " + job.status().getString());
+        }
         if (server == null) {
             return;
         }
@@ -223,6 +226,7 @@ public final class StorageNetwork {
             NetworkManager.index(p, this);
         }
         rebuildPatterns();
+        restoreSaved();
         cacheEpoch = -1;
         statsVersion = -1;
         builtEpoch = NetworkManager.epoch();
@@ -411,6 +415,17 @@ public final class StorageNetwork {
             linkSnapshot = map;
             linkRevision++;
         }
+    }
+
+    /** Items of this kind in chests linked as "only put in", which the network can see but not take. */
+    public long lockedInLinks(ItemKey key) {
+        long n = 0;
+        for (com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity l : links) {
+            if (!l.isRemoved() && l.mode() == com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity.INSERT_ONLY) {
+                n += l.rawCount(key);
+            }
+        }
+        return n;
     }
 
     /** Changes whenever anything stored changes, cells or linked chests. */
@@ -877,6 +892,131 @@ public final class StorageNetwork {
         }
     }
 
+    // ------------------------------------------------------------------ debug report
+
+    /** Everything about this network worth seeing when something doesn't work, as plain text lines. */
+    public List<String> debugReport() {
+        List<String> out = new ArrayList<>();
+        BlockPos c = controller.getBlockPos();
+        out.add("Controller: " + controller.getLevel().dimension().location() + " " + c.getX() + " " + c.getY() + " " + c.getZ());
+        out.add("Working: " + isActive() + (problem.getString().isEmpty() ? "" : "  problem: " + problem.getString()));
+        out.add("Owner: " + (controller.owner() == null ? "nobody (open)" : controller.ownerName()) + "  open to all: " + controller.isOpen()
+                + "  trusted: " + controller.trusted().values());
+        // blocks by type
+        Map<String, Integer> blocks = new java.util.TreeMap<>();
+        for (GlobalPos p : members) {
+            ServerLevel l = server == null ? null : server.getLevel(p.dimension());
+            String id = l == null || !l.isLoaded(p.pos()) ? "(not loaded)"
+                    : net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(l.getBlockState(p.pos()).getBlock()).toString();
+            blocks.merge(id, 1, Integer::sum);
+        }
+        out.add("Blocks: " + members.size() + "  " + blocks);
+        long[] st = stats();
+        out.add("Items: " + st[0] + " / " + st[1] + " in " + st[2] + " cells (+" + st[3] + " in singularity cells), "
+                + contents().size() + " types");
+        for (BulkKind k : BulkKind.values()) {
+            long[] b = bulkStats(k);
+            if (b[1] > 0) {
+                out.add("  " + k.id() + ": " + b[0] + " / " + b[1] + "  " + bulkContents(k).size() + " types");
+            }
+        }
+        out.add("Waiting for room (overflow): " + overflow.stream().mapToInt(ItemStack::getCount).sum() + " items");
+        out.add("Soul Assemblers: " + assemblers.size() + "  (" + String.format(java.util.Locale.ROOT, "%.1f", craftsPerSecond()) + " crafts a second)");
+        out.add("Chest Links: " + links.size());
+        for (com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity l : links) {
+            out.add("  " + l.getBlockPos().toShortString() + "  mode " + l.mode() + (l.fillFirst() ? "  fills first" : ""));
+        }
+        out.add("Machine links: " + processors.size());
+        for (MachineLink m : processors) {
+            String where = m instanceof BlockEntity be ? be.getBlockPos().toShortString() : "?";
+            Component name = m.machineName();
+            out.add("  " + where + "  " + m.getClass().getSimpleName() + " -> " + (name == null ? "nothing" : name.getString())
+                    + "  cards " + m.cards().size() + "  learned " + m.learnedCount());
+        }
+        int itemPatterns = 0;
+        for (List<Pattern> l : patterns.values()) {
+            itemPatterns += l.size();
+        }
+        out.add("Craftable: " + patterns.size() + " items (" + itemPatterns + " ways), " + bulkPatterns.size() + " fluids/chemicals");
+        out.add("Jobs: " + jobs.size() + " (limit " + com.xtri6.grimstorage.ServerConfig.maxJobs() + ", "
+                + com.xtri6.grimstorage.ServerConfig.maxJobsPerPlayer() + " a player)");
+        for (CraftingJob j : jobs) {
+            out.add("  " + j.amount() + "x " + j.target() + "  for " + j.source() + "  priority " + j.priority() + (j.paused() ? "  PAUSED" : "")
+                    + "  " + Math.round(j.progress() * 100) + "%  status: " + j.status().getString());
+            for (CraftingJob.StepState s : j.steps()) {
+                Pattern p = s.pattern();
+                String what = p == null ? "(recipe not found since the restart)"
+                        : (p.kind() == Pattern.Kind.CRAFTING ? "craft " : "machine ") + p.inputs() + (p.bulkInputs().isEmpty() ? "" : " + " + bulkNames(p.bulkInputs()))
+                        + " -> " + (p.primaryKey() instanceof BulkKey b ? b.name().getString() : p.primaryKey().toString())
+                        + (p.swaps().isEmpty() ? "" : "  using " + p.swaps());
+                out.add("    " + s.finished() + "/" + s.total() + " done, " + s.inMachines() + " in machines: " + what);
+            }
+        }
+        return out;
+    }
+
+    private static String bulkNames(Map<BulkKey, Long> m) {
+        StringBuilder sb = new StringBuilder("{");
+        m.forEach((k, v) -> sb.append(sb.length() > 1 ? ", " : "").append(k.name().getString()).append('=').append(v));
+        return sb.append('}').toString();
+    }
+
+    // ------------------------------------------------------------------ saving jobs with the world
+
+    private boolean restored;
+    private int lastSavedJobs = -1;
+
+    /** Jobs and buffered items for the controller to save. */
+    public net.minecraft.nbt.CompoundTag saveState(net.minecraft.core.HolderLookup.Provider registries) {
+        net.minecraft.nbt.CompoundTag tag = new net.minecraft.nbt.CompoundTag();
+        net.minecraft.nbt.ListTag list = new net.minecraft.nbt.ListTag();
+        for (CraftingJob j : jobs) {
+            if (!j.cancelled()) {
+                list.add(j.save(registries));
+            }
+        }
+        tag.put("jobs", list);
+        net.minecraft.nbt.ListTag buffered = new net.minecraft.nbt.ListTag();
+        for (ItemStack s : overflow) {
+            if (!s.isEmpty()) {
+                buffered.add(s.save(registries));
+            }
+        }
+        tag.put("overflow", buffered);
+        return tag;
+    }
+
+    /** The first time the network is built after the world loads: picks up the jobs the controller saved. */
+    private void restoreSaved() {
+        if (restored || server == null) {
+            return;
+        }
+        restored = true;
+        net.minecraft.nbt.CompoundTag saved = controller.takeSavedState();
+        if (saved == null) {
+            return;
+        }
+        for (net.minecraft.nbt.Tag t : saved.getList("jobs", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+            CraftingJob job = CraftingJob.load((net.minecraft.nbt.CompoundTag) t, server.registryAccess());
+            if (job != null) {
+                jobs.add(job);
+            }
+        }
+        for (net.minecraft.nbt.Tag t : saved.getList("overflow", net.minecraft.nbt.Tag.TAG_COMPOUND)) {
+            ItemStack.parse(server.registryAccess(), t).ifPresent(overflow::add);
+        }
+        sortJobs();
+        resolveJobs();
+    }
+
+    private void resolveJobs() {
+        for (CraftingJob j : jobs) {
+            if (j.unresolved()) {
+                j.resolve(this);
+            }
+        }
+    }
+
     // ------------------------------------------------------------------ ticking
 
     public void tick(ServerLevel level) {
@@ -910,6 +1050,16 @@ public final class StorageNetwork {
             }
         }
         craftBudget = Math.min(craftBudget + speed, Math.max(CRAFT_COST, speed * 20));
+
+        if (tickCount % 20 == 0) {
+            // jobs loaded with the world find their recipes once the machines around them have loaded
+            resolveJobs();
+        }
+        // running jobs change all the time: keep the controller marked so they are saved with the world
+        if ((!jobs.isEmpty() || !overflow.isEmpty() || lastSavedJobs != jobs.size()) && tickCount % 40 == 0) {
+            lastSavedJobs = jobs.size();
+            controller.setChanged();
+        }
 
         Iterator<CraftingJob> it = jobs.iterator();
         while (it.hasNext()) {

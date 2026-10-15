@@ -102,6 +102,24 @@ public class ControllerBlockEntity extends NetworkBlockEntity implements Ticking
             list.add(t);
         });
         tag.put("trusted", list);
+        // crafting jobs and items waiting for room, so a restart doesn't lose them
+        if (network != null && network.builtEpoch() >= 0 && savedState == null) {
+            tag.put("network", network.saveState(registries));
+        } else if (savedState != null) {
+            tag.put("network", savedState);
+        }
+    }
+
+    /** What the network saved last time, until the network picks it up after the world loads. */
+    @Nullable
+    private CompoundTag savedState;
+
+    /** Hands the saved jobs to the network, once. */
+    @Nullable
+    public CompoundTag takeSavedState() {
+        CompoundTag s = savedState;
+        savedState = null;
+        return s;
     }
 
     @Override
@@ -114,6 +132,9 @@ public class ControllerBlockEntity extends NetworkBlockEntity implements Ticking
         for (Tag t : tag.getList("trusted", Tag.TAG_COMPOUND)) {
             CompoundTag c = (CompoundTag) t;
             trusted.put(c.getUUID("id"), c.getString("name"));
+        }
+        if (tag.contains("network") && (network == null || network.builtEpoch() < 0)) {
+            savedState = tag.getCompound("network");
         }
     }
 

@@ -29,6 +29,11 @@ public interface MachineLink {
 
     boolean linkRemoved();
 
+    /** How many recipes it learned from its machine last time (for debug reports). */
+    default int learnedCount() {
+        return 0;
+    }
+
     /** A recipe that also needs fluids or chemicals was just sent here: keep the machine supplied with them. */
     default void onSent(Pattern pattern) {}
 

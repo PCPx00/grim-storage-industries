@@ -49,7 +49,7 @@ public final class RecipeReader {
         }
     }
 
-    private static final int MAX_OPTIONS = 16;
+    private static final int MAX_OPTIONS = 32;
     private static final boolean MEKANISM = ModList.get() != null && ModList.get().isLoaded("mekanism");
 
     private RecipeReader() {}

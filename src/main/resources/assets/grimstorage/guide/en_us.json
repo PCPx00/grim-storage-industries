@@ -200,7 +200,8 @@
           "text": [
             "Jobs at the **top** get the Soul Assemblers and machines first. **Shift-click** the up arrow to send a job straight to the top.",
             "A **paused** job (yellow edge) waits and takes nothing until you press play.",
-            "On shared networks each player can run **16 jobs** at once, so one big order can't block everyone (pack makers can change it in the config)."
+            "On shared networks each player can run **16 jobs** at once, so one big order can't block everyone (pack makers can change it in the config).",
+            "Jobs are **saved with the world**: after a restart they carry on where they stopped."
           ]
         },
         {
@@ -723,7 +724,8 @@
             "- **Items will not go in:** storage is full. Add cells, or a Void Filter for junk.",
             "- **A craft never finishes:** open the controller to see what it is waiting for, and cancel it if needed.",
             "- **A bus says Nothing attached or Idle:** check it is on the right face, its resource switches are on, and (Export Bus) its filter has something in it.",
-            "- **Wireless terminal will not open:** link it again, and stay in range."
+            "- **Wireless terminal will not open:** link it again, and stay in range.",
+            "Still stuck? Look at your network and type `/grimstorage debug`. It saves a report you can attach to a bug report."
           ]
         },
         {

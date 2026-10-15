@@ -169,7 +169,11 @@ public final class CraftingPlanner {
         for (Map.Entry<ItemKey, Long> in : p.inputs().entrySet()) {
             long n = in.getValue() * times;
             need += n;
-            have += Math.min(n, available.getOrDefault(in.getKey(), 0L));
+            long stock = available.getOrDefault(in.getKey(), 0L);
+            for (ItemKey alt : p.alternatives().getOrDefault(in.getKey(), List.of())) {
+                stock += available.getOrDefault(alt, 0L);
+            }
+            have += Math.min(n, stock);
         }
         for (Map.Entry<BulkKey, Long> in : p.bulkInputs().entrySet()) {
             long n = in.getValue() * times;
@@ -179,10 +183,62 @@ public final class CraftingPlanner {
         return need <= 0 ? 0 : have / need;
     }
 
+    /** Most pieces one step is split into when no single variant of its ingredients covers it. */
+    private static final int MAX_SPLITS = 8;
+
     private boolean tryOption(Pattern pattern, Object key, long amount) {
         long per = Math.max(1, pattern.amountOf(key));
         long times = (amount + per - 1) / per;
+        if (pattern.alternatives().isEmpty()) {
+            return run(pattern, key, times, amount);
+        }
+        // Ingredients with stand-ins (any mod's copper, any planks): use whichever is in storage. If no single one
+        // covers every run, the step is split: so many runs with birch, the rest with oak.
+        net.minecraft.world.level.Level level = network.server() == null ? null : network.server().overworld();
+        boolean ok = true;
+        long leftTimes = times;
+        long leftAmount = amount;
+        for (int round = 0; leftTimes > 0; round++) {
+            Map<ItemKey, ItemKey> swaps = new LinkedHashMap<>();
+            long chunk = leftTimes;
+            for (Map.Entry<ItemKey, Long> in : pattern.inputs().entrySet()) {
+                List<ItemKey> alts = pattern.alternatives().get(in.getKey());
+                if (alts == null) {
+                    continue;
+                }
+                ItemKey best = in.getKey();
+                long bestHave = available.getOrDefault(best, 0L);
+                for (ItemKey a : alts) {
+                    long h = available.getOrDefault(a, 0L);
+                    if (h > bestHave) {
+                        best = a;
+                        bestHave = h;
+                    }
+                }
+                if (!best.equals(in.getKey())) {
+                    swaps.put(in.getKey(), best);
+                }
+                chunk = Math.min(chunk, bestHave / Math.max(1, in.getValue()));
+            }
+            if (chunk <= 0 || round >= MAX_SPLITS - 1) {
+                // nothing (or not enough) of any of them: the rest is made with the most-stocked choice, crafting
+                // what is short, so what's missing shows as the recipe's own item when nothing is there at all
+                chunk = leftTimes;
+            }
+            Pattern use = swaps.isEmpty() ? pattern : pattern.substitute(swaps, level);
+            if (use == null) {
+                use = pattern;
+            }
+            long chunkAmount = Math.min(leftAmount, per * chunk);
+            ok &= run(use, key, chunk, chunkAmount);
+            leftTimes -= chunk;
+            leftAmount -= chunkAmount;
+        }
+        return ok;
+    }
 
+    /** Plans {@code times} runs of one exact pattern making {@code amount} of {@code key}. */
+    private boolean run(Pattern pattern, Object key, long times, long amount) {
         path.push(key);
         boolean ok = true;
         for (Map.Entry<ItemKey, Long> in : pattern.inputs().entrySet()) {

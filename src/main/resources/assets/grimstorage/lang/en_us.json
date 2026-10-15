@@ -374,5 +374,18 @@
   "gui.grimstorage.jobs.up_hint": "Shift-click: straight to the top",
   "gui.grimstorage.jobs.down": "Move down the queue",
   "gui.grimstorage.jobs.top": "Move to the top",
-  "message.grimstorage.craft.your_limit": "You already have %s crafting jobs running on this network. Wait for one to finish, or cancel one in the terminal's crafting tab."
+  "message.grimstorage.craft.your_limit": "You already have %s crafting jobs running on this network. Wait for one to finish, or cancel one in the terminal's crafting tab.",
+  "gui.grimstorage.missing.data": "%s more with other data (damaged, enchanted, named)",
+  "gui.grimstorage.missing.tag": "%s %s from %s: same %s, but not taken here",
+  "gui.grimstorage.missing.link": "%s in a chest linked as \"only put in\"",
+  "gui.grimstorage.missing.carried": "%s in your inventory: put them in first",
+  "gui.grimstorage.missing.none": "Not stored, and nothing on the network makes it",
+  "gui.grimstorage.missing.loop": "Its recipes need it to make it",
+  "gui.grimstorage.job.recipe_missing": "Waiting for its recipe card or machine",
+  "gui.grimstorage.job.resuming": "Picking up after a restart",
+  "command.grimstorage.debug.where": "Run this as a player looking at a network block, or give a position.",
+  "command.grimstorage.debug.none": "No network here. Look at any block of the network (or carry a linked wireless terminal) and try again.",
+  "command.grimstorage.debug.failed": "Could not write the report: %s",
+  "command.grimstorage.debug.done": "Network report saved to %s. Attach it to your bug report.",
+  "command.grimstorage.debug.open": "Click to open"
 }

@@ -33,6 +33,7 @@ public final class GrimStorage {
         modBus.addListener(GrimStorage::registerCapabilities);
         NeoForge.EVENT_BUS.addListener((ServerStoppedEvent e) -> NetworkManager.clearAll());
         NeoForge.EVENT_BUS.addListener(com.xtri6.grimstorage.storage.NetworkAccess::onBreak);
+        NeoForge.EVENT_BUS.addListener(com.xtri6.grimstorage.command.DebugCommand::register);
         NeoForge.EVENT_BUS.addListener(com.xtri6.grimstorage.storage.NetworkAccess::onPlace);
         NeoForge.EVENT_BUS.addListener((net.neoforged.neoforge.event.AddReloadListenerEvent e) ->
                 e.addListener(com.xtri6.grimstorage.storage.MachineRecipes.INSTANCE));
