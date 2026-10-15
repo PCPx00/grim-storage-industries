@@ -211,7 +211,8 @@
             "- **Synchroniser la recherche avec JEI :** le terminal et JEI partagent une recherche.",
             "- **Taper pour chercher à l'ouverture :** commencez à taper dès qu'il s'ouvre.",
             "- **Garder la recherche à la fermeture :** votre recherche est toujours là la fois suivante.",
-            "- **Taille :** Auto s'adapte à votre écran. Normal, Haut et Plus haut affichent 6, 9 ou 12 lignes."
+            "- **Taille :** Auto s'adapte à votre écran. Normal, Haut et Plus haut affichent 6, 9 ou 12 lignes.",
+            "Survole un objet et **appuie sur R** pour voir ses recettes dans JEI, EMI ou REI. La recherche trouve aussi les enchantements et tolère les petites fautes : « medning » trouve Mending."
           ]
         },
         {
@@ -658,7 +659,8 @@
           "title": "Terminal sans fil",
           "text": [
             "Un terminal de poche. **Accroupi, utilisez-le sur un contrôleur de réseau** pour le lier, puis servez-vous-en n'importe où dans un rayon de 128 blocs dans la même dimension (les créateurs de modpacks peuvent changer la portée).",
-            "Il a les mêmes onglets et la même grille de fabrication que le bloc."
+            "Il a les mêmes onglets et la même grille de fabrication que le bloc.",
+            "Appuie sur **Y** pour l'ouvrir de n'importe où (touche modifiable dans les Contrôles)."
           ],
           "recipe": "grimstorage:wireless_terminal"
         },

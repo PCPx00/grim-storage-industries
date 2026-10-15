@@ -211,7 +211,8 @@
             "- **Sincronizar la búsqueda con JEI:** el terminal y JEI comparten una búsqueda.",
             "- **Escribir para buscar al abrir:** empieza a escribir nada más abrirlo.",
             "- **Mantener la búsqueda al cerrar:** tu búsqueda sigue ahí la próxima vez.",
-            "- **Tamaño:** Auto se ajusta a tu pantalla. Normal, Alto y Más alto muestran 6, 9 o 12 filas."
+            "- **Tamaño:** Auto se ajusta a tu pantalla. Normal, Alto y Más alto muestran 6, 9 o 12 filas.",
+            "Pon el cursor sobre un objeto y **pulsa R** para ver sus recetas en JEI, EMI o REI. La búsqueda también encuentra encantamientos y perdona errores pequeños: «medning» encuentra Mending."
           ]
         },
         {
@@ -658,7 +659,8 @@
           "title": "Terminal inalámbrico",
           "text": [
             "Un terminal en el bolsillo. **Agáchate y úsalo en un controlador de red** para enlazarlo, y luego úsalo en cualquier sitio a menos de 128 bloques en la misma dimensión (quien hace el modpack puede cambiar el alcance).",
-            "Tiene las mismas pestañas y cuadrícula de fabricación que el bloque."
+            "Tiene las mismas pestañas y cuadrícula de fabricación que el bloque.",
+            "Pulsa **Y** para abrirlo desde cualquier lugar (cambia la tecla en Controles)."
           ],
           "recipe": "grimstorage:wireless_terminal"
         },

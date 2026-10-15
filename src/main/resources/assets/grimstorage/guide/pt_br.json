@@ -211,7 +211,8 @@
             "- **Sincronizar a busca com o JEI:** o terminal e o JEI compartilham uma busca.",
             "- **Digitar para buscar ao abrir:** comece a digitar assim que abrir.",
             "- **Manter a busca ao fechar:** sua busca continua lá na próxima vez.",
-            "- **Tamanho:** Auto se ajusta à tela. Normal, Alto e Mais alto mostram 6, 9 ou 12 linhas."
+            "- **Tamanho:** Auto se ajusta à tela. Normal, Alto e Mais alto mostram 6, 9 ou 12 linhas.",
+            "Passe o mouse sobre um item e **pressione R** para ver suas receitas no JEI, EMI ou REI. A busca também encontra encantamentos e perdoa pequenos erros de digitação: \"medning\" encontra Mending."
           ]
         },
         {
@@ -658,7 +659,8 @@
           "title": "Terminal Sem Fio",
           "text": [
             "Um terminal no bolso. **Agache e use-o em um Controlador de Rede** para vinculá-lo, depois use em qualquer lugar a até 128 blocos na mesma dimensão (criadores de modpacks podem mudar o alcance).",
-            "Ele tem as mesmas abas e a mesma grade de fabricação do bloco."
+            "Ele tem as mesmas abas e a mesma grade de fabricação do bloco.",
+            "Pressione **Y** para abri-lo de qualquer lugar (mude a tecla em Controles)."
           ],
           "recipe": "grimstorage:wireless_terminal"
         },

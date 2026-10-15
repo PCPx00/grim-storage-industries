@@ -89,6 +89,8 @@ The **Grim Storage Guide** you get when you first join explains every block and 
 - **Wireless Terminal:** link it to your controller and use it anywhere within 128 blocks.
 - **Singularity Terminal:** any distance, any dimension.
 - **Quick dump:** press **G** while carrying a linked terminal to send your whole inventory into storage. Your hotbar and armor stay put.
+- **Quick keys:** press **Y** to open your wireless terminal from anywhere, and **R** over an item in the terminal to see its recipes in JEI or EMI.
+- **Smarter search:** finds enchanted books by their enchantments, and forgives small typos ("medning" finds Mending).
 - **Quantum Link:** join two places into one network, even across dimensions.
 
 <img src="https://raw.githubusercontent.com/PCPx00/grim-storage-industries/main/media/section-compat.gif" alt="Compatibility" width="1200">

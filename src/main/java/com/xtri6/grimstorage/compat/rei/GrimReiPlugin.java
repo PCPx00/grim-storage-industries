@@ -104,6 +104,8 @@ public final class GrimReiPlugin implements REIClientPlugin {
                 return Stream.empty();
             }
         });
+        com.xtri6.grimstorage.client.ViewerShow.connect(stack -> me.shedaniel.rei.api.client.view.ViewSearchBuilder.builder()
+                .addRecipesFor(me.shedaniel.rei.api.common.util.EntryStacks.of(stack)).open());
         RecipeViewerSearch.connect(() -> {
             var field = REIRuntime.getInstance().getSearchTextField();
             return field == null ? null : field.getText();

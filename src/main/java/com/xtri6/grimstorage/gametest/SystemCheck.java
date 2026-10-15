@@ -1535,6 +1535,15 @@ public final class SystemCheck {
                     n.jobs().isEmpty() ? "none" : n.jobs().get(0).status().getString());
             return planks >= 24 && left == 0 && n.jobs().isEmpty();
         }));
+        STEPS.add(new Step("terminal search: contains, typos and short words", 0, () -> {
+            boolean typo = com.xtri6.grimstorage.client.SearchMatch.matches("mending", "medning");
+            boolean word = com.xtri6.grimstorage.client.SearchMatch.matches("diamond pickaxe", "pickaxe");
+            boolean shortWord = !com.xtri6.grimstorage.client.SearchMatch.matches("stone", "stin");
+            boolean far = !com.xtri6.grimstorage.client.SearchMatch.matches("mending", "zzzzzz");
+            boolean two = com.xtri6.grimstorage.client.SearchMatch.matches("sharpness", "sharpnes");
+            info("typo={} word={} shortWordNoFuzzy={} far={} two={}", typo, word, shortWord, far, two);
+            return typo && word && shortWord && far && two;
+        }));
         STEPS.add(new Step("machine table: datapack entries, name matching, and chemical recipes left out", 0, () -> {
             com.xtri6.grimstorage.storage.MachineRecipes mr = com.xtri6.grimstorage.storage.MachineRecipes.INSTANCE;
             java.util.function.Function<String, List<String>> types = id -> mr.typesFor(BuiltInRegistries.BLOCK.get(ResourceLocation.parse(id)).defaultBlockState())
@@ -1876,6 +1885,20 @@ public final class SystemCheck {
             long vb3 = b.contentVersion();
             info("network A version {} -> {} (should stay), B {} -> {} -> {} (should change), A types {}", va, va2, vb, vb2, vb3, before);
             return va == va2 && vb != vb2 && vb2 != vb3 && a.contents().size() == before;
+        }));
+        STEPS.add(new Step("scale: the terminal's hot paths stay fast (5,000 reads of a network's cached state)", 0, () -> {
+            StorageNetwork a = net();
+            a.contentVersion();
+            a.stats();
+            long t0 = System.nanoTime();
+            long sink = 0;
+            for (int i = 0; i < 5000; i++) {
+                sink += a.contentVersion() + a.stats()[0] + a.contents().size();
+            }
+            long ms = (System.nanoTime() - t0) / 1_000_000L;
+            info("5000 reads of cached state took {} ms (sink {})", ms, sink);
+            // a generous limit: this fails only if the cache stops working and every read rescans the drives
+            return ms < 2000;
         }));
         STEPS.add(new Step("scale: a cell put in a drive is used straight away (cached cell list refreshes)", 10, () -> {
             DriveBlockEntity d = (DriveBlockEntity) level.getBlockEntity(MB.west());
