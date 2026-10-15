@@ -92,6 +92,8 @@ public final class GrimJeiPlugin implements IModPlugin {
         GrimJeiPlugin.runtime = runtime;
         com.xtri6.grimstorage.client.RecipeViewerSearch.connect(() -> runtime.getIngredientFilter().getFilterText(),
                 text -> runtime.getIngredientFilter().setFilterText(text));
+        com.xtri6.grimstorage.client.ViewerShow.connect(stack -> runtime.getRecipesGui().show(runtime.getJeiHelpers().getFocusFactory()
+                .createFocus(RecipeIngredientRole.OUTPUT, VanillaTypes.ITEM_STACK, stack)));
         // Chemical and Source cells do nothing without Mekanism / Ars Nouveau, so keep them out of the list too.
         List<ItemStack> hide = new ArrayList<>();
         for (BulkKind kind : BulkKind.values()) {

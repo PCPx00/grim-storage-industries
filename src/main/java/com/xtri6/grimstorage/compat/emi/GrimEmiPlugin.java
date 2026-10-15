@@ -28,6 +28,7 @@ import net.minecraft.world.item.ItemStack;
 public final class GrimEmiPlugin implements EmiPlugin {
     @Override
     public void register(EmiRegistry reg) {
+        com.xtri6.grimstorage.client.ViewerShow.connect(stack -> EmiApi.displayRecipes(EmiStack.of(stack)));
         reg.addRecipeHandler(Registration.RECIPE_CARD_MENU.get(), new Handler<>(true, (screen, r) -> ViewerActions.recipeCard(screen, r.getId())));
         reg.addRecipeHandler(Registration.TERMINAL_MENU.get(), new Handler<>(true, (screen, r) -> ViewerActions.terminalGrid(screen, r.getId())));
         reg.addRecipeHandler(Registration.PROCESSING_CARD_MENU.get(), new Handler<>(false, (screen, r) -> {

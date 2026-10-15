@@ -287,6 +287,9 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     private boolean holdOrder;
     private boolean held;
     private int storedTypes;
+    /** The item under the mouse in the grid this frame, for the R key (recipes). */
+    @Nullable
+    private TerminalMenu.Entry hoverEntry;
 
     /** True when one of the stack's enchantments (on an enchanted book or an enchanted item) contains the search text. */
     private boolean enchantmentsMatch(ItemStack s, String needle) {
@@ -794,6 +797,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             renderSettings(g, t, mouseX, mouseY, partialTick);
             return;
         }
+        hoverEntry = hovered;
         ItemCategories.Category tab = crafting == null ? tabAt(mouseX, mouseY) : null;
         int top = crafting == null ? topAt(mouseX, mouseY) : -1;
         if (crafting != null) {
@@ -1493,6 +1497,11 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         }
         if (search.isFocused() && key != GLFW.GLFW_KEY_ESCAPE) {
             search.keyPressed(key, scan, mods);
+            return true;
+        }
+        // R over an item: open its recipes in the installed viewer (JEI, EMI or REI)
+        if (key == GLFW.GLFW_KEY_R && hoverEntry != null && ViewerShow.available()) {
+            ViewerShow.show(hoverEntry.key().stack());
             return true;
         }
         return super.keyPressed(key, scan, mods);
