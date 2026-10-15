@@ -13,7 +13,9 @@
 - **Whole machine lines:** machines that make fluids and chemicals are steps too. Order Iron Crystals and the network runs the Chemical Washer, then the Crystallizer.
 - **A real crafting queue:** move jobs up and down, pause them, and keep one player from filling every slot.
 - **Craft preview:** see every step, what it uses and what's missing before you order, and get a pop-up when it's done.
-- **Any planks will do:** Recipe Cards accept any variant the recipe takes.
+- **Any planks will do:** every ingredient accepts any variant the recipe takes, from any mod, and big orders split across what you have.
+- **Jobs survive restarts:** crafting jobs are saved with the world and carry on after a reboot.
+- **Tells you why:** anything missing comes with the reason, and `/grimstorage debug` writes a report for bug reports.
 - **Chest Link:** make any chest, barrel or drawer part of your storage.
 - **Redstone Emitter:** a signal when you have enough (or too little) of something, or craft on redstone.
 - **Server-ready:** networks belong to the player who built them; trust friends by name.

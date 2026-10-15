@@ -88,6 +88,18 @@ public class ChestLinkBlockEntity extends NetworkBlockEntity {
         return h != null ? h : level.getCapability(Capabilities.ItemHandler.BLOCK, t, null);
     }
 
+    /** How many of an item the linked inventory holds, whatever the link's mode. */
+    public long rawCount(ItemKey key) {
+        IItemHandler h = handler();
+        long n = 0;
+        for (int i = 0; h != null && i < h.getSlots(); i++) {
+            if (key.matches(h.getStackInSlot(i))) {
+                n += h.getStackInSlot(i).getCount();
+            }
+        }
+        return n;
+    }
+
     /** What is in the linked inventory, by item. */
     public Map<ItemKey, Long> snapshot() {
         Map<ItemKey, Long> out = new HashMap<>();

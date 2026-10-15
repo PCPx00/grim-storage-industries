@@ -1233,6 +1233,39 @@ public final class SystemCheck {
             info("exact plan ok={} uses oak={} uses birch={}", p.ok(), usesOak, usesBirch);
             return p.ok() && usesOak && !usesBirch;
         }));
+        final long[] camp = new long[1];
+        STEPS.add(new Step("every ingredient takes its variants: campfires split across coal and charcoal", 5, () -> {
+            AssemblerBlockEntity asm = (AssemblerBlockEntity) level.getBlockEntity(at(2, 0, 0));
+            if (asm.cardHandler().getStackInSlot(3).isEmpty()) {
+                // a card written with oak logs and coal: logs are the most flexible ingredient, coal is the second
+                asm.cardHandler().setStackInSlot(3, recipeCard(Items.AIR, Items.STICK, Items.AIR, Items.STICK, Items.COAL, Items.STICK,
+                        Items.OAK_LOG, Items.OAK_LOG, Items.OAK_LOG));
+                NetworkManager.markDirty();
+                StorageNetwork n = net();
+                n.extract(key(Items.COAL), n.count(key(Items.COAL)), false);
+                n.extract(key(Items.CHARCOAL), n.count(key(Items.CHARCOAL)), false);
+                n.insert(key(Items.COAL), 1, false);
+                n.insert(key(Items.CHARCOAL), 1, false);
+                n.insert(key(Items.STICK), 6, false);
+                camp[0] = count(Items.CAMPFIRE);
+                return false;
+            }
+            CraftingPlanner.Plan p = net().request(key(Items.CAMPFIRE), 2, "test");
+            List<String> steps = p.steps().stream().map(st -> st.pattern().inputs() + " x" + st.times()).toList();
+            boolean coal = p.steps().stream().anyMatch(st -> st.pattern().inputs().containsKey(key(Items.COAL)));
+            boolean charcoal = p.steps().stream().anyMatch(st -> st.pattern().inputs().containsKey(key(Items.CHARCOAL)));
+            info("campfire plan ok={} steps={} missing={}", p.ok(), steps, p.missing());
+            return p.ok() && coal && charcoal;
+        }));
+        STEPS.add(new Step("every ingredient takes its variants: both campfires made, one coal and one charcoal used", 200, () -> {
+            info("campfires {} -> {} coal={} charcoal={} jobs={}", camp[0], count(Items.CAMPFIRE), count(Items.COAL), count(Items.CHARCOAL), net().jobs().size());
+            boolean done = count(Items.CAMPFIRE) == camp[0] + 2 && count(Items.COAL) == 0 && count(Items.CHARCOAL) == 0 && net().jobs().isEmpty();
+            if (done) {
+                ((AssemblerBlockEntity) level.getBlockEntity(at(2, 0, 0))).cardHandler().setStackInSlot(3, ItemStack.EMPTY);
+                NetworkManager.markDirty();
+            }
+            return done;
+        }));
         STEPS.add(new Step("JEI recipe button writes a Recipe Card without holding any of the items", 0, () -> {
             FakePlayer fp = FakePlayerFactory.getMinecraft(level);
             fp.getInventory().clearContent();
@@ -1977,6 +2010,52 @@ public final class SystemCheck {
                 }
                 return made >= 2 && dust == circuits[1] - 4 && n.jobs().isEmpty();
             }));
+            STEPS.add(new Step("missing hints: same item with other data, and another mod's look-alike", 0, () -> {
+                StorageNetwork n = chainNet();
+                ItemStack named = new ItemStack(Items.FLINT, 3);
+                named.set(net.minecraft.core.component.DataComponents.CUSTOM_NAME, net.minecraft.network.chat.Component.literal("Lucky"));
+                n.insert(named, false);
+                List<String> flint = com.xtri6.grimstorage.storage.MissingHints.explain(n, key(Items.FLINT), null).stream()
+                        .map(net.minecraft.network.chat.Component::getString).toList();
+                List<String> dust = List.of();
+                var ieDust = BuiltInRegistries.ITEM.getOptional(ResourceLocation.fromNamespaceAndPath("immersiveengineering", "dust_iron"));
+                if (ieDust.isPresent()) {
+                    n.insert(ItemKey.of(new ItemStack(ieDust.get())), 5, false);
+                    dust = com.xtri6.grimstorage.storage.MissingHints.explain(n, modItem("mekanism", "dust_iron"), null).stream()
+                            .map(net.minecraft.network.chat.Component::getString).toList();
+                }
+                List<String> none = com.xtri6.grimstorage.storage.MissingHints.explain(n, key(Items.NETHER_STAR), null).stream()
+                        .map(net.minecraft.network.chat.Component::getString).toList();
+                info("hints: flint={} mekanism iron dust={} nether star={}", flint, dust, none);
+                boolean dustOk = ieDust.isEmpty() || dust.stream().anyMatch(h -> h.contains("Immersive") && h.contains("c:dusts/iron"));
+                return flint.stream().anyMatch(h -> h.startsWith("3 more")) && dustOk && none.stream().anyMatch(h -> h.contains("nothing on the network"));
+            }));
+            STEPS.add(new Step("/grimstorage debug writes a network report", 0, () -> {
+                java.nio.file.Path dir = net.neoforged.fml.loading.FMLPaths.GAMEDIR.get().resolve("grimstorage-debug");
+                int result;
+                try {
+                    result = server.getCommands().getDispatcher().execute("grimstorage debug " + CHAIN.getX() + " " + CHAIN.getY() + " " + CHAIN.getZ(),
+                            server.createCommandSourceStack());
+                } catch (com.mojang.brigadier.exceptions.CommandSyntaxException ex) {
+                    info("debug command failed: {}", ex.getMessage());
+                    return false;
+                }
+                java.nio.file.Path newest = null;
+                try (var files = java.nio.file.Files.list(dir)) {
+                    newest = files.max(java.util.Comparator.comparing(f -> f.toFile().lastModified())).orElse(null);
+                } catch (Exception ex) {
+                    info("no debug folder: {}", ex.toString());
+                }
+                String text = "";
+                try {
+                    text = newest == null ? "" : java.nio.file.Files.readString(newest);
+                } catch (Exception ignored) {
+                    // checked below
+                }
+                info("debug command result={} file={} size={} has machines={} has mods={}", result, newest, text.length(),
+                        text.contains("MachineBusBlockEntity -> Chemical Washer"), text.contains("== Mods"));
+                return result == 1 && text.contains("MachineBusBlockEntity -> Chemical Washer") && text.contains("== Mods") && text.contains("learned");
+            }));
             STEPS.add(new Step("job queue: one player can't take every job slot", 0, () -> {
                 StorageNetwork n = chainNet();
                 for (int i = 0; i < com.xtri6.grimstorage.ServerConfig.maxJobsPerPlayer() + 3; i++) {
@@ -2072,6 +2151,26 @@ public final class SystemCheck {
                         && n.jobs().isEmpty();
             }));
         }
+        if (mek) {
+            STEPS.add(new Step("restart test: leave a paused job and a running job for after the restart", 0, () -> {
+                StorageNetwork n = chainNet();
+                n.insert(modItem("mekanism", "ingot_osmium"), 6, false);
+                n.insert(key(Items.REDSTONE), 12, false);
+                ItemKey circuit = modItem("mekanism", "basic_control_circuit");
+                CraftingPlanner.Plan paused = n.request(circuit, 2, "Paused Pat");
+                CraftingPlanner.Plan running = n.request(circuit, 4, "Running Rae");
+                for (java.util.UUID id : n.jobs().stream().filter(j -> j.source().equals("Paused Pat")).map(j -> j.id()).toList()) {
+                    n.jobAction(id, StorageNetwork.JobAction.PAUSE);
+                }
+                try {
+                    java.nio.file.Files.writeString(java.nio.file.Path.of("systemcheck_circuits.txt"), Long.toString(n.count(circuit)));
+                } catch (Exception ex) {
+                    return false;
+                }
+                info("left for the restart: paused ok={} running ok={} jobs={}", paused.ok(), running.ok(), n.jobs().size());
+                return paused.ok() && running.ok() && n.jobs().size() == 2;
+            }));
+        }
     }
 
     /** A made-up machine recipe: an iron ingot and 250 mB of water make a gold ingot. */
@@ -2118,6 +2217,40 @@ public final class SystemCheck {
     }
 
     private static void buildPersistenceSteps() {
+        if (net.neoforged.fml.ModList.get().isLoaded("mekanism")) {
+            STEPS.add(new Step("after a restart: both crafting jobs are back, and find their machine", 200, () -> {
+                StorageNetwork n = chainNet();
+                if (n == null) {
+                    return false;
+                }
+                var paused = n.jobs().stream().filter(j -> j.source().equals("Paused Pat")).findFirst().orElse(null);
+                long jobs = n.jobs().size();
+                boolean found = n.jobs().stream().allMatch(j -> j.steps().stream().allMatch(st -> st.pattern() != null));
+                if (stepTicks % 50 == 49 || found) {
+                    info("after restart: jobs={} paused one back={} still paused={} recipes found={} statuses={}", jobs, paused != null,
+                            paused != null && paused.paused(), found, n.jobs().stream().map(j -> j.source() + ": " + j.status().getString()).toList());
+                }
+                // the running one may have finished already; the paused one must be there, paused, with its recipe found
+                return paused != null && paused.paused() && found;
+            }));
+            STEPS.add(new Step("after a restart: resume the paused job, every circuit gets made", 1200, () -> {
+                StorageNetwork n = chainNet();
+                for (java.util.UUID id : n.jobs().stream().filter(j -> j.paused()).map(j -> j.id()).toList()) {
+                    n.jobAction(id, StorageNetwork.JobAction.PAUSE);
+                }
+                long before;
+                try {
+                    before = Long.parseLong(java.nio.file.Files.readString(java.nio.file.Path.of("systemcheck_circuits.txt")).trim());
+                } catch (Exception ex) {
+                    return false;
+                }
+                long now = n.count(modItem("mekanism", "basic_control_circuit"));
+                if (stepTicks % 200 == 199 || (now >= before + 6 && n.jobs().isEmpty())) {
+                    info("circuits {} -> {} jobs={}", before, now, n.jobs().stream().map(j -> j.source() + ": " + j.status().getString()).toList());
+                }
+                return now >= before + 6 && n.jobs().isEmpty();
+            }));
+        }
         STEPS.add(new Step("network owner and trusted players survived a restart", 10, () -> {
             if (!(level.getBlockEntity(MB) instanceof com.xtri6.grimstorage.block.entity.ControllerBlockEntity c)) {
                 return false;

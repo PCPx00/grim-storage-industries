@@ -248,8 +248,18 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
     // ------------------------------------------------------------------ learning
 
     @Override
+    public int learnedCount() {
+        return learned.size();
+    }
+
+    @Override
     public List<Pattern> learnedPatterns() {
         learned = learn ? learn() : List.of();
+        if (learn && level != null && !level.getBlockState(target()).isAir()) {
+            com.xtri6.grimstorage.storage.DebugLog.note("Machine Bus " + worldPosition.toShortString() + " learned " + learned.size()
+                    + " recipes from " + net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(level.getBlockState(target()).getBlock())
+                    + (unreadable > 0 ? " (" + unreadable + " of its recipes need things the network can't give)" : ""));
+        }
         java.util.Set<com.xtri6.grimstorage.storage.BulkKey> outs = new java.util.HashSet<>();
         java.util.Set<com.xtri6.grimstorage.storage.BulkKey> ins = new java.util.HashSet<>();
         for (Pattern p : learned) {
@@ -263,6 +273,7 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
         java.util.Set<ItemKey> itemOuts = new java.util.HashSet<>();
         for (Pattern p : learned) {
             itemIns.addAll(p.inputs().keySet());
+            p.alternatives().values().forEach(itemIns::addAll);
             itemOuts.addAll(p.outputs().keySet());
         }
         itemIns.removeAll(itemOuts);
@@ -557,7 +568,11 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
      * Engineering, Create, Ars Nouveau and more ship with the mod) or a matching name, and each recipe is read by
      * {@link com.xtri6.grimstorage.storage.RecipeReader}.
      */
+    /** Recipes of the machine's types that couldn't be read last time it learned (for debug reports). */
+    private int unreadable;
+
     private List<Pattern> learnFromRecipes(BlockState st) {
+        unreadable = 0;
         List<Pattern> out = new ArrayList<>();
         Set<String> seen = new HashSet<>();
         for (RecipeType<?> type : com.xtri6.grimstorage.storage.MachineRecipes.INSTANCE.typesFor(st)) {
@@ -567,6 +582,7 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
                 com.xtri6.grimstorage.storage.RecipeReader.Read first =
                         com.xtri6.grimstorage.storage.RecipeReader.read(holder.value(), level.registryAccess());
                 if (first == null || !first.usable()) {
+                    unreadable++;
                     continue;
                 }
                 // Mekanism: a chemical the machine turns items into (redstone dust into redstone infuse) can also be
@@ -594,26 +610,32 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
                         }
                         continue;
                     }
-                    // one pattern per choice of the ingredient with the most choices ("any log"), the rest take their first
-                    int vary = 0;
-                    for (int i = 1; i < read.inputs().size(); i++) {
-                        if (read.inputs().get(i).options().size() > read.inputs().get(vary).options().size()) {
-                            vary = i;
+                    // one pattern; every ingredient with several choices ("any log", any mod's copper) keeps the
+                    // others as alternatives, and the planner uses whichever is in storage
+                    java.util.Map<ItemKey, Long> in = new java.util.LinkedHashMap<>();
+                    java.util.Map<ItemKey, List<ItemKey>> alts = new java.util.LinkedHashMap<>();
+                    boolean usable = true;
+                    for (com.xtri6.grimstorage.storage.RecipeReader.Input input : read.inputs()) {
+                        List<ItemKey> opts = new ArrayList<>(input.options());
+                        if (read.output() != null) {
+                            opts.remove(read.output());
+                        }
+                        if (opts.isEmpty()) {
+                            usable = false;
+                            break;
+                        }
+                        ItemKey pick = opts.get(0);
+                        in.merge(pick, input.count(), Long::sum);
+                        if (opts.size() > 1) {
+                            alts.computeIfAbsent(pick, k -> new ArrayList<>()).addAll(opts.subList(1, opts.size()));
                         }
                     }
-                    for (ItemKey choice : read.inputs().get(vary).options()) {
-                        java.util.Map<ItemKey, Long> in = new java.util.LinkedHashMap<>();
-                        for (int i = 0; i < read.inputs().size(); i++) {
-                            com.xtri6.grimstorage.storage.RecipeReader.Input input = read.inputs().get(i);
-                            in.merge(i == vary ? choice : input.options().get(0), input.count(), Long::sum);
-                        }
-                        if ((read.output() != null && in.containsKey(read.output())) || !seen.add(in + ">" + outs + read.bulkOut())) {
-                            continue;
-                        }
-                        out.add(Pattern.learned(in, outs, read.bulk(), read.bulkOut(), this));
-                        if (out.size() >= MAX_LEARNED) {
-                            return out;
-                        }
+                    if (!usable || !seen.add(in + ">" + outs + read.bulkOut() + read.bulk().keySet())) {
+                        continue;
+                    }
+                    out.add(Pattern.learned(in, outs, read.bulk(), read.bulkOut(), this).withAlternatives(alts));
+                    if (out.size() >= MAX_LEARNED) {
+                        return out;
                     }
                 }
             }
@@ -633,6 +655,7 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
                         return (RecipeType<? extends AbstractCookingRecipe>) field.get(f);
                     } catch (ReflectiveOperationException | RuntimeException e) {
                         GrimStorage.LOGGER.debug("Machine Bus could not read the recipe type of {}", f, e);
+                        com.xtri6.grimstorage.storage.DebugLog.note("Machine Bus could not read the recipe type of " + f.getClass().getName() + ": " + e);
                     }
                 }
             }

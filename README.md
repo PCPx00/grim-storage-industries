@@ -168,14 +168,17 @@ and chemical or Source cells are hidden when Mekanism or Ars Nouveau is not inst
 
 ## Known limits
 
-- Crafting jobs in progress are not saved when the world closes; restart the craft after loading.
-  Stored items are always saved.
 - Quantum Links do not keep chunks loaded; the far side must be loaded (or chunk-loaded) to connect.
 - Processing Cards hold items only. Fluid and chemical steps come from what a Machine Bus learns from the machine.
 - You order items. A fluid or chemical can't be ordered on its own, only made as a step towards an item.
 - Ars Nouveau recipes that need items on pedestals are not learned (the network can't place those).
 - New Mekanism tanks start with their chemical sides closed. Open the side a bus touches with a Configurator, the same as
   for any pipe. (A Machine Bus on a Mekanism machine opens the sides it needs by itself, only ones you haven't set.)
+
+## Reporting a problem
+
+Look at any block of the network and run `/grimstorage debug`. It writes a report to `grimstorage-debug/` in your game
+folder (click the link in chat to open it). Attach that file to your bug report.
 
 ## Building
 

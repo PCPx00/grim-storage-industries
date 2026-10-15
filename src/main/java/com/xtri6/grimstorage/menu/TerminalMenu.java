@@ -378,7 +378,13 @@ public class TerminalMenu extends GrimMenu {
         plan.used().forEach((k, n) -> used.add(new Payloads.PreviewLine(k.toStack(1), n, Component.empty())));
         used.sort((a, b) -> Long.compare(b.amount(), a.amount()));
         List<Payloads.PreviewLine> missing = new ArrayList<>();
-        plan.missing().forEach((k, n) -> missing.add(new Payloads.PreviewLine(k.toStack(1), n, Component.empty())));
+        plan.missing().forEach((k, n) -> {
+            missing.add(new Payloads.PreviewLine(k.toStack(1), n, Component.empty()));
+            // why it counts as missing: under the item, a line each (amount -1 marks a hint)
+            for (Component hint : com.xtri6.grimstorage.storage.MissingHints.explain(net, k, player)) {
+                missing.add(new Payloads.PreviewLine(ItemStack.EMPTY, -1, hint));
+            }
+        });
         plan.missingBulk().forEach((k, n) -> missing.add(new Payloads.PreviewLine(ItemStack.EMPTY, n,
                 k.name().copy().append(k.kind() == BulkKind.SOURCE ? "" : " (mB)"))));
         double cps = net.craftsPerSecond();
@@ -464,6 +470,12 @@ public class TerminalMenu extends GrimMenu {
             List<Payloads.StepView> steps = new ArrayList<>();
             for (com.xtri6.grimstorage.storage.CraftingJob.StepState st : job.steps()) {
                 com.xtri6.grimstorage.storage.Pattern p = st.pattern();
+                if (p == null) {
+                    // loaded with the world, its recipe card or machine isn't back on the network yet
+                    steps.add(new Payloads.StepView(job.target().toStack(1), false, st.total(), st.finished(), st.inMachines(),
+                            Component.translatable("gui.grimstorage.job.recipe_missing")));
+                    continue;
+                }
                 boolean processing = p.kind() == com.xtri6.grimstorage.storage.Pattern.Kind.PROCESSING;
                 Component machine;
                 if (!processing) {
@@ -658,6 +670,9 @@ public class TerminalMenu extends GrimMenu {
             }
             msg.append(Component.literal("\n  " + Fmt.big(m.getValue()) + "x ").withStyle(ChatFormatting.GRAY))
                     .append(m.getKey().stack().getHoverName().copy().withStyle(ChatFormatting.GRAY));
+            for (Component hint : com.xtri6.grimstorage.storage.MissingHints.explain(net, m.getKey(), sp)) {
+                msg.append(Component.literal("\n      ").append(hint).withStyle(ChatFormatting.DARK_GRAY));
+            }
         }
         for (Map.Entry<com.xtri6.grimstorage.storage.BulkKey, Long> m : plan.missingBulk().entrySet()) {
             if (shown++ >= 6) {

@@ -1111,7 +1111,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         }
         if (!p.missing().isEmpty()) {
             rows.add(new PreviewRow(null, Component.translatable("gui.grimstorage.preview.missing"), t.danger()));
-            p.missing().forEach(l -> rows.add(new PreviewRow(l, null, t.danger())));
+            p.missing().forEach(l -> rows.add(new PreviewRow(l, null, l.amount() < 0 ? t.textDim() : t.danger())));
         }
         if (!p.steps().isEmpty()) {
             rows.add(new PreviewRow(null, Component.translatable("gui.grimstorage.preview.steps"), t.accent()));
@@ -1164,6 +1164,11 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                 continue;
             }
             Payloads.PreviewLine l = r.line();
+            if (l.amount() < 0) {
+                // why the item above is missing, wrapped onto a second row only if it has to be cut
+                small(g, font.plainSubstrByWidth("\u21b3 " + l.by().getString(), (int) ((w - 30) / 0.75f)), x + 18, ry + 3, r.color());
+                continue;
+            }
             g.pose().pushPose();
             g.pose().translate(x + 13, ry + 2, 0);
             g.pose().scale(0.5f, 0.5f, 1f);
@@ -1187,7 +1192,8 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         int fy = listY + listH + 6;
         if (fresh) {
             Component summary = !p.ok()
-                    ? Component.translatable(p.missing().isEmpty() ? "gui.grimstorage.preview.cant" : "gui.grimstorage.preview.short", p.missing().size())
+                    ? Component.translatable(p.missing().isEmpty() ? "gui.grimstorage.preview.cant" : "gui.grimstorage.preview.short",
+                            p.missing().stream().filter(l -> l.amount() >= 0).count())
                     : Component.translatable("gui.grimstorage.preview.time", Fmt.duration(p.seconds()));
             small(g, summary.getString(), x + 10, fy, p.ok() ? t.ok() : t.danger());
         }

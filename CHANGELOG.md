@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.15.0
+- Crafting jobs are saved with the world. A restart, a crash or a server reboot no longer loses them: running jobs
+  carry on, paused jobs stay paused, and items already in machines are still counted when they come back. Each step
+  finds its Recipe Card or machine again once it loads. Items waiting for room in storage are saved too.
+- Every ingredient takes its variants now, not only one per recipe. A recipe asking for any copper, any coal or any
+  log uses whichever you have, from any mod, and a big order is split across them when no single one covers it.
+  Machine Bus recipes learn every ingredient's choices too (and offer far fewer duplicate recipes because of it).
+  Exact Recipe Cards still use only their own items.
+- Why something is missing: the craft preview and the chat message now say why under each missing item. For
+  example, you have it with other data (damaged, enchanted, named), another mod's look-alike with the same tag that
+  this recipe doesn't take, it is in a chest linked as "only put in", it is in your own inventory, or nothing on the
+  network makes it.
+- New command: `/grimstorage debug`. Look at any block of a network (or carry a linked wireless terminal) and it
+  writes a report of the network's blocks, cells, machines, recipes, running jobs, recent problems and your mod list
+  to `grimstorage-debug/`. Attach it to bug reports. Operators can add a position.
+
 ## 1.14.1
 - Fixed: Mekanism recipes that need an infuse type or another chemical (a Basic Control Circuit needs redstone
   infuse) said ingredients were missing even with them in storage. The network only looked for the chemical itself.
