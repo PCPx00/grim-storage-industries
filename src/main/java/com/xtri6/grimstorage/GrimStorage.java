@@ -28,6 +28,7 @@ public final class GrimStorage {
         Registration.register(modBus);
         container.registerConfig(ModConfig.Type.CLIENT, ClientConfig.SPEC);
         container.registerConfig(ModConfig.Type.COMMON, ServerConfig.SPEC);
+        container.registerConfig(ModConfig.Type.SERVER, BalanceConfig.SPEC);
         NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent e) -> GuideBookItem.giveIfFirstJoin(e.getEntity()));
         modBus.addListener(Payloads::register);
         modBus.addListener(GrimStorage::registerCapabilities);

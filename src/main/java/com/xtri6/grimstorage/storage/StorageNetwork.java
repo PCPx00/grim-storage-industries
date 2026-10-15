@@ -321,7 +321,34 @@ public final class StorageNetwork {
 
     // ------------------------------------------------------------------ storage
 
+    /** Item cells in this network's drives, kept between rebuilds (a cell going in or out rebuilds the network). */
+    private List<CellRef> cellCache = List.of();
+    private final Map<BulkKind, List<BulkRef>> bulkCache = new java.util.EnumMap<>(BulkKind.class);
+    private long cellCacheEpoch = -1;
+    /** Goes up each time the cached cell list is rebuilt, so content versions never repeat across rebuilds. */
+    private long cellListRevision;
+
+    /** Drops the cached cell lists when the network was rebuilt (or is about to be). */
+    private boolean cellCacheStale() {
+        long epoch = NetworkManager.epoch();
+        if (epoch != builtEpoch) {
+            // a drive changed and the rebuild hasn't run yet: read the drives directly this time
+            return true;
+        }
+        if (cellCacheEpoch != epoch) {
+            cellCacheEpoch = epoch;
+            cellCache = scanCells();
+            bulkCache.clear();
+            cellListRevision++;
+        }
+        return false;
+    }
+
     private List<CellRef> cells() {
+        return cellCacheStale() ? scanCells() : cellCache;
+    }
+
+    private List<CellRef> scanCells() {
         List<CellRef> out = new ArrayList<>();
         if (server == null) {
             return out;
@@ -439,7 +466,22 @@ public final class StorageNetwork {
 
     /** Changes whenever anything stored changes, cells or linked chests. */
     public long contentVersion() {
-        return CellStorage.version() * 1_000_003L + linkRevision;
+        long v = cellListRevision * 0x9E3779B97F4A7C15L + linkRevision;
+        for (CellRef c : cells()) {
+            v = v * 31 + c.contents().version();
+        }
+        return v;
+    }
+
+    /** Same idea for everything this network holds, fluids, energy and the rest included (for cell tooltips). */
+    private long allContentVersion() {
+        long v = contentVersion();
+        for (BulkKind k : BulkKind.values()) {
+            for (BulkRef c : bulkCells(k)) {
+                v = v * 31 + c.contents().version();
+            }
+        }
+        return v;
     }
 
     public long insert(ItemStack stack, boolean simulate) {
@@ -536,9 +578,20 @@ public final class StorageNetwork {
 
     // ------------------------------------------------------------------ fluids, chemicals, energy, Source
 
-    private record BulkRef(long capacity, CellContents<BulkKey> contents) {}
+    private record BulkRef(BulkCellItem cell, CellContents<BulkKey> contents) {
+        long capacity() {
+            return cell.capacity();
+        }
+    }
 
     private List<BulkRef> bulkCells(BulkKind kind) {
+        if (cellCacheStale()) {
+            return scanBulkCells(kind);
+        }
+        return bulkCache.computeIfAbsent(kind, this::scanBulkCells);
+    }
+
+    private List<BulkRef> scanBulkCells(BulkKind kind) {
         List<BulkRef> out = new ArrayList<>();
         if (server == null) {
             return out;
@@ -552,7 +605,7 @@ public final class StorageNetwork {
                 if (stack.getItem() instanceof BulkCellItem cell && cell.kind() == kind) {
                     UUID id = stack.get(Registration.CELL_ID.get());
                     if (id != null) {
-                        out.add(new BulkRef(cell.capacity(), storage.bulk(id, kind)));
+                        out.add(new BulkRef(cell, storage.bulk(id, kind)));
                     }
                 }
             }
@@ -1100,7 +1153,7 @@ public final class StorageNetwork {
                     k.check(this, level.getGameTime());
                 }
             }
-            long version = CellStorage.version();
+            long version = allContentVersion();
             if (version != statsVersion) {
                 statsVersion = version;
                 CellStorage storage = CellStorage.get(server);
