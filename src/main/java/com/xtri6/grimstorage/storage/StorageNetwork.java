@@ -45,7 +45,6 @@ import net.neoforged.neoforge.items.ItemHandlerHelper;
 
 /** Everything connected to one controller: its storage, its crafting patterns and its running jobs. */
 public final class StorageNetwork {
-    private static final int MAX_BLOCKS = 16_384;
     private static final int CRAFT_COST = 10;
 
     private record CellRef(CellTier tier, CellContents<ItemKey> contents, @Nullable ItemKey lock) {}
@@ -54,6 +53,8 @@ public final class StorageNetwork {
     private MinecraftServer server;
     private long builtEpoch = -1;
     private boolean valid;
+    /** True when the network hit {@link com.xtri6.grimstorage.ServerConfig#maxBlocks()} and some blocks were left out. */
+    private boolean truncated;
     private Component problem = Component.empty();
 
     private final Set<GlobalPos> members = new HashSet<>();
@@ -180,7 +181,8 @@ public final class StorageNetwork {
         queue.add(new Node(origin, start));
         seen.add(GlobalPos.of(origin.dimension(), start));
 
-        while (!queue.isEmpty() && members.size() < MAX_BLOCKS) {
+        int limit = com.xtri6.grimstorage.ServerConfig.maxBlocks();
+        while (!queue.isEmpty() && members.size() < limit) {
             Node node = queue.poll();
             ServerLevel level = node.level();
             BlockPos pos = node.pos();
@@ -220,8 +222,15 @@ public final class StorageNetwork {
             }
         }
 
+        truncated = !queue.isEmpty();
         valid = controllers == 1;
-        problem = controllers > 1 ? Component.translatable("gui.grimstorage.problem.controllers") : Component.empty();
+        if (controllers > 1) {
+            problem = Component.translatable("gui.grimstorage.problem.controllers");
+        } else if (truncated) {
+            problem = Component.translatable("gui.grimstorage.problem.too_big", limit);
+        } else {
+            problem = Component.empty();
+        }
         for (GlobalPos p : members) {
             NetworkManager.index(p, this);
         }

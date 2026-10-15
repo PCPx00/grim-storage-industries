@@ -119,7 +119,7 @@
           "text": [
             "Network blocks join just by touching. To reach further, use **Soul Cable**, or **Soulite Glass** if you want it to look nice.",
             "One cable carries **everything**: items, fluids, energy, XP, chemicals and Source all travel down the same line to every bus, interface and machine on the network.",
-            "There is no limit on how many blocks a network can have."
+            "A network can be huge: 16,384 blocks by default, and pack makers can raise that in the config."
           ],
           "recipe": "grimstorage:soul_cable",
           "items": [

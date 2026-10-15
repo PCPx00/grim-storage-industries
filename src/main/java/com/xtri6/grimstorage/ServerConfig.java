@@ -14,6 +14,11 @@ public final class ServerConfig {
             .comment("Most crafting jobs one network runs at the same time.")
             .defineInRange("maxJobsPerNetwork", 32, 1, 256);
 
+    public static final ModConfigSpec.IntValue MAX_BLOCKS = BUILDER
+            .comment("Largest number of blocks one network can join together.",
+                    "A network bigger than this is only partly connected, and the Network Controller shows a warning.")
+            .defineInRange("maxNetworkBlocks", 16_384, 256, 1_048_576);
+
     public static final ModConfigSpec.IntValue MAX_JOBS_PER_PLAYER = BUILDER
             .comment("Most crafting jobs one player can have running on a network at the same time, so one big order",
                     "can't take every slot on a shared network. Set it to the same as maxJobsPerNetwork for no limit.")
@@ -29,6 +34,10 @@ public final class ServerConfig {
 
     public static int maxJobsPerPlayer() {
         return SPEC.isLoaded() ? MAX_JOBS_PER_PLAYER.get() : 16;
+    }
+
+    public static int maxBlocks() {
+        return SPEC.isLoaded() ? MAX_BLOCKS.get() : 16_384;
     }
 
     public static boolean giveGuide() {

@@ -10,6 +10,7 @@ import com.xtri6.grimstorage.menu.BlockMenus;
 import com.xtri6.grimstorage.menu.ControllerMenu;
 import com.xtri6.grimstorage.menu.TerminalMenu;
 import com.xtri6.grimstorage.storage.BulkKey;
+import com.xtri6.grimstorage.storage.CraftingJob;
 import com.xtri6.grimstorage.storage.BulkKind;
 import com.xtri6.grimstorage.storage.ItemKey;
 import com.xtri6.grimstorage.storage.StorageNetwork;
@@ -24,6 +25,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -588,28 +590,47 @@ public final class Payloads {
     }
 
     private static void onCancelJob(CancelJob p, IPayloadContext ctx) {
-        StorageNetwork net = null;
-        if (ctx.player().containerMenu instanceof ControllerMenu m && m.containerId == p.containerId()) {
-            net = m.network();
-        } else if (ctx.player().containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
-            net = m.network();
-        }
-        if (net != null) {
+        StorageNetwork net = menuNetwork(ctx, p.containerId());
+        if (net != null && mayControlJob(ctx.player(), net, p.job())) {
             net.cancel(p.job());
         }
     }
 
     private static void onJobCommand(JobCommand p, IPayloadContext ctx) {
-        StorageNetwork net = null;
-        if (ctx.player().containerMenu instanceof ControllerMenu m && m.containerId == p.containerId()) {
-            net = m.network();
-        } else if (ctx.player().containerMenu instanceof TerminalMenu m && m.containerId == p.containerId()) {
-            net = m.network();
-        }
+        StorageNetwork net = menuNetwork(ctx, p.containerId());
         StorageNetwork.JobAction[] all = StorageNetwork.JobAction.values();
-        if (net != null && p.action() >= 0 && p.action() < all.length) {
+        if (net != null && p.action() >= 0 && p.action() < all.length && mayControlJob(ctx.player(), net, p.job())) {
             net.jobAction(p.job(), all[p.action()]);
         }
+    }
+
+    private static StorageNetwork menuNetwork(IPayloadContext ctx, int containerId) {
+        if (ctx.player().containerMenu instanceof ControllerMenu m && m.containerId == containerId) {
+            return m.network();
+        } else if (ctx.player().containerMenu instanceof TerminalMenu m && m.containerId == containerId) {
+            return m.network();
+        }
+        return null;
+    }
+
+    /**
+     * Only the player who ordered a job may cancel, pause or re-order it. The network owner and server
+     * operators can always manage every job on the network.
+     */
+    private static boolean mayControlJob(Player player, StorageNetwork net, UUID jobId) {
+        if (!(player instanceof ServerPlayer sp)) {
+            return false;
+        }
+        String name = sp.getGameProfile().getName();
+        if (sp.hasPermissions(2) || name.equals(net.ownerName())) {
+            return true;
+        }
+        for (CraftingJob job : net.jobs()) {
+            if (job.id().equals(jobId)) {
+                return job.source() == null || job.source().isEmpty() || job.source().equals(name);
+            }
+        }
+        return false;
     }
 
     private static void onSetStockTarget(SetStockTarget p, IPayloadContext ctx) {
