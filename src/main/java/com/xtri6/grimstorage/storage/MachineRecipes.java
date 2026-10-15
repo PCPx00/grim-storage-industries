@@ -95,6 +95,12 @@ public final class MachineRecipes extends SimpleJsonResourceReloadListener {
         for (ResourceLocation t : ids) {
             BuiltInRegistries.RECIPE_TYPE.getOptional(t).ifPresent(out::add);
         }
+        if (out.isEmpty() && !id.getNamespace().equals("minecraft") && id.getPath().endsWith("furnace")) {
+            // any mod's furnace ("iron_furnace", "gold_furnace", ...) smelts, and a blast furnace blasts
+            ResourceLocation t = id.getPath().contains("blast") ? ResourceLocation.withDefaultNamespace("blasting")
+                    : ResourceLocation.withDefaultNamespace("smelting");
+            BuiltInRegistries.RECIPE_TYPE.getOptional(t).ifPresent(out::add);
+        }
         if (out.isEmpty() && !id.getNamespace().equals("minecraft")) {
             String stem = stem(id.getPath());
             if (stem.length() >= 4) {

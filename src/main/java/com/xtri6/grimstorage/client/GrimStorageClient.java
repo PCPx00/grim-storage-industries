@@ -24,12 +24,18 @@ public final class GrimStorageClient {
     public static final KeyMapping DUMP_KEY = new KeyMapping("key.grimstorage.dump", KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_G, "key.categories.grimstorage");
 
+    public static final KeyMapping WIRELESS_KEY = new KeyMapping("key.grimstorage.wireless", KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM, GLFW.GLFW_KEY_Y, "key.categories.grimstorage");
+
     private GrimStorageClient() {}
 
     public static void init(IEventBus modBus, ModContainer container) {
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
         modBus.addListener(GrimStorageClient::screens);
-        modBus.addListener((RegisterKeyMappingsEvent e) -> e.register(DUMP_KEY));
+        modBus.addListener((RegisterKeyMappingsEvent e) -> {
+            e.register(DUMP_KEY);
+            e.register(WIRELESS_KEY);
+        });
         NeoForge.EVENT_BUS.addListener(GrimStorageClient::tick);
     }
 
@@ -54,6 +60,11 @@ public final class GrimStorageClient {
         while (DUMP_KEY.consumeClick()) {
             if (Minecraft.getInstance().player != null && Minecraft.getInstance().screen == null) {
                 PacketDistributor.sendToServer(new Payloads.DumpInventory());
+            }
+        }
+        while (WIRELESS_KEY.consumeClick()) {
+            if (Minecraft.getInstance().player != null && Minecraft.getInstance().screen == null) {
+                PacketDistributor.sendToServer(new Payloads.OpenWireless());
             }
         }
     }

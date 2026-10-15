@@ -25,6 +25,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -58,6 +59,7 @@ public final class Payloads {
         r.playToServer(JobCommand.TYPE, JobCommand.CODEC, Payloads::onJobCommand);
         r.playToServer(SetStockTarget.TYPE, SetStockTarget.CODEC, Payloads::onSetStockTarget);
         r.playToServer(DumpInventory.TYPE, DumpInventory.CODEC, Payloads::onDumpInventory);
+        r.playToServer(OpenWireless.TYPE, OpenWireless.CODEC, Payloads::onOpenWireless);
         r.playToServer(ClearGrid.TYPE, ClearGrid.CODEC, Payloads::onClearGrid);
         r.playToServer(ToggleExport.TYPE, ToggleExport.CODEC, Payloads::onToggleExport);
         r.playToServer(TerminalBulkClick.TYPE, TerminalBulkClick.CODEC, Payloads::onTerminalBulkClick);
@@ -289,6 +291,17 @@ public final class Payloads {
         public static final StreamCodec<RegistryFriendlyByteBuf, SetStockTarget> CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, SetStockTarget::containerId, ByteBufCodecs.VAR_INT, SetStockTarget::rule,
                 ByteBufCodecs.VAR_INT, SetStockTarget::target, SetStockTarget::new);
+
+        @Override
+        public Type<? extends CustomPacketPayload> type() {
+            return TYPE;
+        }
+    }
+
+    /** The wireless terminal key: open the terminal in whichever hand is holding one. */
+    public record OpenWireless() implements CustomPacketPayload {
+        public static final Type<OpenWireless> TYPE = id("open_wireless");
+        public static final StreamCodec<RegistryFriendlyByteBuf, OpenWireless> CODEC = StreamCodec.unit(new OpenWireless());
 
         @Override
         public Type<? extends CustomPacketPayload> type() {
@@ -644,6 +657,19 @@ public final class Payloads {
     }
 
     /** The "dump inventory" key: sends your main inventory (not hotbar or armor) into the network. */
+    private static void onOpenWireless(OpenWireless p, IPayloadContext ctx) {
+        if (!(ctx.player() instanceof ServerPlayer sp)) {
+            return;
+        }
+        for (InteractionHand hand : InteractionHand.values()) {
+            if (sp.getItemInHand(hand).getItem() instanceof WirelessTerminalItem item) {
+                // same checks and messages as right-clicking the terminal
+                item.use(sp.level(), sp, hand);
+                return;
+            }
+        }
+    }
+
     private static void onDumpInventory(DumpInventory p, IPayloadContext ctx) {
         if (!(ctx.player() instanceof ServerPlayer sp)) {
             return;
