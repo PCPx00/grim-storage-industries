@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.16.1
+- Search finds enchanted books and items by their enchantments, so typing "mending" shows the Mending books.
+- The terminal keeps its order while counts change, so items no longer jump under the cursor during a craft.
+- New keybind, Y by default, opens the Wireless Terminal (change it under Controls, "Open wireless terminal").
+- Machine Bus runs any mod's furnace ("iron_furnace" and so on) as a smelting machine, and a blast furnace as blasting.
+
 ## 1.16.0
 - Big networks stay fast. Each network now remembers its cells and only rebuilds that list when something actually
   changes, and it notices changes per network, so a busy network no longer slows down others or re-scans every

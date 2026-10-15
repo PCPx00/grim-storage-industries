@@ -25,11 +25,15 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import org.lwjgl.glfw.GLFW;
@@ -284,6 +288,20 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     private boolean held;
     private int storedTypes;
 
+    /** True when one of the stack's enchantments (on an enchanted book or an enchanted item) contains the search text. */
+    private boolean enchantmentsMatch(ItemStack s, String needle) {
+        ItemEnchantments ench = s.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY);
+        if (ench.isEmpty()) {
+            ench = s.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+        }
+        for (Holder<Enchantment> h : ench.keySet()) {
+            if (h.value().description().getString().toLowerCase(Locale.ROOT).contains(needle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void refresh() {
         refresh(false);
     }
@@ -325,7 +343,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             if (!needle.isEmpty()) {
                 ItemStack s = e.key().stack();
                 String hay = byMod ? BuiltInRegistries.ITEM.getKey(s.getItem()).getNamespace() : s.getHoverName().getString().toLowerCase(Locale.ROOT);
-                if (!hay.contains(needle)) {
+                if (!hay.contains(needle) && (byMod || !enchantmentsMatch(s, needle))) {
                     continue;
                 }
             }
@@ -513,7 +531,8 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             }
             refresh();
         } else if (menu.clientRevision != seenRevision) {
-            refresh(shift);
+            // counts changed (a craft, a job step): keep the order, so the item under the cursor does not jump
+            refresh(true);
         } else if (held && !shift) {
             // let go of shift: sort again
             refresh();

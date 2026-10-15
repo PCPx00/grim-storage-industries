@@ -116,6 +116,7 @@
   "gui.grimstorage.processing_card.hint": "Right-click a slot: one more",
   "key.categories.grimstorage": "Grim Storage Industries",
   "key.grimstorage.dump": "Dump inventory into network",
+  "key.grimstorage.wireless": "Open wireless terminal",
   "gui.grimstorage.job.full": "Storage full",
   "gui.grimstorage.controller.singular": "+ %s in Singularity Cells",
   "gui.grimstorage.stock.clear": "Clear",
