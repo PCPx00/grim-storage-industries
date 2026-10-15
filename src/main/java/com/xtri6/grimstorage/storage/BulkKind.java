@@ -38,8 +38,13 @@ public enum BulkKind {
         return requiredMod == null || ModList.get().isLoaded(requiredMod);
     }
 
-    /** Capacity for a cell tier, in mB for fluids and chemicals, FE for energy, Source for Source, points for XP. */
+    /** Capacity for a cell tier, in mB for fluids and chemicals, FE for energy, Source for Source, points for XP (from the config). */
     public long capacity(CellTier tier) {
+        return com.xtri6.grimstorage.BalanceConfig.bulkCapacity(this, tier);
+    }
+
+    /** The built-in capacity, used when the config doesn't say. */
+    public long defaultCapacity(CellTier tier) {
         return capacities[Math.min(tier.ordinal(), capacities.length - 1)];
     }
 

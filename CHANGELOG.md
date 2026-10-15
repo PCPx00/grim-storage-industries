@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.16.0
+- Big networks stay fast. Each network now remembers its cells and only rebuilds that list when something actually
+  changes, and it notices changes per network, so a busy network no longer slows down others or re-scans every
+  drive every tick.
+- New server config `grimstorage-server.toml`: cell capacities (items and every fluid/chemical/energy/XP/Source
+  kind), Machine Bus speed multiplier and Wireless Terminal range can all be changed by pack makers.
+- Six new languages for the whole mod and the guide book: Chinese (Simplified), Russian, Portuguese (Brazil),
+  Spanish, German and French.
+- Guide updated for saved jobs, chemical chains, Mekanism side handling and the new settings.
+
 ## 1.15.2
 - The network owner is recognised by their player UUID when managing other players' crafting jobs, so changing
   your Minecraft name no longer takes away control of your own network's jobs.

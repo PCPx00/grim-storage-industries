@@ -245,7 +245,7 @@
             "- **Gold:** 65,536 items",
             "- **Diamond:** about 1 million items",
             "- **Netherite:** about 67 million items",
-            "Hover over a cell to see how full it is."
+            "Hover over a cell to see how full it is. Pack makers can change these sizes in the config."
           ],
           "items": [
             "grimstorage:storage_cell_4k",
@@ -657,7 +657,7 @@
         {
           "title": "Wireless Terminal",
           "text": [
-            "A terminal in your pocket. **Sneak and use it on a Network Controller** to link it, then use it anywhere within 128 blocks in the same dimension.",
+            "A terminal in your pocket. **Sneak and use it on a Network Controller** to link it, then use it anywhere within 128 blocks in the same dimension (pack makers can change the range).",
             "It has the same tabs and crafting grid as the block."
           ],
           "recipe": "grimstorage:wireless_terminal"
@@ -731,10 +731,10 @@
         {
           "title": "Good to know",
           "text": [
-            "- Crafting jobs in progress stop if the world closes. Stored items are always saved.",
+            "- Crafting jobs are saved with the world and carry on after a restart.",
             "- Quantum Links need both ends loaded.",
-            "- Autocrafting works with items. Fluids, energy, XP, chemicals and Source are stored and moved, not crafted.",
-            "- New Mekanism tanks and machines start with their sides closed. Open the side the bus touches with a **Configurator**.",
+            "- You order items. Fluids and chemicals are only made as steps on the way to an item.",
+            "- New Mekanism tanks start with their sides closed: open the side a bus touches with a **Configurator**. A Machine Bus on a Mekanism machine opens what it needs by itself.",
             "Made by xTri6 for Nine Craft."
           ]
         }

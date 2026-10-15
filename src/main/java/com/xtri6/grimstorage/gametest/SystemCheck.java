@@ -1704,6 +1704,7 @@ public final class SystemCheck {
             return order && never;
         }));
         addModMachineSteps();
+        addScaleAndConfigSteps();
         addChainSteps();
         STEPS.add(new Step("network access: owner, trusted players, open mode", 0, () -> {
             com.xtri6.grimstorage.block.entity.ControllerBlockEntity c = (com.xtri6.grimstorage.block.entity.ControllerBlockEntity) level.getBlockEntity(MB);
@@ -1859,6 +1860,69 @@ public final class SystemCheck {
                 return ok;
             }));
         }
+    }
+
+    // ------------------------------------------------------------------ per-network caching and the balance config
+
+    private static void addScaleAndConfigSteps() {
+        STEPS.add(new Step("scale: a change on one network doesn't make another network refresh", 0, () -> {
+            StorageNetwork a = net(), b = mbNet();
+            long va = a.contentVersion(), vb = b.contentVersion();
+            long before = a.contents().size();
+            b.insert(key(Items.KELP), 3, false);
+            long va2 = a.contentVersion(), vb2 = b.contentVersion();
+            // and the network's own changes still show
+            b.extract(key(Items.KELP), 3, false);
+            long vb3 = b.contentVersion();
+            info("network A version {} -> {} (should stay), B {} -> {} -> {} (should change), A types {}", va, va2, vb, vb2, vb3, before);
+            return va == va2 && vb != vb2 && vb2 != vb3 && a.contents().size() == before;
+        }));
+        STEPS.add(new Step("scale: a cell put in a drive is used straight away (cached cell list refreshes)", 10, () -> {
+            DriveBlockEntity d = (DriveBlockEntity) level.getBlockEntity(MB.west());
+            int free = -1;
+            for (int i = 0; i < DriveBlockEntity.SLOTS; i++) {
+                if (d.cells().getStackInSlot(i).isEmpty()) {
+                    free = i;
+                    break;
+                }
+            }
+            if (free < 0) {
+                return false;
+            }
+            long capBefore = mbNet().stats()[1];
+            d.cells().setStackInSlot(free, new ItemStack(Registration.CELLS.get(CellTier.COPPER).get()));
+            // the network rebuilds on its next tick; until then cells are read straight from the drives
+            long capNow = mbNet().stats()[1];
+            d.cells().setStackInSlot(free, ItemStack.EMPTY);
+            info("capacity {} -> {} with a copper cell added", capBefore, capNow);
+            return capNow == capBefore + CellTier.COPPER.capacity();
+        }));
+        STEPS.add(new Step("config: cell capacities, bus speed and wireless range follow the server config", 0, () -> {
+            List<? extends Long> items = com.xtri6.grimstorage.BalanceConfig.ITEM_CELLS.get();
+            List<? extends Long> fluids = com.xtri6.grimstorage.BalanceConfig.bulkCells(BulkKind.FLUID).get();
+            double speed = com.xtri6.grimstorage.BalanceConfig.BUS_SPEED.get();
+            int range = com.xtri6.grimstorage.BalanceConfig.WIRELESS_RANGE.get();
+            boolean loaded = com.xtri6.grimstorage.BalanceConfig.SPEC.isLoaded();
+            long copperDefault = CellTier.COPPER.capacity();
+            com.xtri6.grimstorage.block.entity.BusBlockEntity bus = (com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(at(4, 1, 0));
+            int busSpeed = bus.logic().speed();
+            com.xtri6.grimstorage.BalanceConfig.ITEM_CELLS.set(List.of(1_000L, 2_000L, 3_000L, 4_000L));
+            com.xtri6.grimstorage.BalanceConfig.BUS_SPEED.set(3.0);
+            com.xtri6.grimstorage.BalanceConfig.WIRELESS_RANGE.set(512);
+            com.xtri6.grimstorage.BalanceConfig.bulkCells(BulkKind.FLUID).set(List.of(7L, 8L, 9L, 10L));
+            long copper = CellTier.COPPER.capacity(), sing = CellTier.SINGULARITY.capacity();
+            long fluidGold = BulkKind.FLUID.capacity(CellTier.GOLD);
+            int busFast = bus.logic().speed();
+            int wireless = com.xtri6.grimstorage.item.WirelessTerminalItem.range();
+            com.xtri6.grimstorage.BalanceConfig.ITEM_CELLS.set(items);
+            com.xtri6.grimstorage.BalanceConfig.BUS_SPEED.set(speed);
+            com.xtri6.grimstorage.BalanceConfig.WIRELESS_RANGE.set(range);
+            com.xtri6.grimstorage.BalanceConfig.bulkCells(BulkKind.FLUID).set(fluids);
+            info("config loaded={} copper {} -> {} (singularity {}), gold fluid cell {}, bus speed {} -> {}, wireless range {} -> {}; back to copper {}",
+                    loaded, copperDefault, copper, sing, fluidGold, busSpeed, busFast, range, wireless, CellTier.COPPER.capacity());
+            return loaded && copperDefault == 4_096 && copper == 1_000 && sing > 1_000_000_000L && fluidGold == 8 && busFast == busSpeed * 3
+                    && wireless == 512 && CellTier.COPPER.capacity() == 4_096;
+        }));
     }
 
     // ------------------------------------------------------------------ chains of chemical machines, Source, the job queue

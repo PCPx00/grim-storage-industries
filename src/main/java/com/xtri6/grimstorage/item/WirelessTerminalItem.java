@@ -26,7 +26,10 @@ import net.minecraft.world.level.Level;
 
 /** A terminal in your pocket. Sneak-use it on a Network Controller to bind it. */
 public class WirelessTerminalItem extends Item {
-    public static final int RANGE = 128;
+    /** How far it reaches from its controller (the pack's wirelessRange setting, 128 blocks by default). */
+    public static int range() {
+        return com.xtri6.grimstorage.BalanceConfig.wirelessRange();
+    }
     private final boolean unlimited;
 
     public WirelessTerminalItem(boolean unlimited, Properties props) {
@@ -77,7 +80,7 @@ public class WirelessTerminalItem extends Item {
         }
         boolean unlimited = stack.getItem() instanceof WirelessTerminalItem w && w.unlimited;
         if (!unlimited && (!pos.dimension().equals(player.level().dimension())
-                || pos.pos().distSqr(player.blockPosition()) > (double) RANGE * RANGE)) {
+                || pos.pos().distSqr(player.blockPosition()) > (double) range() * range())) {
             return Component.translatable("message.grimstorage.wireless.range");
         }
         ServerLevel lvl = player.server.getLevel(pos.dimension());
@@ -101,7 +104,7 @@ public class WirelessTerminalItem extends Item {
                 && c.allows(player)) {
             boolean unlimited = stack.getItem() instanceof WirelessTerminalItem w && w.unlimited;
             if (!unlimited && (!pos.dimension().equals(player.level().dimension())
-                    || pos.pos().distSqr(player.blockPosition()) > (double) RANGE * RANGE)) {
+                    || pos.pos().distSqr(player.blockPosition()) > (double) range() * range())) {
                 return null;
             }
             return c.ownNetwork();
@@ -133,7 +136,7 @@ public class WirelessTerminalItem extends Item {
             tooltip.add(Component.translatable("tooltip.grimstorage.wireless.bound",
                     pos.pos().getX(), pos.pos().getY(), pos.pos().getZ(), pos.dimension().location().getPath()).withStyle(ChatFormatting.GRAY));
         }
-        tooltip.add(Component.translatable(unlimited ? "tooltip.grimstorage.wireless.unlimited" : "tooltip.grimstorage.wireless.range", RANGE)
+        tooltip.add(Component.translatable(unlimited ? "tooltip.grimstorage.wireless.unlimited" : "tooltip.grimstorage.wireless.range", range())
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
 }

@@ -1,0 +1,744 @@
+{
+  "chapters": [
+    {
+      "id": "welcome",
+      "title": "Bem-vindo",
+      "icon": "grimstorage:guide_book",
+      "pages": [
+        {
+          "title": "Grim Storage Industries",
+          "text": [
+            "Armazenamento simples que cresce até o fim do jogo. Tudo o que você guarda fica em uma só rede, e a rede pode fabricar coisas para você.",
+            "Aqui **não há canais, nem limite de bytes, nem regras de cabo**. Qualquer bloco de rede que encosta em outro bloco de rede passa a fazer parte dela.",
+            "Use as **setas** embaixo, as teclas de seta ou a roda do mouse para virar as páginas. Escolha um capítulo à esquerda para pular direto."
+          ]
+        },
+        {
+          "title": "Sua primeira hora",
+          "text": [
+            "- Encontre **Minério de Soulita** no subsolo e funda-o em lingotes.",
+            "- Fabrique um **Controlador de Rede**, um **Drive das Almas**, uma **Célula de Armazenamento de Cobre** e um **Terminal das Almas**.",
+            "- Coloque a célula no drive, deixe tudo encostado e abra o terminal.",
+            "Isso já é um sistema de armazenamento funcionando. O resto deste livro mostra como fazê-lo crescer."
+          ],
+          "items": [
+            "grimstorage:soulite_ore",
+            "grimstorage:soulite_ingot",
+            "grimstorage:network_controller",
+            "grimstorage:soul_drive",
+            "grimstorage:storage_cell_4k",
+            "grimstorage:soul_terminal"
+          ]
+        },
+        {
+          "title": "Perdeu este livro?",
+          "text": "Fabrique um novo com qualquer livro e um Lingote de Soulita.",
+          "recipe": "grimstorage:guide_book"
+        }
+      ]
+    },
+    {
+      "id": "soulite",
+      "title": "Soulita",
+      "icon": "grimstorage:soulite_ingot",
+      "pages": [
+        {
+          "title": "Achando Soulita",
+          "text": [
+            "Soulita é um minério azul-claro que brilha de leve e tilinta quando quebrado. Minere com uma **picareta de ferro** ou melhor.",
+            "- **Superfície:** Y -48 a 16, mais comum perto de Y -16. Versões de pedra e de ardósia profunda.",
+            "- **Nether:** dentro da areia e do solo das almas dos **Vales de Areia das Almas**. Dropam 2 a 3 Soulita Bruta.",
+            "- **Escuridão Profunda:** o raro **Minério de Soulita Ecoante** perto do sculk. Precisa de picareta de diamante. Você vai precisar dele nos níveis finais.",
+            "Fortuna funciona em todos eles."
+          ],
+          "items": [
+            "grimstorage:soulite_ore",
+            "grimstorage:deepslate_soulite_ore",
+            "grimstorage:soul_sand_soulite_ore",
+            "grimstorage:echo_soulite_ore"
+          ]
+        },
+        {
+          "title": "Fundição",
+          "text": "Funda a Soulita Bruta na fornalha ou no alto-forno para fazer lingotes. Nove lingotes fazem um Bloco de Soulita, e nove pepitas fazem um lingote.",
+          "recipe": "grimstorage:soulite_ingot_from_raw_smelting"
+        },
+        {
+          "title": "O Infusor das Almas",
+          "text": [
+            "Sua primeira máquina. Coloque um **Lingote de Soulita**, **Areia das Almas** (ou solo das almas) e **Quartzo do Nether**, em qualquer slot, para fazer **Soulita Infundida**. Não precisa de combustível.",
+            "Canos e funis podem abastecê-lo de qualquer lado e tirar o resultado."
+          ],
+          "recipe": "grimstorage:soul_infuser"
+        },
+        {
+          "title": "Soulita Infundida",
+          "text": [
+            "Feita no Infusor das Almas. Libera o terceiro nível: células de Diamante, Melhorias de Velocidade, o Guardião de Estoque e terminais sem fio.",
+            "Com o **JEI** instalado, procure Soulita Infundida (ou clique na seta do Infusor das Almas) para ver todas as receitas de infusão."
+          ],
+          "recipe": "grimstorage:infused_soulite"
+        },
+        {
+          "title": "Liga de Soulita Ecoante",
+          "text": "Uma Soulita Infundida, dois Fragmentos de Soulita Ecoante da Escuridão Profunda e um Fragmento de Netherita. Este é o quarto nível.",
+          "recipe": "grimstorage:echo_soulite_alloy"
+        },
+        {
+          "title": "Núcleo de Singularidade",
+          "text": "Oito Ligas de Soulita Ecoante em volta de uma Estrela do Nether. O troféu do fim de jogo, usado em Células de Singularidade e no Terminal de Singularidade.",
+          "recipe": "grimstorage:singularity_core"
+        }
+      ]
+    },
+    {
+      "id": "network",
+      "title": "Primeira Rede",
+      "icon": "grimstorage:network_controller",
+      "pages": [
+        {
+          "title": "Controlador de Rede",
+          "text": [
+            "O coração de uma rede. Toda rede precisa de **exatamente um**. Com dois conectados, a rede para e o controlador diz por quê.",
+            "Abra-o para ver o quanto o armazenamento está cheio, quantas células e drives você tem e cada trabalho de fabricação (com um botão para cancelar cada um)."
+          ],
+          "recipe": "grimstorage:network_controller"
+        },
+        {
+          "title": "Drive das Almas",
+          "text": "Guarda 8 células de armazenamento de qualquer tipo. As células mantêm tudo o que têm dentro, mesmo quando você as tira ou as leva para outro drive.",
+          "recipe": "grimstorage:soul_drive"
+        },
+        {
+          "title": "Terminal das Almas",
+          "text": "Onde você vê, pega e guarda tudo. O próximo capítulo explica tudo sobre ele.",
+          "recipe": "grimstorage:soul_terminal"
+        },
+        {
+          "title": "Conectando as coisas",
+          "text": [
+            "Blocos de rede se juntam só de encostar. Para ir mais longe, use **Cabo das Almas**, ou **Vidro de Soulita** se quiser algo bonito.",
+            "Um cabo leva **tudo**: itens, fluidos, energia, XP, químicos e Fonte viajam pela mesma linha até cada barramento, interface e máquina da rede.",
+            "Uma rede pode ser enorme: 16.384 blocos por padrão, e os criadores de modpacks podem aumentar isso na configuração."
+          ],
+          "recipe": "grimstorage:soul_cable",
+          "items": [
+            "grimstorage:soul_cable",
+            "grimstorage:soulite_glass"
+          ]
+        },
+        {
+          "title": "Chave das Almas",
+          "text": [
+            "Uma ferramenta prática para organizar sua rede.",
+            "- **Clique em uma conexão de cabo** para cortá-la, e dois cabos (ou um cabo e um bloco) param de se juntar. Clique no mesmo lado de novo para juntar.",
+            "- **Clique em um barramento no cabo** para tirar o barramento.",
+            "- **Clique em uma máquina** para virá-la para o lado clicado. Funciona com a maioria das máquinas de outros mods também.",
+            "- **Agachado, clique** em qualquer bloco do Grim Storage para pegá-lo."
+          ],
+          "recipe": "grimstorage:soul_wrench"
+        },
+        {
+          "title": "Quem pode usar",
+          "text": [
+            "O jogador que coloca um **Controlador de Rede** é o dono da rede. Ninguém mais pode abrir os blocos dela, usar um terminal sem fio nela ou quebrar e colocar blocos dela.",
+            "Abra o controlador e clique na **chave** para confiar em outros jogadores pelo nome, ou para abrir a rede para todos.",
+            "Uma rede sem dono (construída antes disto, ou colocada por uma máquina) é aberta, e qualquer um pode **reivindicá-la** ali. Operadores do servidor sempre podem entrar."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "terminal",
+      "title": "O Terminal",
+      "icon": "grimstorage:soul_terminal",
+      "pages": [
+        {
+          "title": "Pegar e guardar",
+          "text": [
+            "- **Clique** em um item para pegar uma pilha.",
+            "- **Botão direito** para pegar meia pilha.",
+            "- **Shift-clique** para mandar uma pilha direto para o inventário.",
+            "- **Clique segurando um item** para guardá-lo (botão direito guarda um).",
+            "- **Shift-clique** em qualquer coisa do seu inventário para guardá-la."
+          ]
+        },
+        {
+          "title": "Shift deixa tudo parado",
+          "text": [
+            "Enquanto você **segura Shift**, nada no terminal se mexe. Shift-clique no mesmo lugar várias vezes para continuar pegando o mesmo item.",
+            "Um item que acaba fica no lugar, apagado, até você soltar. Solte o Shift e a lista se reorganiza."
+          ]
+        },
+        {
+          "title": "Achando coisas",
+          "text": [
+            "Digite na busca para filtrar. Comece com `@` para buscar por mod, por exemplo `@mekanism`. Botão direito na caixa limpa a busca.",
+            "O botão ao lado muda a ordem: por quantidade, nome, mod ou **adicionados recentemente**. **Alt-clique** em um item para **fixá-lo** no topo.",
+            "As **abas da esquerda** filtram por tipo: minérios, lingotes, armas e ferramentas, armadura, comida, drops de mobs, agricultura, blocos de construção e diversos. A última, **Fabricável**, mostra só o que a sua rede consegue fabricar."
+          ]
+        },
+        {
+          "title": "Grade de fabricação",
+          "text": [
+            "O terminal tem sua própria grade 3x3 à direita. Coloque os ingredientes e pegue o resultado.",
+            "Quando um slot acaba, ele **se reabastece do armazenamento**, então você pode continuar fabricando. **Shift-clique** no resultado para fazer uma pilha inteira de uma vez.",
+            "O pequeno **x** devolve tudo da grade para o armazenamento. Fechar o terminal faz o mesmo.",
+            "Com o JEI, aperte **+** em uma receita de fabricação para preencher a grade com o armazenamento. Ingredientes que faltam aparecem em vermelho. O **lápis** grava a receita da grade em um Cartão de Receita que você carrega; os itens ficam onde estão."
+          ]
+        },
+        {
+          "title": "Trabalhos de fabricação",
+          "text": [
+            "A **última aba no topo** mostra tudo o que a rede está fabricando agora.",
+            "Cada trabalho mostra o quanto já andou e o que está esperando. Embaixo, cada etapa: qual máquina faz, quantas estão prontas e quantas estão **nas máquinas** agora.",
+            "Os botões de um trabalho **sobem ou descem** ele na fila, **pausam** ou **cancelam** (o **x**). O que já foi feito fica no armazenamento."
+          ]
+        },
+        {
+          "title": "A fila",
+          "text": [
+            "Trabalhos no **topo** usam os Montadores das Almas e as máquinas primeiro. **Shift-clique** na seta para cima manda um trabalho direto para o topo.",
+            "Um trabalho **pausado** (borda amarela) espera e não pega nada até você apertar play.",
+            "Em redes compartilhadas cada jogador pode rodar **16 trabalhos** ao mesmo tempo, para um pedido grande não travar todo mundo (criadores de modpacks podem mudar isso na configuração).",
+            "Os trabalhos são **salvos com o mundo**: depois de reiniciar, eles continuam de onde pararam."
+          ]
+        },
+        {
+          "title": "Configurações do terminal",
+          "text": [
+            "Clique na **engrenagem** no topo do terminal:",
+            "- **Sincronizar a busca com o JEI:** o terminal e o JEI compartilham uma busca.",
+            "- **Digitar para buscar ao abrir:** comece a digitar assim que abrir.",
+            "- **Manter a busca ao fechar:** sua busca continua lá na próxima vez.",
+            "- **Tamanho:** Auto se ajusta à tela. Normal, Alto e Mais alto mostram 6, 9 ou 12 linhas."
+          ]
+        },
+        {
+          "title": "Abas de recursos",
+          "text": [
+            "As abas **no topo** mudam o que o terminal mostra.",
+            "- **Tudo** (o ícone do drive, primeira aba): itens, fluidos, químicos, energia, Fonte e XP em uma lista só. Clique neles como nas abas de cada um.",
+            "- **Itens**, e depois uma aba para cada: **Fluidos, Químicos, Energia, Fonte e Experiência**.",
+            "Veja o capítulo sobre fluidos, energia e mais para saber como encher e esvaziar baldes e tanques."
+          ]
+        },
+        {
+          "title": "Escuro ou claro",
+          "text": [
+            "Toda tela deste mod tem uma pequena **lua ou sol** no canto superior direito. Clique para alternar entre escuro e claro. Sua escolha fica salva.",
+            "Você também pode mudar a transparência das telas pelo botão **Config** do mod na lista de mods."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cells",
+      "title": "Células de Armazenamento",
+      "icon": "grimstorage:storage_cell_64k",
+      "pages": [
+        {
+          "title": "Células de itens",
+          "text": [
+            "As células contam itens, não tipos. Qualquer mistura de itens serve.",
+            "- **Cobre:** 4.096 itens",
+            "- **Ouro:** 65.536 itens",
+            "- **Diamante:** cerca de 1 milhão de itens",
+            "- **Netherita:** cerca de 67 milhões de itens",
+            "Passe o mouse sobre uma célula para ver o quanto está cheia. Criadores de modpacks podem mudar esses tamanhos na configuração."
+          ],
+          "items": [
+            "grimstorage:storage_cell_4k",
+            "grimstorage:storage_cell_64k",
+            "grimstorage:storage_cell_1m",
+            "grimstorage:storage_cell_64m"
+          ],
+          "recipe": "grimstorage:storage_cell_4k"
+        },
+        {
+          "title": "Células maiores",
+          "text": "Células de Ouro usam ouro e um Bloco de Soulita. As de Diamante precisam de Soulita Infundida, e as de Netherita precisam de Liga de Soulita Ecoante.",
+          "recipe": "grimstorage:storage_cell_64k"
+        },
+        {
+          "title": "Diferenciando os níveis",
+          "text": [
+            "Cada nível tem sua **cor de tampa** e **de 1 a 4 luzes** do lado direito: Cobre, Ouro, Diamante, Netherita.",
+            "- Células de **Diamante** refletem a luz com um brilho que corre.",
+            "- Células de **Netherita** brilham com veios em brasa e cintilam como equipamento encantado.",
+            "Nomes e dicas ficam com cores mais fortes a cada nível, então você acha suas melhores células num relance."
+          ],
+          "items": [
+            "grimstorage:storage_cell_4k",
+            "grimstorage:storage_cell_64k",
+            "grimstorage:storage_cell_1m",
+            "grimstorage:storage_cell_64m",
+            "grimstorage:singularity_cell"
+          ]
+        },
+        {
+          "title": "Célula de Singularidade",
+          "text": [
+            "Guarda **um tipo de item sem limite**. Ótima para pedregulho, terra ou qualquer coisa que você farme em grande quantidade.",
+            "Para escolher o item dela, segure esse item na **mão secundária** e use a célula. Agache e use uma célula vazia para destravá-la.",
+            "Os itens sempre vão primeiro para uma Célula de Singularidade correspondente."
+          ],
+          "recipe": "grimstorage:singularity_cell"
+        }
+      ]
+    },
+    {
+      "id": "resources",
+      "title": "Fluidos e Mais",
+      "icon": "grimstorage:fluid_cell_copper",
+      "pages": [
+        {
+          "title": "Mais do que itens",
+          "text": [
+            "A rede também guarda **fluidos**, **energia (FE)**, **experiência (XP)**, **químicos** do Mekanism e **Fonte** do Ars Nouveau. Cada um tem suas células, e todas vão no mesmo Drive das Almas.",
+            "Células químicas precisam do Mekanism e células de Fonte precisam do Ars Nouveau. Sem esses mods, essas células simplesmente não aparecem."
+          ],
+          "items": [
+            "grimstorage:fluid_cell_copper",
+            "grimstorage:chemical_cell_copper",
+            "grimstorage:energy_cell_copper",
+            "grimstorage:experience_cell_copper",
+            "grimstorage:source_cell_copper"
+          ]
+        },
+        {
+          "title": "Tamanhos",
+          "text": [
+            "- **Células de fluido e químicas:** 256, 4.096, 65.536 e cerca de um milhão de baldes.",
+            "- **Células de energia:** 16M, 256M, 4B e 64B FE.",
+            "- **Células de Fonte:** 10k, 100k, 1M e 10M de Fonte.",
+            "- **Células de experiência:** 100k, 2M, 50M e 2B XP.",
+            "Elas usam os mesmos níveis de Cobre, Ouro, Diamante e Netherita das células de itens."
+          ],
+          "recipe": "grimstorage:fluid_cell_copper"
+        },
+        {
+          "title": "No terminal",
+          "text": [
+            "Use as abas no topo do terminal.",
+            "- **Encher um balde ou tanque:** segure-o vazio e clique em um fluido.",
+            "- **Guardar um fluido:** segure um balde ou tanque cheio e clique em qualquer lugar da lista.",
+            "Químicos funcionam do mesmo jeito com tanques do Mekanism. Energia e Fonte aparecem como um grande medidor."
+          ]
+        },
+        {
+          "title": "Experiência",
+          "text": [
+            "XP é guardada em pontos. Na aba **Experiência**: **clique** para pegar um nível, **shift-clique** para 10 níveis e **botão direito** para guardar toda a sua XP.",
+            "XP líquida de outros mods vira pontos automaticamente (20 mB por ponto), e um **Barramento de Importação** embaixo de uma farm de mobs suga orbes de XP."
+          ],
+          "recipe": "grimstorage:experience_cell_copper"
+        },
+        {
+          "title": "Canos e máquinas",
+          "text": [
+            "O jeito fácil: coloque um **Barramento de Importação** em uma máquina, tanque ou gerador e tudo o que tem nele vai para a rede. Um **Barramento de Exportação** manda coisas de volta. Canos de qualquer mod também se ligam aos dois barramentos. Veja o capítulo de Barramentos.",
+            "Canos também podem colocar qualquer coisa em uma **Interface de Rede**. Para deixar canos **puxarem** dela, abra-a e ligue o botão **Puxar** daquele recurso."
+          ],
+          "recipe": "grimstorage:network_interface"
+        }
+      ]
+    },
+    {
+      "id": "crafting",
+      "title": "Fabricação Automática",
+      "icon": "grimstorage:soul_assembler",
+      "pages": [
+        {
+          "title": "Como funciona",
+          "text": [
+            "Ensine uma receita à rede com um **Cartão de Receita** e coloque o cartão em um **Montador das Almas** na rede.",
+            "Agora esse item aparece no terminal com o rótulo **Fabricar**. Clique, digite quantos, e a rede faz o resto. Ela usa o que tem, fabrica os ingredientes que puder e diz exatamente o que falta se não conseguir."
+          ],
+          "items": [
+            "grimstorage:recipe_card",
+            "grimstorage:soul_assembler"
+          ]
+        },
+        {
+          "title": "Cartões de Receita",
+          "text": [
+            "Use um cartão em branco para abrir a grade dele. **Clique com itens na grade** para definir a receita. São só imagens; nada é gasto. O resultado aparece à direita.",
+            "Agache e use um cartão para apagá-lo. Segure só um cartão por vez para editá-lo."
+          ],
+          "recipe": "grimstorage:recipe_card"
+        },
+        {
+          "title": "Qualquer tábua serve",
+          "text": [
+            "Um Cartão de Receita usa **qualquer variante** que a receita aceita. Um cartão de baú feito com tábuas de carvalho também fabrica com bétula, pinheiro ou qualquer outra tábua que você tiver.",
+            "O botão **Qualquer / Exato** no topo do cartão desliga isso, para quando tem que ser exatamente os itens do cartão."
+          ]
+        },
+        {
+          "title": "Cartões pelo JEI ou EMI",
+          "text": [
+            "Você não precisa ter os itens para gravar um cartão.",
+            "- Abra o cartão, ache a receita no **JEI, EMI ou REI** e aperte o botão **+** dela. O cartão está gravado.",
+            "- Ou **arraste** itens da lista do JEI para os slots do cartão. Isso funciona em todo slot de filtro também.",
+            "- **Cartões de Processamento** aceitam o botão + na receita de **qualquer mod**: o que entra e o que sai são preenchidos.",
+            "- No terminal, o **lápis** ao lado da grade grava a receita da grade em um Cartão de Receita que você carrega."
+          ]
+        },
+        {
+          "title": "Montador das Almas",
+          "text": [
+            "Guarda 9 Cartões de Receita. Coloque mais montadores para mais receitas.",
+            "Cada **Melhoria de Velocidade** dobra a velocidade dele, até 4, para 16x."
+          ],
+          "recipe": "grimstorage:soul_assembler"
+        },
+        {
+          "title": "Melhoria de Velocidade",
+          "text": "Feita com Soulita Infundida, pedra luminosa e redstone. Acelera um Montador das Almas (dobrando a cada uma, até 4) e os Barramentos de Importação e Exportação (até 8).",
+          "recipe": "grimstorage:speed_upgrade"
+        },
+        {
+          "title": "Encomendando fabricações",
+          "text": [
+            "- Itens com **0 guardados** mostram **Fabricar**. É só clicar.",
+            "- Para fabricar mais de algo que você já tem, **ctrl-clique** ou **clique com o botão do meio**.",
+            "- Acompanhe ou cancele trabalhos no **Controlador de Rede**.",
+            "Se o armazenamento estiver cheio, o trabalho pausa e avisa.",
+            "Antes de começar, a janela do pedido mostra o **plano inteiro**: cada etapa e o que a faz, o que sai do armazenamento, o que está **faltando** em vermelho e mais ou menos quanto tempo vai levar.",
+            "Quando uma fabricação sua termina (ou fica travada por um minuto), um **aviso** aparece no canto, onde quer que você esteja."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "machines",
+      "title": "Máquinas",
+      "icon": "grimstorage:processing_interface",
+      "pages": [
+        {
+          "title": "Usando qualquer máquina",
+          "text": [
+            "A fabricação automática também pode usar **fornalhas e máquinas de qualquer mod**.",
+            "Grave a receita da máquina em um **Cartão de Processamento**: o que entra à esquerda, o que volta à direita. Clique com uma pilha para definir a quantidade; o botão direito soma um."
+          ],
+          "recipe": "grimstorage:processing_card"
+        },
+        {
+          "title": "Interface de Processamento",
+          "text": [
+            "Coloque-a encostada na máquina. A frente dela fica virada para o bloco em que você clicou ao colocá-la.",
+            "Coloque Cartões de Processamento nela. A rede manda as entradas para a máquina e tira os resultados sozinha."
+          ],
+          "recipe": "grimstorage:processing_interface"
+        },
+        {
+          "title": "Barramento de Máquina",
+          "text": [
+            "O **Barramento de Máquina** se prende em uma máquina, como um Barramento de Importação. A rede passa a usar essa máquina para fabricar.",
+            "Ele não precisa de cartões em **fornalhas, defumadores e altos-fornos** nem em **máquinas de mods grandes**: aprende todas as receitas que a máquina faz. Elas aparecem na aba **Fabricável**."
+          ],
+          "recipe": "grimstorage:machine_bus"
+        },
+        {
+          "title": "Truques do Barramento de Máquina",
+          "text": [
+            "- **Mantém as máquinas rodando:** fornalhas recebem combustível e máquinas elétricas recebem energia da sua rede.",
+            "- Pega de volta tudo o que a máquina faz, extras como **serragem** também, então ela nunca entope.",
+            "- **Vários barramentos em várias fornalhas dividem trabalhos grandes**: 64 minérios em 4 fornalhas cozinham 4 vezes mais rápido.",
+            "- Guarda 9 Cartões de Processamento para **qualquer outra máquina**.",
+            "- Botões na tela dele desligam o aprendizado e o abastecimento."
+          ]
+        },
+        {
+          "title": "Máquinas de mods",
+          "text": [
+            "O Barramento de Máquina aprende receitas do **Mekanism** (todas as máquinas de itens e fábricas, incluindo a Câmara de Purificação e o Compressor de Ósmio), **Create** (Moinho), **Ender IO** (Moinho SAG, Fornalha de Ligas), **Ars Nouveau** (Câmara de Imbuição), **Immersive Engineering**, **Powah**, **Modern Industrialization**, **Oritech** e **Actually Additions**.",
+            "Máquinas de outros mods costumam funcionar também quando o nome da máquina combina com as receitas dela (um triturador tritura).",
+            "Nas máquinas do Mekanism ele abre sozinho o lado em que encosta. Não precisa de Configurador."
+          ]
+        },
+        {
+          "title": "Bom saber",
+          "text": [
+            "- Receitas que precisam de **fluido ou químico** também funcionam: o barramento enche os tanques da máquina com a sua rede. Químicos do Mekanism que vêm de itens (**pó de redstone** para infusão) são mandados como esses itens.",
+            "- Máquinas que precisam de uma peça para funcionar (um capacitor do Ender IO, um motor do Create) ainda precisam dela.",
+            "- **Criadores de modpacks:** adicionem qualquer máquina em um datapack: `data/<pack>/grimstorage_machines/<name>.json` com as listas `\"machines\"` e `\"recipe_types\"`.",
+            "- Precisa de algo especial? Um **Cartão de Processamento** no barramento ainda funciona com qualquer máquina."
+          ]
+        },
+        {
+          "title": "Cadeias químicas",
+          "text": [
+            "Máquinas que fazem **fluidos ou químicos** também funcionam: o barramento os puxa de volta para suas células de fluido e químicas.",
+            "Assim linhas inteiras são planejadas de uma vez. Peça **Cristais de Ferro** e a rede roda o **Lavador Químico** e depois o **Cristalizador**, cada um com seu barramento.",
+            "Funciona com a Câmara de Dissolução, o Lavador, o Cristalizador, o Oxidante, o Infusor, o Separador, a Centrífuga, a Câmara de Reação do Mekanism e mais."
+          ]
+        },
+        {
+          "title": "Máquinas de Fonte",
+          "text": [
+            "Coloque uma **célula de Fonte** em um drive e um Barramento de Máquina em uma **Câmara de Imbuição** do Ars Nouveau: o barramento dá a ela exatamente a Fonte que cada receita custa, sem jarros.",
+            "Receitas que precisam de itens em **pedestais** em volta da câmara ficam de fora: a rede não consegue colocá-los para você."
+          ]
+        },
+        {
+          "title": "Exemplo",
+          "text": [
+            "Para fabricar Soulita Infundida automaticamente:",
+            "- Coloque uma Interface de Processamento encostada em um **Infusor das Almas**.",
+            "- Faça um cartão com Lingote de Soulita, Areia das Almas e Quartzo entrando, e Soulita Infundida saindo.",
+            "- Coloque o cartão na interface.",
+            "Agora a Soulita Infundida aparece como fabricável no terminal."
+          ],
+          "items": [
+            "grimstorage:soul_infuser",
+            "grimstorage:processing_interface",
+            "grimstorage:infused_soulite"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "automation",
+      "title": "Automação",
+      "icon": "grimstorage:stock_keeper",
+      "pages": [
+        {
+          "title": "Guardião de Estoque",
+          "text": [
+            "Mantém uma quantidade de algo fabricada, por exemplo **sempre 500 engrenagens de ferro**.",
+            "Clique com um item em um dos 9 slots, clique no número embaixo, digite quantos manter e aperte **Definir**. Quando o estoque cai abaixo disso, ele fabrica mais.",
+            "O ponto sobre cada item fica verde quando há estoque, azul enquanto fabrica e vermelho quando falta algo."
+          ],
+          "recipe": "grimstorage:stock_keeper"
+        },
+        {
+          "title": "Filtro do Vazio",
+          "text": [
+            "Escolha até 9 itens. Quando o armazenamento estiver **cheio**, esses itens são destruídos em vez de travar suas farms.",
+            "Só o excedente é destruído. Nada é apagado enquanto ainda houver espaço."
+          ],
+          "recipe": "grimstorage:void_filter"
+        },
+        {
+          "title": "Interface de Rede",
+          "text": [
+            "Deixa canos, funis e outros mods usarem a rede. Tudo o que for colocado é guardado.",
+            "Só dá para puxar coisas **para fora** se você permitir: coloque itens nos 9 slots dela, ou ligue os botões **Puxar** de fluidos, energia, químicos, Fonte e XP.",
+            "Funciona com o Grim Pipe Industries e outros mods de canos. Para não usar cano nenhum, use um Barramento de Importação ou Exportação."
+          ],
+          "recipe": "grimstorage:network_interface"
+        },
+        {
+          "title": "Elo de Baú",
+          "text": [
+            "O **Elo de Baú** se prende a um baú, barril, gaveta ou qualquer inventário e o torna parte do seu armazenamento. Os itens dele aparecem no terminal, as fabricações os usam e itens novos podem ir para lá.",
+            "Na tela dele: **entram e saem**, **só colocar** ou **só tirar**, e se ele enche **antes das suas células**."
+          ],
+          "recipe": "grimstorage:chest_link"
+        },
+        {
+          "title": "Emissor de Redstone",
+          "text": [
+            "Escolha um item e uma quantidade. O **Emissor de Redstone** dá um sinal de redstone quando a rede tem **no mínimo** essa quantidade, ou **menos** (desligue uma farm de mobs com 10.000 ossos).",
+            "No modo **Fabricar enquanto ligado** é o contrário: enquanto recebe sinal de redstone, ele fabrica o item até essa quantidade."
+          ],
+          "recipe": "grimstorage:redstone_emitter"
+        }
+      ]
+    },
+    {
+      "id": "buses",
+      "title": "Barramentos",
+      "icon": "grimstorage:import_bus",
+      "pages": [
+        {
+          "title": "Barramentos",
+          "text": [
+            "- **Barramento de Importação** (ciano): tira coisas **do bloco para a sua rede**. Use para esvaziar um baú.",
+            "- **Barramento de Exportação** (laranja): manda coisas **da sua rede para o bloco**, só o que você escolher.",
+            "Coloque um na ponta de um Cabo das Almas (próxima página), ou em qualquer bloco sozinho, com cabo atrás.",
+            "Pegou o errado? Clique com o botão direito e no botão de direção para trocar."
+          ],
+          "items": [
+            "grimstorage:import_bus",
+            "grimstorage:export_bus",
+            "grimstorage:soul_cable"
+          ]
+        },
+        {
+          "title": "Barramentos no cabo",
+          "text": [
+            "Leve o **Cabo das Almas** do seu drive, terminal, interface ou qualquer bloco de rede até um baú ou máquina.",
+            "Depois **use o barramento nesse baú** (ou na ponta do cabo). Ele vai para o cabo, virado para o baú, e tudo flui direto para a rede.",
+            "- **Botão direito** no barramento abre a tela de filtro.",
+            "- **Quebre** o barramento para tirar só ele. O cabo fica.",
+            "Cada lado de um cabo comporta um barramento. A rede nunca passa por um lado que tem barramento."
+          ],
+          "items": [
+            "grimstorage:soul_cable",
+            "grimstorage:import_bus",
+            "grimstorage:export_bus"
+          ]
+        },
+        {
+          "title": "Barramento de Importação",
+          "text": [
+            "Puxa **tudo** por padrão: itens, fluidos, energia, XP, químicos e Fonte, tudo com um barramento só.",
+            "Coloque em um gerador para guardar a energia dele, em um tanque para esvaziá-lo ou em uma fornalha para coletar o que ela funde.",
+            "Virado para o **ar livre**, ele pega itens largados e **orbes de XP** naquele bloco. Coloque embaixo de uma farm de mobs."
+          ],
+          "recipe": "grimstorage:import_bus"
+        },
+        {
+          "title": "Barramento de Exportação",
+          "text": [
+            "Por padrão manda **só os itens que você escolher** no filtro, então nunca esvazia seu armazenamento por acidente.",
+            "Ligue fluidos, energia, XP, químicos ou Fonte para mandar esses também. Energia, Fonte e XP não precisam de filtro.",
+            "Exemplo: um Barramento de Exportação em uma fornalha com carvão no filtro a mantém abastecida."
+          ],
+          "recipe": "grimstorage:export_bus"
+        },
+        {
+          "title": "Canos de qualquer mod",
+          "text": [
+            "Canos de qualquer mod se ligam direto a um barramento, em **qualquer lado**.",
+            "- Canos **colocam em um Barramento de Importação** e tudo vai para a rede.",
+            "- Canos **puxam de um Barramento de Exportação**, mas só o que o filtro e os botões dele permitem.",
+            "Funciona com itens, fluidos, energia, químicos, Fonte e XP líquida. Leve o Cabo das Almas até a parte de trás do barramento e uma linha leva tudo.",
+            "Se um barramento estiver virado direto para um cano, deixe aquela ponta do cano em **puxar** (no seu mod de canos) para tirar de um Barramento de Exportação. Canos colocam em um Barramento de Importação normalmente."
+          ],
+          "items": [
+            "grimstorage:import_bus",
+            "grimstorage:export_bus",
+            "grimstorage:soul_cable"
+          ]
+        },
+        {
+          "title": "Filtros",
+          "text": [
+            "Abra um barramento para configurá-lo. Clique com itens nos **9 slots de filtro**. Um balde ou tanque filtra o fluido ou químico dentro dele.",
+            "- **Só estes:** só o que está no filtro se move.",
+            "- **Todos menos estes:** tudo se move menos o que está no filtro.",
+            "- **Igual exato / Ignorar NBT:** se encantamentos e outros dados do item precisam bater."
+          ]
+        },
+        {
+          "title": "Botões de recursos",
+          "text": [
+            "Os ícones do meio **ligam ou desligam** cada recurso naquele barramento: Itens, Fluidos, Químicos, Energia, Fonte e XP. Uma linha verde significa ligado.",
+            "No canto superior direito aparece o que o barramento está fazendo: **Funcionando**, **Parado**, **Armazenamento cheio**, **Sem rede** ou **Nada conectado**."
+          ]
+        },
+        {
+          "title": "Melhorias de Velocidade",
+          "text": [
+            "Coloque **Melhorias de Velocidade** nos slots à direita da tela do barramento, até **8**.",
+            "Cada uma soma de novo a velocidade base do barramento: **1 melhoria = 2x**, **8 melhorias = 9x**. Um barramento totalmente melhorado move mais de **1.000 itens** ou **288 baldes** a cada tick.",
+            "As melhorias ficam no barramento e caem quando você o tira."
+          ],
+          "recipe": "grimstorage:speed_upgrade"
+        },
+        {
+          "title": "Rápido e leve",
+          "text": [
+            "Um barramento ocupado move até **128 itens** ou **32 baldes** a cada tick, e tanta energia quanto a máquina permitir.",
+            "Quando não há nada para mover, ele desacelera e confere mais ou menos uma vez por segundo, e acorda na hora quando algo ao lado muda. Centenas de barramentos não são problema."
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wireless",
+      "title": "Sem Fio e Longe",
+      "icon": "grimstorage:wireless_terminal",
+      "pages": [
+        {
+          "title": "Terminal Sem Fio",
+          "text": [
+            "Um terminal no bolso. **Agache e use-o em um Controlador de Rede** para vinculá-lo, depois use em qualquer lugar a até 128 blocos na mesma dimensão (criadores de modpacks podem mudar o alcance).",
+            "Ele tem as mesmas abas e a mesma grade de fabricação do bloco."
+          ],
+          "recipe": "grimstorage:wireless_terminal"
+        },
+        {
+          "title": "Terminal de Singularidade",
+          "text": "Funciona a qualquer distância, em qualquer dimensão.",
+          "recipe": "grimstorage:singularity_terminal"
+        },
+        {
+          "title": "Despejo rápido",
+          "text": [
+            "Carregando um terminal sem fio vinculado? Aperte **G** para mandar todo o seu inventário principal para o armazenamento. A barra de atalhos e a armadura ficam onde estão.",
+            "Troque a tecla em Controles, em Grim Storage Industries."
+          ]
+        },
+        {
+          "title": "Elo Quântico",
+          "text": [
+            "Junta dois lugares em uma só rede, a qualquer distância ou entre dimensões. A fabricação faz um par.",
+            "Use uma **Amarra das Almas** no primeiro elo e depois no segundo. Agache e use a amarra em um elo para despareá-lo.",
+            "As duas pontas precisam estar carregadas para se conectar, então use um carregador de chunks para bases distantes."
+          ],
+          "recipe": "grimstorage:quantum_link",
+          "items": [
+            "grimstorage:quantum_link",
+            "grimstorage:soul_tether"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "tiers",
+      "title": "Progressão",
+      "icon": "grimstorage:singularity_core",
+      "pages": [
+        {
+          "title": "Os cinco níveis",
+          "text": [
+            "- **1. Lingote de Soulita:** controlador, drive, terminal, cabo, vidro, interface, Barramentos de Importação e Exportação, células de Cobre, Infusor das Almas.",
+            "- **2. Soulita e Ouro:** células de Ouro, Cartões de Receita, Montador das Almas, Filtro do Vazio.",
+            "- **3. Soulita Infundida:** células de Diamante, Melhoria de Velocidade, Guardião de Estoque, Terminal Sem Fio, Cartão de Processamento.",
+            "- **4. Liga de Soulita Ecoante:** células de Netherita, Interface de Processamento, Elo Quântico.",
+            "- **5. Núcleo de Singularidade:** Célula de Singularidade, Terminal de Singularidade."
+          ],
+          "items": [
+            "grimstorage:soulite_ingot",
+            "grimstorage:infused_soulite",
+            "grimstorage:echo_soulite_alloy",
+            "grimstorage:singularity_core"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "help",
+      "title": "Ajuda",
+      "icon": "minecraft:compass",
+      "pages": [
+        {
+          "title": "Algo está errado",
+          "text": [
+            "- **O terminal diz que não há rede funcionando:** confira se o controlador está conectado e se há só um.",
+            "- **Os itens não entram:** o armazenamento está cheio. Adicione células, ou um Filtro do Vazio para lixo.",
+            "- **Uma fabricação nunca termina:** abra o controlador para ver o que ela está esperando e cancele se precisar.",
+            "- **Um barramento diz Nada conectado ou Parado:** confira se ele está na face certa, se os botões de recursos estão ligados e (Barramento de Exportação) se o filtro tem algo.",
+            "- **O terminal sem fio não abre:** vincule de novo e fique dentro do alcance.",
+            "Ainda travado? Olhe para a sua rede e digite `/grimstorage debug`. Ele salva um relatório que você pode anexar a um relato de bug."
+          ]
+        },
+        {
+          "title": "Bom saber",
+          "text": [
+            "- Os trabalhos de fabricação são salvos com o mundo e continuam depois de reiniciar.",
+            "- Elos Quânticos precisam das duas pontas carregadas.",
+            "- Você encomenda itens. Fluidos e químicos só são feitos como etapas no caminho até um item.",
+            "- Tanques novos do Mekanism começam com os lados fechados: abra o lado em que o barramento encosta com um **Configurador**. Um Barramento de Máquina em uma máquina do Mekanism abre sozinho o que precisa.",
+            "Feito por xTri6 para o Nine Craft."
+          ]
+        }
+      ]
+    }
+  ]
+}

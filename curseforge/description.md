@@ -96,7 +96,8 @@ The **Grim Storage Guide** you get when you first join explains every block and 
 - **Requires:** NeoForge for Minecraft 1.21.1.
 - **Optional:** JEI, EMI or REI (recipe + button, drag and drop, shared search; Soul Infuser recipes get their own JEI page), Mekanism (chemical storage), Ars Nouveau (Source storage). Without them, nothing breaks. The extra cells are just hidden.
 - **Any pipe mod** that uses standard NeoForge capabilities works with the buses and the Network Interface.
-- **Pack makers:** every recipe, loot table and ore feature is a datapack file, the guide text can be replaced with a resource pack, and the first-join book can be turned off in the config.
+- **Pack makers:** every recipe, loot table and ore feature is a datapack file, the guide text can be replaced with a resource pack, and the first-join book can be turned off in the config. Cell sizes, Machine Bus speed and Wireless Terminal range are all configurable too.
+- **Languages:** English, Chinese, Russian, Portuguese (Brazil), Spanish, German and French, for the whole mod and the guide book.
 
 <img src="https://raw.githubusercontent.com/PCPx00/grim-storage-industries/main/media/section-family.gif" alt="Grim Industries" width="1200">
 

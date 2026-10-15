@@ -21,8 +21,9 @@ public enum CellTier {
         return id;
     }
 
+    /** Items it holds (from the config; the Singularity Cell has no limit). */
     public long capacity() {
-        return capacity;
+        return singular() ? capacity : com.xtri6.grimstorage.BalanceConfig.itemCapacity(this);
     }
 
     public boolean singular() {

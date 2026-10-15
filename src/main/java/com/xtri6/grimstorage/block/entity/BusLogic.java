@@ -164,8 +164,9 @@ public final class BusLogic implements PipePort {
     }
 
     /** Budget multiplier: 1 with no upgrades, up to 9 with all 8. */
+    /** How many times the base amount it moves: Speed Upgrades, times the pack's bus speed setting (never under 1). */
     public int speed() {
-        return 1 + upgradeCount();
+        return Math.max(1, (int) Math.round((1 + upgradeCount()) * com.xtri6.grimstorage.BalanceConfig.busSpeed()));
     }
 
     /** The upgrades, for dropping when the bus is broken or taken off its cable. */

@@ -12,6 +12,12 @@ public final class CellContents<K> {
     private final CellStorage owner;
     private final LinkedHashMap<K, Long> items = new LinkedHashMap<>();
     private long total;
+    /** Goes up on every change to this cell, so a network only refreshes when one of its own cells changed. */
+    private long version;
+
+    public long version() {
+        return version;
+    }
 
     CellContents(CellStorage owner) {
         this.owner = owner;
@@ -42,6 +48,7 @@ public final class CellContents<K> {
         if (!simulate) {
             items.merge(key, accepted, Long::sum);
             total += accepted;
+            version++;
             owner.changed();
         }
         return accepted;
@@ -60,6 +67,7 @@ public final class CellContents<K> {
                 items.put(key, have - taken);
             }
             total -= taken;
+            version++;
             owner.changed();
         }
         return taken;
