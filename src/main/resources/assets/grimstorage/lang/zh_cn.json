@@ -116,6 +116,7 @@
   "gui.grimstorage.processing_card.hint": "右键槽位：再加一个",
   "key.categories.grimstorage": "Grim Storage Industries",
   "key.grimstorage.dump": "把背包倒入网络",
+  "key.grimstorage.wireless": "打开无线终端",
   "gui.grimstorage.job.full": "存储已满",
   "gui.grimstorage.controller.singular": "+ %s 在奇点元件中",
   "gui.grimstorage.stock.clear": "清空",

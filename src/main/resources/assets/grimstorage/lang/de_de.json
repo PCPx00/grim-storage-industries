@@ -116,6 +116,7 @@
   "gui.grimstorage.processing_card.hint": "Rechtsklick auf einen Platz: einer mehr",
   "key.categories.grimstorage": "Grim Storage Industries",
   "key.grimstorage.dump": "Inventar ins Netzwerk abladen",
+  "key.grimstorage.wireless": "Drahtloses Terminal öffnen",
   "gui.grimstorage.job.full": "Speicher voll",
   "gui.grimstorage.controller.singular": "+ %s in Singularitätszellen",
   "gui.grimstorage.stock.clear": "Leeren",

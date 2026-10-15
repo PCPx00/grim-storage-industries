@@ -116,6 +116,7 @@
   "gui.grimstorage.processing_card.hint": "Clic derecho en una ranura: uno más",
   "key.categories.grimstorage": "Grim Storage Industries",
   "key.grimstorage.dump": "Volcar el inventario en la red",
+  "key.grimstorage.wireless": "Abrir terminal inalámbrico",
   "gui.grimstorage.job.full": "Almacenamiento lleno",
   "gui.grimstorage.controller.singular": "+ %s en celdas de singularidad",
   "gui.grimstorage.stock.clear": "Vaciar",

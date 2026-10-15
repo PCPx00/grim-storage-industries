@@ -539,7 +539,9 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
         lastMachine = f.getBlockState().getBlock();
         RecipeType<? extends AbstractCookingRecipe> type = recipeType(f);
         if (type == null) {
-            return List.of();
+            // a furnace whose recipe type we can't read: learn it by its block name instead, like any other machine
+            BlockState st = level.getBlockState(target());
+            return st.isAir() ? List.of() : learnFromRecipes(st);
         }
         List<Pattern> out = new ArrayList<>();
         Set<String> seen = new HashSet<>();
