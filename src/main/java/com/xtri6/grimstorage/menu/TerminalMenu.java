@@ -686,7 +686,7 @@ public class TerminalMenu extends GrimMenu {
 
     /**
      * Shift-click on the result, all at once: crafts as many times as the network can feed the grid and your
-     * inventory can hold (up to ten stacks). The grid keeps its recipe, since each craft is refilled from the
+     * inventory can hold, up to one stack of output. The grid keeps its recipe, since each craft is refilled from the
      * network in one step. Returns false when the recipe needs something this path doesn't handle; the caller then
      * crafts one at a time.
      */
@@ -719,7 +719,8 @@ public class TerminalMenu extends GrimMenu {
                 room += Math.max(0, maxStack - s.getCount());
             }
         }
-        long crafts = Math.min(room / k, 10L * maxStack / k);
+        // a shift-click makes one stack of output, no more: click again for the next
+        long crafts = Math.min(room / k, Math.max(1, maxStack / k));
         // each ingredient key needs one item per slot that holds it, per craft
         java.util.Map<ItemKey, Integer> need = new java.util.LinkedHashMap<>();
         for (int i = 0; i < 9; i++) {
