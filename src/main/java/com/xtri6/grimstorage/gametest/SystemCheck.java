@@ -409,14 +409,17 @@ public final class SystemCheck {
             menu.clicked(menu.resultIndex, 0, ClickType.QUICK_MOVE, fp);
             int sticks = fp.getInventory().countItem(Items.STICK);
             long planksLeft = count(Items.OAK_PLANKS);
+            // one shift-click crafts every stick the network can feed the grid, and the grid keeps its planks
+            boolean gridKept = menu.getSlot(menu.gridStart).getItem().is(Items.OAK_PLANKS)
+                    && menu.getSlot(menu.gridStart + 3).getItem().is(Items.OAK_PLANKS);
             menu.getSlot(menu.gridStart).set(new ItemStack(Items.FLINT, 3));
             menu.clearGrid(fp);
             boolean gridEmpty = menu.getSlot(menu.gridStart).getItem().isEmpty();
-            info("preview={} sticks crafted={} planks left in network={} (before {}) grid cleared={} flint={}",
-                    preview, sticks, planksLeft, planksBefore, gridEmpty, count(Items.FLINT));
+            info("preview={} sticks crafted={} planks left in network={} (before {}) grid kept={} cleared={} flint={}",
+                    preview, sticks, planksLeft, planksBefore, gridKept, gridEmpty, count(Items.FLINT));
             fp.getInventory().clearContent();
-            return preview.is(Items.STICK) && preview.getCount() == 4 && sticks == 4 * ((int) (planksBefore + 12) / 2)
-                    && planksLeft == (planksBefore + 12) % 2 && gridEmpty;
+            return preview.is(Items.STICK) && preview.getCount() == 4 && sticks == 4 * ((int) (planksBefore + 10) / 2)
+                    && planksLeft == (planksBefore + 10) % 2 && gridKept && gridEmpty;
         }));
         STEPS.add(new Step("fluid, chemical, energy and Source cells go in the drive", 0, () -> {
             DriveBlockEntity drive = (DriveBlockEntity) level.getBlockEntity(at(1, 0, 0));

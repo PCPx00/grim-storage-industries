@@ -685,6 +685,77 @@ public class TerminalMenu extends GrimMenu {
     }
 
     /**
+     * Shift-click on the result, all at once: crafts as many times as the network can feed the grid and your
+     * inventory can hold (up to ten stacks). The grid keeps its recipe, since each craft is refilled from the
+     * network in one step. Returns false when the recipe needs something this path doesn't handle; the caller then
+     * crafts one at a time.
+     */
+    private boolean craftAllAtOnce(Player p) {
+        StorageNetwork net = net();
+        Level level = p.level();
+        if (net == null || !(player instanceof ServerPlayer)) {
+            return false;
+        }
+        CraftingInput input = craftGrid.asCraftInput();
+        Optional<RecipeHolder<CraftingRecipe>> recipe = level.getRecipeManager().getRecipeFor(RecipeType.CRAFTING, input, level);
+        ItemStack one = craftResult.getItem(0);
+        if (recipe.isEmpty() || one.isEmpty()) {
+            return false;
+        }
+        for (ItemStack r : recipe.get().value().getRemainingItems(input)) {
+            if (!r.isEmpty()) {
+                return false;
+            }
+        }
+        int k = one.getCount();
+        int maxStack = one.getMaxStackSize();
+        // room in your inventory for the output
+        long room = 0;
+        for (int i = playerStart; i < playerEnd; i++) {
+            ItemStack s = slots.get(i).getItem();
+            if (s.isEmpty()) {
+                room += maxStack;
+            } else if (ItemStack.isSameItemSameComponents(s, one)) {
+                room += Math.max(0, maxStack - s.getCount());
+            }
+        }
+        long crafts = Math.min(room / k, 10L * maxStack / k);
+        // each ingredient key needs one item per slot that holds it, per craft
+        java.util.Map<ItemKey, Integer> need = new java.util.LinkedHashMap<>();
+        for (int i = 0; i < 9; i++) {
+            ItemStack in = craftGrid.getItem(i);
+            ItemKey key = in.isEmpty() ? null : ItemKey.of(in);
+            if (in.isEmpty() || key == null) {
+                continue;
+            }
+            need.merge(key, 1, Integer::sum);
+        }
+        if (need.isEmpty()) {
+            return false;
+        }
+        for (java.util.Map.Entry<ItemKey, Integer> n : need.entrySet()) {
+            crafts = Math.min(crafts, net.extract(n.getKey(), crafts * n.getValue(), true) / n.getValue());
+        }
+        if (crafts <= 0) {
+            return false;
+        }
+        for (java.util.Map.Entry<ItemKey, Integer> n : need.entrySet()) {
+            if (net.extract(n.getKey(), crafts * n.getValue(), false) != crafts * n.getValue()) {
+                return false; // not reached: the simulation above said the items were there
+            }
+        }
+        ItemStack made = one.copyWithCount((int) (crafts * k));
+        one.getItem().onCraftedBy(made, level, p);
+        ItemStack rest = made.copy();
+        moveItemStackTo(rest, playerStart, playerEnd, true);
+        if (!rest.isEmpty()) {
+            p.getInventory().placeItemBackInInventory(rest);
+        }
+        slotsChanged(craftGrid);
+        return true;
+    }
+
+    /**
      * Shift-click: your inventory goes into the network, the crafting grid goes back into the network, and the
      * crafting result crafts up to one full stack into your inventory (refilling the grid as it goes).
      */
@@ -692,6 +763,9 @@ public class TerminalMenu extends GrimMenu {
     public ItemStack quickMoveStack(Player p, int index) {
         Slot slot = slots.get(index);
         if (!slot.hasItem()) {
+            return ItemStack.EMPTY;
+        }
+        if (index == resultIndex && craftAllAtOnce(p)) {
             return ItemStack.EMPTY;
         }
         if (index == resultIndex) {
