@@ -1535,6 +1535,24 @@ public final class SystemCheck {
                     n.jobs().isEmpty() ? "none" : n.jobs().get(0).status().getString());
             return planks >= 24 && left == 0 && n.jobs().isEmpty();
         }));
+        STEPS.add(new Step("recipe ingredients: a tag with more than 32 items still offers every one", 0, () -> {
+            java.util.List<ItemStack> many = new java.util.ArrayList<>();
+            // 60 other items first, then wheat seeds last, the way a big pack's c:seeds tag can list them
+            for (net.minecraft.world.item.Item it : BuiltInRegistries.ITEM) {
+                if (many.size() >= 60) {
+                    break;
+                }
+                if (it != Items.WHEAT_SEEDS && it != Items.AIR) {
+                    many.add(new ItemStack(it));
+                }
+            }
+            many.add(new ItemStack(Items.WHEAT_SEEDS));
+            com.xtri6.grimstorage.storage.RecipeReader.Input in = com.xtri6.grimstorage.storage.RecipeReader.input(many);
+            boolean seeds = in != null && in.options().contains(com.xtri6.grimstorage.storage.ItemKey.of(new ItemStack(Items.WHEAT_SEEDS)));
+            int size = in == null ? -1 : in.options().size();
+            info("ingredient options {} (wheat seeds offered: {})", size, seeds);
+            return seeds && size == 61;
+        }));
         STEPS.add(new Step("terminal search: contains, typos and short words", 0, () -> {
             boolean typo = com.xtri6.grimstorage.client.SearchMatch.matches("mending", "medning");
             boolean word = com.xtri6.grimstorage.client.SearchMatch.matches("diamond pickaxe", "pickaxe");

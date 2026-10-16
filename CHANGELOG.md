@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.16.7
+- Fixed: seeds (and any other item in a big tag) weren't offered to a recipe when the tag had more than 32 items. A modpack's
+  c:seeds tag can be much longer, so wheat seeds in your network were never used for the recipe. Every item in a tag is
+  offered now, up to 512 per ingredient.
+- System check: a regression test for ingredient tags longer than 32.
+
 ## 1.16.6
 - New server setting `assemblerSpeedMultiplier` (default 1.0): how fast Soul Assemblers craft. At 1.0 a stack of 64
   repeaters takes about 32 seconds on one plain Assembler; a pack can raise it, and Speed Upgrades still stack on top.
