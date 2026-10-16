@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.16.8
+- Fixed: items in the network's crafting section flicker and disappear when you craft with a click or shift-click. An
+  item a craft just used up stays listed for a few seconds, so it no longer blinks out and back in.
+
 ## 1.16.7
 - Fixed: seeds (and any other item in a big tag) weren't offered to a recipe when the tag had more than 32 items. A modpack's
   c:seeds tag can be much longer, so wheat seeds in your network were never used for the recipe. Every item in a tag is
