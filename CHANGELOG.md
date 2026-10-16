@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.16.9
+- Shift-click on the crafting result now crafts everything the network can feed the grid at once (up to ten stacks, and
+  only as much as your inventory can hold), instead of one craft at a time. A stack of repeaters no longer takes seconds.
+- The crafting grid keeps its recipe while you craft. Its items are refilled from the network in one step, so the recipe
+  no longer disappears mid-craft. When the network runs out, the grid shows what is missing, as before.
+- System check: the crafting grid test expects the bulk craft and the grid kept.
+
 ## 1.16.8
 - Fixed: items in the network's crafting section flicker and disappear when you craft with a click or shift-click. An
   item a craft just used up stays listed for a few seconds, so it no longer blinks out and back in.
