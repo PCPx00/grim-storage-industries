@@ -49,7 +49,11 @@ public final class RecipeReader {
         }
     }
 
-    private static final int MAX_OPTIONS = 32;
+    /**
+     * Most items one ingredient can take. A tag like c:seeds can hold far more than 32 items in a big pack, and the
+     * old cap of 32 cut the rest off, so seeds the network had were never offered for the recipe.
+     */
+    private static final int MAX_OPTIONS = 512;
     private static final boolean MEKANISM = ModList.get() != null && ModList.get().isLoaded("mekanism");
 
     private RecipeReader() {}
@@ -136,33 +140,27 @@ public final class RecipeReader {
 
     @Nullable
     private static Input input(Ingredient ing, long count) {
-        List<ItemKey> options = new ArrayList<>();
+        java.util.Set<ItemKey> options = new java.util.LinkedHashSet<>();
         for (ItemStack s : ing.getItems()) {
             ItemKey k = ItemKey.of(s);
-            if (k != null && !options.contains(k)) {
+            if (k != null && options.size() < MAX_OPTIONS) {
                 options.add(k);
-                if (options.size() >= MAX_OPTIONS) {
-                    break;
-                }
             }
         }
-        return options.isEmpty() ? null : new Input(options, Math.max(1, count));
+        return options.isEmpty() ? null : new Input(List.copyOf(options), Math.max(1, count));
     }
 
     public static Input input(List<ItemStack> stacks) {
-        List<ItemKey> options = new ArrayList<>();
+        java.util.Set<ItemKey> options = new java.util.LinkedHashSet<>();
         long count = 1;
         for (ItemStack s : stacks) {
             ItemKey k = ItemKey.of(s);
-            if (k != null && !options.contains(k)) {
+            if (k != null && options.size() < MAX_OPTIONS) {
                 options.add(k);
                 count = Math.max(count, s.getCount());
-                if (options.size() >= MAX_OPTIONS) {
-                    break;
-                }
             }
         }
-        return options.isEmpty() ? null : new Input(options, count);
+        return options.isEmpty() ? null : new Input(List.copyOf(options), count);
     }
 
     // ------------------------------------------------------------------ outputs
