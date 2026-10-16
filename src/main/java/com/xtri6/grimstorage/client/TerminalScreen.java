@@ -284,6 +284,14 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     /** Item order from the last refresh, kept while shift is held. */
     @Nullable
     private List<ItemKey> frozen;
+    /** When each item last had stock: an item a craft just used up stays listed for a few seconds, so it does not flicker. */
+    private final java.util.Map<ItemKey, Long> lastStocked = new java.util.HashMap<>();
+    private static final long STOCK_GRACE_MS = 4000;
+
+    private boolean recentlyStocked(ItemKey key, long now) {
+        Long t = lastStocked.get(key);
+        return t != null && now - t < STOCK_GRACE_MS;
+    }
     private boolean holdOrder;
     private boolean held;
     private int storedTypes;
@@ -319,8 +327,14 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         Arrays.fill(categoryCounts, 0);
         List<TerminalMenu.Entry> out = new ArrayList<>();
         storedTypes = 0;
+        long now = System.currentTimeMillis();
         for (TerminalMenu.Entry e : menu.clientEntries) {
-            boolean hiddenLearned = e.count() == 0 && e.learned();
+            if (e.count() > 0) {
+                lastStocked.put(e.key(), now);
+            }
+        }
+        for (TerminalMenu.Entry e : menu.clientEntries) {
+            boolean hiddenLearned = e.count() == 0 && e.learned() && !recentlyStocked(e.key(), now);
             if (e.count() > 0) {
                 storedTypes++;
             }
@@ -339,7 +353,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                     continue;
                 }
                 // a furnace's whole recipe book would flood the list: learned recipes only show in the Craftable tab
-                if (e.count() == 0 && e.learned()) {
+                if (e.count() == 0 && e.learned() && !recentlyStocked(e.key(), now)) {
                     continue;
                 }
             }
