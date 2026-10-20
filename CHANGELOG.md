@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.16.13
+- Debug report: a new section lists every recipe in the world that makes a dust or grit, grouped by recipe type, with sample
+  recipe ids. It shows which recipe type a machine has to read to make an item like obsidian dust or diamond grit.
+
 ## 1.16.12
 - Debug report: each Machine Bus now lists what its machine makes (the inputs and outputs of up to 120 learned recipes), so a
   report shows whether a recipe such as obsidian dust was learned at all.

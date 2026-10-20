@@ -34,6 +34,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
@@ -1005,6 +1006,30 @@ public final class StorageNetwork {
                         + " -> " + p.outputs().keySet().stream().map(k -> k.stack().getHoverName().getString()).toList()
                         + (p.bulkOutputs().isEmpty() ? "" : " " + p.bulkOutputs().keySet()));
             }
+        }
+        // dust and grit recipes in the world, by recipe type: shows which type a machine would need to read
+        out.add("Dust and grit recipes in this world (by recipe type, up to 4 samples each):");
+        try {
+            Map<String, List<String>> byType = new java.util.TreeMap<>();
+            Map<String, Integer> counts = new java.util.TreeMap<>();
+            for (RecipeHolder<?> h : controller.getLevel().getRecipeManager().getRecipes()) {
+                ItemStack r = h.value().getResultItem(controller.getLevel().registryAccess());
+                String name = r.getHoverName().getString();
+                if (r.isEmpty() || !(name.toLowerCase(java.util.Locale.ROOT).contains("dust") || name.toLowerCase(java.util.Locale.ROOT).contains("grit"))) {
+                    continue;
+                }
+                String type = BuiltInRegistries.RECIPE_TYPE.getKey(h.value().getType()) + "";
+                counts.merge(type, 1, Integer::sum);
+                List<String> samples = byType.computeIfAbsent(type, k -> new ArrayList<>());
+                if (samples.size() < 4) {
+                    samples.add(h.id() + " -> " + name);
+                }
+            }
+            for (Map.Entry<String, Integer> e : counts.entrySet()) {
+                out.add("  " + e.getKey() + ": " + e.getValue() + " recipes, e.g. " + byType.get(e.getKey()));
+            }
+        } catch (RuntimeException e) {
+            out.add("  (could not read: " + e + ")");
         }
         int itemPatterns = 0;
         for (List<Pattern> l : patterns.values()) {
