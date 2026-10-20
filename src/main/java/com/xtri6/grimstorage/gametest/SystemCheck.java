@@ -335,6 +335,22 @@ public final class SystemCheck {
             info("sticks={} planks={} logs={} jobs={}", count(Items.STICK), count(Items.OAK_PLANKS), count(Items.OAK_LOG), net().jobs().size());
             return count(Items.STICK) == 16 && count(Items.OAK_PLANKS) == 0 && count(Items.OAK_LOG) == 52 && net().jobs().isEmpty();
         }));
+        STEPS.add(new Step("mekanism crushing recipes are all read", 0, () -> {
+            int total = 0;
+            int usable = 0;
+            List<String> bad = new ArrayList<>();
+            for (var h : level.getRecipeManager().getAllRecipesFor(mekanism.api.recipes.MekanismRecipeTypes.TYPE_CRUSHING.get())) {
+                total++;
+                var r = com.xtri6.grimstorage.storage.RecipeReader.read(h.value(), level.registryAccess());
+                if (r != null && r.usable()) {
+                    usable++;
+                } else if (bad.size() < 6) {
+                    bad.add(h.id() + " (" + h.value().getClass().getSimpleName() + ")");
+                }
+            }
+            info("crushing recipes {} readable {} unreadable sample {}", total, usable, bad);
+            return total > 0 && usable == total;
+        }));
         STEPS.add(new Step("machine processing through the Soul Infuser", 0, () -> {
             StorageNetwork n = net();
             n.insert(key(Registration.SOULITE_INGOT.get()), 4, false);
