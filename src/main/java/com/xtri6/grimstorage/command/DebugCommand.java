@@ -22,7 +22,6 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.server.level.ServerLevel;
@@ -128,7 +127,6 @@ public final class DebugCommand {
         }
         Path shown = FMLPaths.GAMEDIR.get().relativize(file);
         Component link = Component.literal(shown.toString()).withStyle(s -> s.withColor(ChatFormatting.AQUA).withUnderlined(true)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, file.toAbsolutePath().toString()))
                 .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, Component.translatable("command.grimstorage.debug.open"))));
         src.sendSuccess(() -> Component.translatable("command.grimstorage.debug.done", link), false);
         return 1;

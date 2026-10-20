@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.16.11
+- Fixed: `/grimstorage debug` disconnected the player with "Failed to encode packet system_chat". The report link tried to open a file on the server, which can't be sent to a player. The report path is now plain text in chat; the report itself is written as before.
+
 ## 1.16.10
 - Shift-click on the crafting result makes one stack of output at a time, as far as the network and your inventory allow.
   Click again for the next stack.
