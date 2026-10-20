@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.16.12
+- Debug report: each Machine Bus now lists what its machine makes (the inputs and outputs of up to 120 learned recipes), so a
+  report shows whether a recipe such as obsidian dust was learned at all.
+
 ## 1.16.11
 - Fixed: `/grimstorage debug` disconnected the player with "Failed to encode packet system_chat". The report link tried to open a file on the server, which can't be sent to a player. The report path is now plain text in chat; the report itself is written as before.
 

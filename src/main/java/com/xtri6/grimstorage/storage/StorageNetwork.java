@@ -994,6 +994,17 @@ public final class StorageNetwork {
             Component name = m.machineName();
             out.add("  " + where + "  " + m.getClass().getSimpleName() + " -> " + (name == null ? "nothing" : name.getString())
                     + "  cards " + m.cards().size() + "  learned " + m.learnedCount());
+            // what each machine makes, so a report shows whether a recipe (say obsidian dust) was learned at all
+            int shown = 0;
+            for (Pattern p : m.learnedPatterns()) {
+                if (shown++ >= 120) {
+                    out.add("    ...");
+                    break;
+                }
+                out.add("    " + p.inputs().keySet().stream().map(k -> k.stack().getHoverName().getString()).toList()
+                        + " -> " + p.outputs().keySet().stream().map(k -> k.stack().getHoverName().getString()).toList()
+                        + (p.bulkOutputs().isEmpty() ? "" : " " + p.bulkOutputs().keySet()));
+            }
         }
         int itemPatterns = 0;
         for (List<Pattern> l : patterns.values()) {
