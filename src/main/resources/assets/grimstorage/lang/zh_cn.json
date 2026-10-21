@@ -400,5 +400,12 @@
   "message.grimstorage.wireless_device.bound": "已绑定到网络 {0}",
   "message.grimstorage.wireless_device.unbound": "已解除网络绑定",
   "message.grimstorage.wireless_device.no_network": "请先让网络扳手持有一个网络。用它右键点击网络控制器。",
-  "message.grimstorage.wireless_device.limit": "该网络已有 {0} 个无线设备"
+  "message.grimstorage.wireless_device.limit": "该网络已有 {0} 个无线设备",
+  "item.grimstorage.wireless_range_low": "低距离卡",
+  "item.grimstorage.wireless_range_medium": "中距离卡",
+  "item.grimstorage.wireless_range_high": "高距离卡",
+  "item.grimstorage.wireless_range_infinite": "无限距离卡",
+  "item.grimstorage.netherite_infused_diamond": "下界合金注能钻石",
+  "tooltip.grimstorage.range_card": "无线范围：{0} 格",
+  "tooltip.grimstorage.range_card.infinite": "无线范围：任意距离；若服务器允许，可跨维度"
 }

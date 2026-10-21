@@ -182,14 +182,23 @@ public final class StorageNetwork {
         queue.add(new Node(origin, start));
         seen.add(GlobalPos.of(origin.dimension(), start));
 
-        // Wireless devices bound to this network and within reach of its controller join it without any cable.
-        ServerLevel home = (ServerLevel) controller.getLevel();
+        // Wireless devices bound to this network join it when a range card gives them reach to the controller.
+        // Infinite reach goes any distance, and into other dimensions when the server allows it.
         for (BlockEntity device : WirelessDevices.bound(controller.networkId())) {
-            if (!(device.getLevel() instanceof ServerLevel deviceLevel) || deviceLevel.dimension() != home.dimension()) {
+            if (!(device.getLevel() instanceof ServerLevel deviceLevel)
+                    || !(device instanceof com.xtri6.grimstorage.block.entity.WirelessDevice wireless)) {
                 continue;
             }
-            int reach = ((com.xtri6.grimstorage.block.entity.WirelessDevice) device).wirelessRange();
-            if (device.getBlockPos().distSqr(start) > (double) reach * reach) {
+            int reach = wireless.wirelessRange();
+            if (reach <= 0) {
+                continue;
+            }
+            boolean sameDimension = deviceLevel.dimension() == controller.getLevel().dimension();
+            if (sameDimension) {
+                if (!wireless.infiniteReach() && device.getBlockPos().distSqr(start) > (double) reach * reach) {
+                    continue;
+                }
+            } else if (!(wireless.infiniteReach() && com.xtri6.grimstorage.BalanceConfig.wirelessCrossDimension())) {
                 continue;
             }
             GlobalPos key = GlobalPos.of(deviceLevel.dimension(), device.getBlockPos());

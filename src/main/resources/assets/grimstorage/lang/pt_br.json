@@ -400,5 +400,12 @@
   "message.grimstorage.wireless_device.bound": "Vinculado à rede {0}",
   "message.grimstorage.wireless_device.unbound": "Desvinculado da rede",
   "message.grimstorage.wireless_device.no_network": "Segure uma Chave de Rede com uma rede guardada. Clique com o botão direito em um Controlador de Rede com ela.",
-  "message.grimstorage.wireless_device.limit": "Esta rede já tem {0} dispositivos sem fio"
+  "message.grimstorage.wireless_device.limit": "Esta rede já tem {0} dispositivos sem fio",
+  "item.grimstorage.wireless_range_low": "Cartão de Alcance Baixo",
+  "item.grimstorage.wireless_range_medium": "Cartão de Alcance Médio",
+  "item.grimstorage.wireless_range_high": "Cartão de Alcance Alto",
+  "item.grimstorage.wireless_range_infinite": "Cartão de Alcance Infinito",
+  "item.grimstorage.netherite_infused_diamond": "Diamante Infundido de Netherita",
+  "tooltip.grimstorage.range_card": "Alcance sem fio: {0} blocos",
+  "tooltip.grimstorage.range_card.infinite": "Alcance sem fio: qualquer distância, e qualquer dimensão se o servidor permitir"
 }

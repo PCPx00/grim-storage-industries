@@ -1,0 +1,19 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "minecraft:paper"
+    },
+    {
+      "item": "grimstorage:netherite_infused_diamond"
+    },
+    {
+      "item": "grimstorage:echo_soulite_shard"
+    }
+  ],
+  "result": {
+    "id": "grimstorage:wireless_range_infinite",
+    "count": 1
+  }
+}

@@ -49,20 +49,21 @@ public final class BalanceConfig {
             .defineInRange("assemblerSpeedMultiplier", 1.0, 0.25, 64.0);
 
     public static final ModConfigSpec.IntValue WIRELESS_RANGE = BUILDER
-            .comment("How far a Wireless Terminal reaches from its controller, in blocks (same dimension only).",
+            .comment("How far a Wireless Terminal reaches from its controller, in blocks (same dimension only), and how far the medium range card reaches.",
                     "The Singularity Terminal always reaches everywhere.")
             .defineInRange("wirelessRange", 128, 8, 30_000_000);
 
     public static final ModConfigSpec.IntValue WIRELESS_LOW_RANGE = BUILDER
-            .comment("Reach of the low-range wireless card, in blocks.")
+            .comment("Reach of the low range card, in blocks.")
             .defineInRange("wirelessLowRange", 32, 1, 30_000_000);
 
     public static final ModConfigSpec.IntValue WIRELESS_HIGH_RANGE = BUILDER
-            .comment("Reach of the high-range wireless card, in blocks. The medium card uses wirelessRange.")
+            .comment("Reach of the high range card, in blocks.")
             .defineInRange("wirelessHighRange", 512, 1, 30_000_000);
 
     public static final ModConfigSpec.BooleanValue INFINITE_WIRELESS = BUILDER
-            .comment("Whether the infinite wireless card (any distance, any dimension) can be crafted at all.")
+            .comment("Whether the infinite range card works (any distance, and any dimension if wirelessCrossDimension is on).",
+                    "Off, it reaches like the high card. To stop it being crafted, remove its recipe in a datapack.")
             .define("infiniteWirelessCard", true);
 
     public static final ModConfigSpec.IntValue WIRELESS_BIND_LIMIT = BUILDER

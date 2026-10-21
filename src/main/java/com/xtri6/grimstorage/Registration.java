@@ -284,6 +284,17 @@ public final class Registration {
     public static final DeferredItem<com.xtri6.grimstorage.item.NetworkWrenchItem> NETWORK_WRENCH = ITEMS.register("network_wrench",
             () -> new com.xtri6.grimstorage.item.NetworkWrenchItem(new Item.Properties()));
     public static final DeferredItem<Item> SPEED_UPGRADE = item("speed_upgrade", new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON));
+    /** Wireless range cards: each sets how far a wireless device in an upgrade slot reaches. */
+    public static final DeferredItem<com.xtri6.grimstorage.item.RangeCardItem> WIRELESS_RANGE_LOW = ITEMS.register("wireless_range_low",
+            () -> new com.xtri6.grimstorage.item.RangeCardItem(com.xtri6.grimstorage.item.RangeCardItem.Tier.LOW, new Item.Properties()));
+    public static final DeferredItem<com.xtri6.grimstorage.item.RangeCardItem> WIRELESS_RANGE_MEDIUM = ITEMS.register("wireless_range_medium",
+            () -> new com.xtri6.grimstorage.item.RangeCardItem(com.xtri6.grimstorage.item.RangeCardItem.Tier.MEDIUM, new Item.Properties()));
+    public static final DeferredItem<com.xtri6.grimstorage.item.RangeCardItem> WIRELESS_RANGE_HIGH = ITEMS.register("wireless_range_high",
+            () -> new com.xtri6.grimstorage.item.RangeCardItem(com.xtri6.grimstorage.item.RangeCardItem.Tier.HIGH, new Item.Properties()));
+    public static final DeferredItem<com.xtri6.grimstorage.item.RangeCardItem> WIRELESS_RANGE_INFINITE = ITEMS.register("wireless_range_infinite",
+            () -> new com.xtri6.grimstorage.item.RangeCardItem(com.xtri6.grimstorage.item.RangeCardItem.Tier.INFINITE, new Item.Properties().rarity(Rarity.EPIC)));
+    /** Made in the Soul Infuser from diamond and netherite scrap. Needed for the infinite range card. */
+    public static final DeferredItem<Item> NETHERITE_INFUSED_DIAMOND = item("netherite_infused_diamond", new Item.Properties().rarity(Rarity.RARE));
     public static final DeferredItem<WirelessTerminalItem> WIRELESS_TERMINAL = ITEMS.register("wireless_terminal",
             () -> new WirelessTerminalItem(false, new Item.Properties().rarity(Rarity.UNCOMMON)));
     public static final DeferredItem<WirelessTerminalItem> SINGULARITY_TERMINAL = ITEMS.register("singularity_terminal",
@@ -366,7 +377,7 @@ public final class Registration {
                                 SOULITE_ORE, DEEPSLATE_SOULITE_ORE, SOUL_SAND_SOULITE_ORE, ECHO_SOULITE_ORE,
                                 RAW_SOULITE_BLOCK, SOULITE_BLOCK,
                                 RAW_SOULITE, SOULITE_DUST, SOULITE_NUGGET, SOULITE_INGOT,
-                                INFUSED_SOULITE, ECHO_SOULITE_SHARD, ECHO_SOULITE_ALLOY, SINGULARITY_CORE,
+                                INFUSED_SOULITE, NETHERITE_INFUSED_DIAMOND, ECHO_SOULITE_SHARD, ECHO_SOULITE_ALLOY, SINGULARITY_CORE,
                                 SOUL_INFUSER, CONTROLLER, DRIVE, TERMINAL, CABLE, SOUL_GLASS, INTERFACE, IMPORT_BUS, EXPORT_BUS, MACHINE_BUS, WIRELESS_IMPORT_BUS, WIRELESS_EXPORT_BUS, WIRELESS_MACHINE_BUS, CHEST_LINK, REDSTONE_EMITTER,
                                 ASSEMBLER, STOCK_KEEPER, VOID_FILTER, PROCESSING_INTERFACE, QUANTUM_LINK));
                         for (CellTier t : CellTier.values()) {
@@ -379,7 +390,7 @@ public final class Registration {
                                 }
                             }
                         }
-                        order.addAll(List.of(SOUL_WRENCH, NETWORK_WRENCH, RECIPE_CARD, PROCESSING_CARD, SPEED_UPGRADE, WIRELESS_TERMINAL, SINGULARITY_TERMINAL, SOUL_TETHER));
+                        order.addAll(List.of(SOUL_WRENCH, NETWORK_WRENCH, RECIPE_CARD, PROCESSING_CARD, SPEED_UPGRADE, WIRELESS_RANGE_LOW, WIRELESS_RANGE_MEDIUM, WIRELESS_RANGE_HIGH, WIRELESS_RANGE_INFINITE, WIRELESS_TERMINAL, SINGULARITY_TERMINAL, SOUL_TETHER));
                         order.forEach(entry -> output.accept(entry.get()));
                     })
                     .build());

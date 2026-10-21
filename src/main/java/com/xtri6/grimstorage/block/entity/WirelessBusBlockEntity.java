@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import com.xtri6.grimstorage.BalanceConfig;
 import com.xtri6.grimstorage.Registration;
 import com.xtri6.grimstorage.storage.NetworkManager;
 import com.xtri6.grimstorage.storage.WirelessDevices;
@@ -39,7 +38,14 @@ public class WirelessBusBlockEntity extends BusBlockEntity implements WirelessDe
 
     @Override
     public int wirelessRange() {
-        return BalanceConfig.wirelessRange();
+        var tier = logic().rangeTier();
+        return tier == null ? 0 : tier.range();
+    }
+
+    @Override
+    public boolean infiniteReach() {
+        var tier = logic().rangeTier();
+        return tier != null && tier.infinite();
     }
 
     @Override

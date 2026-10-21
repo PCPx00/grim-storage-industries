@@ -400,5 +400,12 @@
   "message.grimstorage.wireless_device.bound": "Mit Netzwerk {0} verbunden",
   "message.grimstorage.wireless_device.unbound": "Vom Netzwerk getrennt",
   "message.grimstorage.wireless_device.no_network": "Halte zuerst einen Netzwerkschlüssel mit einem Netzwerk. Rechtsklick auf einen Netzwerk-Controller.",
-  "message.grimstorage.wireless_device.limit": "Dieses Netzwerk hat bereits {0} drahtlose Geräte"
+  "message.grimstorage.wireless_device.limit": "Dieses Netzwerk hat bereits {0} drahtlose Geräte",
+  "item.grimstorage.wireless_range_low": "Niedrige Reichweitenkarte",
+  "item.grimstorage.wireless_range_medium": "Mittlere Reichweitenkarte",
+  "item.grimstorage.wireless_range_high": "Hohe Reichweitenkarte",
+  "item.grimstorage.wireless_range_infinite": "Unendliche Reichweitenkarte",
+  "item.grimstorage.netherite_infused_diamond": "Netherit-infundierter Diamant",
+  "tooltip.grimstorage.range_card": "Drahtlose Reichweite: {0} Blöcke",
+  "tooltip.grimstorage.range_card.infinite": "Drahtlose Reichweite: beliebige Entfernung und beliebige Dimension, wenn der Server es erlaubt"
 }

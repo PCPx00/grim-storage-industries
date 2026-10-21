@@ -1386,20 +1386,32 @@ public final class SystemCheck {
             level.setBlockAndUpdate(WL, Registration.CONTROLLER.get().defaultBlockState());
             BlockPos near = WL.east(10);
             BlockPos far = WL.east(130);
-            level.setBlockAndUpdate(near, Registration.WIRELESS_IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
-            level.setBlockAndUpdate(far, Registration.WIRELESS_IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
+            BlockPos infinite = WL.east(200);
+            level.setChunkForced((WL.getX() + 200) >> 4, WL.getZ() >> 4, true);
+            for (BlockPos p : List.of(near, far, infinite)) {
+                level.setBlockAndUpdate(p, Registration.WIRELESS_IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
+            }
             com.xtri6.grimstorage.block.entity.ControllerBlockEntity ctrl = (com.xtri6.grimstorage.block.entity.ControllerBlockEntity) level.getBlockEntity(WL);
-            ((com.xtri6.grimstorage.block.entity.WirelessDevice) level.getBlockEntity(near)).bindNetwork(ctrl.networkId());
-            ((com.xtri6.grimstorage.block.entity.WirelessDevice) level.getBlockEntity(far)).bindNetwork(ctrl.networkId());
+            // range cards: medium reaches 128, so 10 blocks is in and 130 is out; the infinite card reaches 200
+            ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(near)).logic().upgrades()
+                    .setStackInSlot(0, new ItemStack(Registration.WIRELESS_RANGE_MEDIUM.get()));
+            ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(far)).logic().upgrades()
+                    .setStackInSlot(0, new ItemStack(Registration.WIRELESS_RANGE_MEDIUM.get()));
+            ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(infinite)).logic().upgrades()
+                    .setStackInSlot(0, new ItemStack(Registration.WIRELESS_RANGE_INFINITE.get()));
+            for (BlockPos p : List.of(near, far, infinite)) {
+                ((com.xtri6.grimstorage.block.entity.WirelessDevice) level.getBlockEntity(p)).bindNetwork(ctrl.networkId());
+            }
             NetworkManager.markDirty();
             return true;
         }));
-        STEPS.add(new Step("wireless bus: in reach is a member, out of reach is not", 60, () -> {
+        STEPS.add(new Step("wireless bus: in reach is a member, out of reach is not, infinite card reaches 200", 60, () -> {
             StorageNetwork n = NetworkManager.get(level, WL.east(10));
             boolean nearOk = n != null && n.controller().getBlockPos().equals(WL);
             boolean farOut = NetworkManager.get(level, WL.east(130)) == null;
-            info("wireless near member={} far out={}", nearOk, farOut);
-            return nearOk && farOut;
+            boolean infiniteIn = NetworkManager.get(level, WL.east(200)) != null;
+            info("wireless near member={} far out={} infinite in={}", nearOk, farOut, infiniteIn);
+            return nearOk && farOut && infiniteIn;
         }));
     }
 

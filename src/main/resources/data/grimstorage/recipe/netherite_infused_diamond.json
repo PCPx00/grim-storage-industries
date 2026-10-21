@@ -1,0 +1,16 @@
+{
+  "type": "grimstorage:infusing",
+  "ingredients": [
+    {
+      "item": "minecraft:diamond"
+    },
+    {
+      "item": "minecraft:netherite_scrap"
+    }
+  ],
+  "result": {
+    "id": "grimstorage:netherite_infused_diamond",
+    "count": 1
+  },
+  "time": 200
+}

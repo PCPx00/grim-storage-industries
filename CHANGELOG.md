@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.17.1
+- Wireless buses, part 2: the Wireless Import Bus, Wireless Export Bus and Wireless Machine Bus can now be crafted. Each one is the matching bus
+  plus an Echo Soulite Shard, Infused Soulite and an Ender Eye.
+- Wireless range cards go in a wireless device's upgrade slot (the Wireless Machine Bus has one card slot, beside its
+  grid). Each card sets how far the device reaches to its network's controller:
+  - Low (ender pearl): `wirelessLowRange` blocks, default 32.
+  - Medium (ender eye): `wirelessRange` blocks, default 128.
+  - High (infused soulite and ender eye): `wirelessHighRange` blocks, default 512.
+  - Infinite (netherite infused diamond and an echo shard): any distance, and any dimension if `wirelessCrossDimension` is on.
+- A wireless device with no range card doesn't reach its network.
+- Netherite Infused Diamond: diamond and netherite scrap in the Soul Infuser.
+- Speed Upgrades still speed up wireless buses. Range cards don't count as speed.
+- Server config: `infiniteWirelessCard` now turns the infinite card's reach on or off. Off, it reaches like the high card.
+  Its recipe can be removed in a datapack.
+
 ## 1.17.0
 - Wireless buses, part 1: Network Controllers now have a network ID. The new Network Wrench copies it: right-click a
   Network Controller to take the ID, then right-click a wireless device to bind it to that network. Crouch-right-click a

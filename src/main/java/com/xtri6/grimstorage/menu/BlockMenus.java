@@ -134,7 +134,8 @@ public final class BlockMenus {
         @javax.annotation.Nullable
         private final com.xtri6.grimstorage.block.entity.MachineBusBlockEntity be;
 
-        public MachineBus(int id, Inventory inv, IItemHandler cards, ContainerData data, BlockPos pos, ContainerLevelAccess access, Block block,
+        public MachineBus(int id, Inventory inv, IItemHandler cards, @javax.annotation.Nullable IItemHandler range, ContainerData data, BlockPos pos,
+                          ContainerLevelAccess access, Block block,
                           @javax.annotation.Nullable com.xtri6.grimstorage.block.entity.MachineBusBlockEntity be) {
             super(Registration.MACHINE_BUS_MENU.get(), id, access, block);
             this.pos = pos;
@@ -142,6 +143,9 @@ public final class BlockMenus {
             this.be = be;
             for (int i = 0; i < com.xtri6.grimstorage.block.entity.MachineBusBlockEntity.SLOTS; i++) {
                 addSlot(new SlotItemHandler(cards, i, 8 + (i % 3) * 18, 22 + (i / 3) * 18));
+            }
+            if (range != null) {
+                addSlot(new SlotItemHandler(range, 0, 44, 76));
             }
             addDataSlots(data);
             addPlayerInventory(inv, 8, 98);
@@ -165,13 +169,17 @@ public final class BlockMenus {
                     return 2;
                 }
             };
-            return new MachineBus(id, inv, be.cardHandler(), data, be.getBlockPos(), ContainerLevelAccess.create(be.getLevel(), be.getBlockPos()),
-                    be.getBlockState().getBlock(), be);
+            IItemHandler range = be instanceof com.xtri6.grimstorage.block.entity.WirelessMachineBusBlockEntity w ? w.rangeHandler() : null;
+            return new MachineBus(id, inv, be.cardHandler(), range, data, be.getBlockPos(),
+                    ContainerLevelAccess.create(be.getLevel(), be.getBlockPos()), be.getBlockState().getBlock(), be);
         }
 
         public static MachineBus client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
-            return new MachineBus(id, inv, dummy(9, s -> s.getItem() instanceof ProcessingCardItem), new SimpleContainerData(2), buf.readBlockPos(),
-                    ContainerLevelAccess.NULL, null, null);
+            BlockPos pos = buf.readBlockPos();
+            boolean wireless = buf.readBoolean();
+            return new MachineBus(id, inv, dummy(9, s -> s.getItem() instanceof ProcessingCardItem),
+                    wireless ? dummy(1, s -> s.getItem() instanceof com.xtri6.grimstorage.item.RangeCardItem) : null,
+                    new SimpleContainerData(2), pos, ContainerLevelAccess.NULL, null, null);
         }
 
         public boolean learns() {

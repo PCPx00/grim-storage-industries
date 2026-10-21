@@ -400,5 +400,12 @@
   "message.grimstorage.wireless_device.bound": "Lié au réseau {0}",
   "message.grimstorage.wireless_device.unbound": "Délié de son réseau",
   "message.grimstorage.wireless_device.no_network": "Tiens une clé réseau contenant un réseau. Clic droit sur un contrôleur réseau avec elle.",
-  "message.grimstorage.wireless_device.limit": "Ce réseau a déjà {0} appareils sans fil"
+  "message.grimstorage.wireless_device.limit": "Ce réseau a déjà {0} appareils sans fil",
+  "item.grimstorage.wireless_range_low": "Carte de portée basse",
+  "item.grimstorage.wireless_range_medium": "Carte de portée moyenne",
+  "item.grimstorage.wireless_range_high": "Carte de portée haute",
+  "item.grimstorage.wireless_range_infinite": "Carte de portée infinie",
+  "item.grimstorage.netherite_infused_diamond": "Diamant infusé de netherite",
+  "tooltip.grimstorage.range_card": "Portée sans fil : {0} blocs",
+  "tooltip.grimstorage.range_card.infinite": "Portée sans fil : toute distance, et toute dimension si le serveur l'autorise"
 }

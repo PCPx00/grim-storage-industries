@@ -132,12 +132,16 @@ public final class BusLogic implements PipePort {
         @Override
         protected void onContentsChanged(int slot) {
             speedCache = -1;
+            if (host instanceof WirelessDevice) {
+                com.xtri6.grimstorage.storage.NetworkManager.markDirty();
+            }
             changed();
         }
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return stack.is(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get());
+            return stack.is(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get())
+                    || (stack.getItem() instanceof com.xtri6.grimstorage.item.RangeCardItem && host instanceof WirelessDevice);
         }
 
         @Override
@@ -151,12 +155,18 @@ public final class BusLogic implements PipePort {
         return upgrades;
     }
 
-    /** How many Speed Upgrades are in. */
+    /** The furthest-reaching range card in the upgrade slots, or null if there is none. */
+    @Nullable
+    public com.xtri6.grimstorage.item.RangeCardItem.Tier rangeTier() {
+        return com.xtri6.grimstorage.item.RangeCardItem.best(upgrades);
+    }
+
+    /** How many Speed Upgrades are in (range cards don't count). */
     public int upgradeCount() {
         if (speedCache < 0) {
             int n = 0;
             for (int i = 0; i < UPGRADE_SLOTS; i++) {
-                n += upgrades.getStackInSlot(i).isEmpty() ? 0 : 1;
+                n += upgrades.getStackInSlot(i).is(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get()) ? 1 : 0;
             }
             speedCache = n;
         }

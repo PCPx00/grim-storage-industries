@@ -400,5 +400,12 @@
   "message.grimstorage.wireless_device.bound": "Bound to network {0}",
   "message.grimstorage.wireless_device.unbound": "Unbound from its network",
   "message.grimstorage.wireless_device.no_network": "Hold a Network Wrench holding a network first. Right-click a Network Controller with it.",
-  "message.grimstorage.wireless_device.limit": "This network already has {0} wireless devices"
+  "message.grimstorage.wireless_device.limit": "This network already has {0} wireless devices",
+  "item.grimstorage.wireless_range_low": "Low Range Card",
+  "item.grimstorage.wireless_range_medium": "Medium Range Card",
+  "item.grimstorage.wireless_range_high": "High Range Card",
+  "item.grimstorage.wireless_range_infinite": "Infinite Range Card",
+  "item.grimstorage.netherite_infused_diamond": "Netherite Infused Diamond",
+  "tooltip.grimstorage.range_card": "Wireless reach: {0} blocks",
+  "tooltip.grimstorage.range_card.infinite": "Wireless reach: any distance, and any dimension if the server allows it"
 }

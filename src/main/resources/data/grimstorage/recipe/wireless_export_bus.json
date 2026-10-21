@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "grimstorage:export_bus"
+    },
+    {
+      "item": "grimstorage:echo_soulite_shard"
+    },
+    {
+      "item": "grimstorage:infused_soulite"
+    },
+    {
+      "item": "minecraft:ender_eye"
+    }
+  ],
+  "result": {
+    "id": "grimstorage:wireless_export_bus",
+    "count": 1
+  }
+}

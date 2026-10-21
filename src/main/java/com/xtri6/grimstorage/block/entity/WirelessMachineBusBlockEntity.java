@@ -4,7 +4,6 @@ import java.util.UUID;
 
 import javax.annotation.Nullable;
 
-import com.xtri6.grimstorage.BalanceConfig;
 import com.xtri6.grimstorage.Registration;
 import com.xtri6.grimstorage.storage.NetworkManager;
 import com.xtri6.grimstorage.storage.WirelessDevices;
@@ -36,20 +35,43 @@ public class WirelessMachineBusBlockEntity extends MachineBusBlockEntity impleme
         NetworkManager.markDirty();
     }
 
+    /** The one range card slot. A Machine Bus has no speed upgrades, so this is its only extra slot. */
+    private final net.neoforged.neoforge.items.ItemStackHandler range = handler(1, 1, true,
+            s -> s.getItem() instanceof com.xtri6.grimstorage.item.RangeCardItem);
+
+    public net.neoforged.neoforge.items.ItemStackHandler rangeHandler() {
+        return range;
+    }
+
     @Override
     public int wirelessRange() {
-        return BalanceConfig.wirelessRange();
+        var tier = com.xtri6.grimstorage.item.RangeCardItem.best(range);
+        return tier == null ? 0 : tier.range();
+    }
+
+    @Override
+    public boolean infiniteReach() {
+        var tier = com.xtri6.grimstorage.item.RangeCardItem.best(range);
+        return tier != null && tier.infinite();
+    }
+
+    @Override
+    public void dropContents(net.minecraft.world.level.Level lvl, net.minecraft.core.BlockPos pos) {
+        super.dropContents(lvl, pos);
+        drop(lvl, pos, range);
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         WirelessDevices.save(tag, bound);
+        tag.put("range", range.serializeNBT(registries));
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         bound = WirelessDevices.load(tag);
+        range.deserializeNBT(registries, tag.getCompound("range"));
     }
 }

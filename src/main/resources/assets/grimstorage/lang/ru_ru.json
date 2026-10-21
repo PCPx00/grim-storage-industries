@@ -400,5 +400,12 @@
   "message.grimstorage.wireless_device.bound": "Привязано к сети {0}",
   "message.grimstorage.wireless_device.unbound": "Привязка к сети снята",
   "message.grimstorage.wireless_device.no_network": "Сначала возьмите сетевой ключ с сохранённой сетью. Щёлкните им по сетевому контроллеру правой кнопкой.",
-  "message.grimstorage.wireless_device.limit": "В этой сети уже {0} беспроводных устройств"
+  "message.grimstorage.wireless_device.limit": "В этой сети уже {0} беспроводных устройств",
+  "item.grimstorage.wireless_range_low": "Карта малого радиуса",
+  "item.grimstorage.wireless_range_medium": "Карта среднего радиуса",
+  "item.grimstorage.wireless_range_high": "Карта большого радиуса",
+  "item.grimstorage.wireless_range_infinite": "Карта бесконечного радиуса",
+  "item.grimstorage.netherite_infused_diamond": "Алмаз, пропитанный нетеритом",
+  "tooltip.grimstorage.range_card": "Беспроводной радиус: {0} блоков",
+  "tooltip.grimstorage.range_card.infinite": "Беспроводной радиус: любое расстояние и любое измерение, если сервер разрешает"
 }
