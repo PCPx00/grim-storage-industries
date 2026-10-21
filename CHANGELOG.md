@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.17.4
+- Speed and range cards redrawn with a bevelled metal frame, a groove, corner studs and a lit panel. Each keeps its colour
+  family, so the tiers are still easy to tell apart.
+- Speed card keeps its chevrons. Range cards now show signal bars: Low lights one bar, Medium two, High three, and
+  Infinite three in gold, with the unlit bars dimmed.
+
 ## 1.17.3
 - Network Wrench: right-clicking a Wireless Import, Export or Machine Bus now binds it to the wrench's network instead of
   opening the bus GUI. Crouch-right-click still unbinds it. Other buses still open their GUI as before.
