@@ -389,5 +389,9 @@
   "command.grimstorage.debug.none": "Hier ist kein Netzwerk. Schau auf einen beliebigen Block des Netzwerks (oder trage ein verbundenes drahtloses Terminal) und versuche es noch einmal.",
   "command.grimstorage.debug.failed": "Der Bericht konnte nicht geschrieben werden: %s",
   "command.grimstorage.debug.done": "Netzwerkbericht gespeichert unter %s. Hänge ihn an deine Fehlermeldung an.",
-  "command.grimstorage.debug.open": "Klicken zum Öffnen"
+  "command.grimstorage.debug.open": "Klicken zum Öffnen",
+  "item.grimstorage.network_wrench": "Netzwerkschlüssel",
+  "message.grimstorage.network.copied": "Netzwerk-ID kopiert: {0}",
+  "tooltip.grimstorage.network_wrench.held": "Netzwerk: {0}",
+  "tooltip.grimstorage.network_wrench.none": "Nicht gesetzt. Rechtsklick auf einen Netzwerk-Controller, um sein Netzwerk zu übernehmen."
 }

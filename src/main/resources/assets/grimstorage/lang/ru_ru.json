@@ -389,5 +389,9 @@
   "command.grimstorage.debug.none": "Здесь нет сети. Посмотрите на любой блок сети (или носите привязанный беспроводной терминал) и попробуйте снова.",
   "command.grimstorage.debug.failed": "Не удалось записать отчёт: %s",
   "command.grimstorage.debug.done": "Отчёт о сети сохранён в %s. Приложите его к сообщению об ошибке.",
-  "command.grimstorage.debug.open": "Нажмите, чтобы открыть"
+  "command.grimstorage.debug.open": "Нажмите, чтобы открыть",
+  "item.grimstorage.network_wrench": "Сетевой ключ",
+  "message.grimstorage.network.copied": "ID сети скопирован: {0}",
+  "tooltip.grimstorage.network_wrench.held": "Сеть: {0}",
+  "tooltip.grimstorage.network_wrench.none": "Не задано. Щёлкните правой кнопкой по контроллеру сети, чтобы взять его сеть."
 }

@@ -37,6 +37,17 @@ public class ControllerBlockEntity extends NetworkBlockEntity implements Ticking
     private boolean open;
 
     @Nullable
+    /** This network's ID: wireless devices bind to it with a Network Wrench. Made the first time it is asked for. */
+    private UUID networkId;
+
+    public UUID networkId() {
+        if (networkId == null) {
+            networkId = UUID.randomUUID();
+            setChanged();
+        }
+        return networkId;
+    }
+
     public UUID owner() {
         return owner;
     }
@@ -94,6 +105,9 @@ public class ControllerBlockEntity extends NetworkBlockEntity implements Ticking
             tag.putString("ownerName", ownerName);
         }
         tag.putBoolean("open", open);
+        if (networkId != null) {
+            tag.putUUID("networkId", networkId);
+        }
         ListTag list = new ListTag();
         trusted.forEach((id, name) -> {
             CompoundTag t = new CompoundTag();
@@ -128,6 +142,7 @@ public class ControllerBlockEntity extends NetworkBlockEntity implements Ticking
         owner = tag.hasUUID("owner") ? tag.getUUID("owner") : null;
         ownerName = tag.getString("ownerName");
         open = tag.getBoolean("open");
+        networkId = tag.hasUUID("networkId") ? tag.getUUID("networkId") : null;
         trusted.clear();
         for (Tag t : tag.getList("trusted", Tag.TAG_COMPOUND)) {
             CompoundTag c = (CompoundTag) t;

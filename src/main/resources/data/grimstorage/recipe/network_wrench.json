@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "equipment",
+  "ingredients": [
+    {
+      "item": "grimstorage:soul_wrench"
+    },
+    {
+      "item": "grimstorage:infused_soulite"
+    }
+  ],
+  "result": {
+    "id": "grimstorage:network_wrench",
+    "count": 1
+  }
+}

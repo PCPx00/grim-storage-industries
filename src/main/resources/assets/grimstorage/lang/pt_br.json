@@ -389,5 +389,9 @@
   "command.grimstorage.debug.none": "Nenhuma rede aqui. Olhe para qualquer bloco da rede (ou carregue um terminal sem fio vinculado) e tente de novo.",
   "command.grimstorage.debug.failed": "Não foi possível gravar o relatório: %s",
   "command.grimstorage.debug.done": "Relatório da rede salvo em %s. Anexe-o ao seu relato de bug.",
-  "command.grimstorage.debug.open": "Clique para abrir"
+  "command.grimstorage.debug.open": "Clique para abrir",
+  "item.grimstorage.network_wrench": "Chave de rede",
+  "message.grimstorage.network.copied": "ID da rede copiado: {0}",
+  "tooltip.grimstorage.network_wrench.held": "Rede: {0}",
+  "tooltip.grimstorage.network_wrench.none": "Não definida. Clique com o botão direito em um Controlador de rede para pegar a rede dele."
 }

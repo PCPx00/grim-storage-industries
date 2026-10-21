@@ -389,5 +389,9 @@
   "command.grimstorage.debug.none": "Pas de réseau ici. Regardez n'importe quel bloc du réseau (ou portez un terminal sans fil lié) et réessayez.",
   "command.grimstorage.debug.failed": "Impossible d'écrire le rapport : %s",
   "command.grimstorage.debug.done": "Rapport du réseau enregistré dans %s. Joignez-le à votre rapport de bug.",
-  "command.grimstorage.debug.open": "Cliquez pour ouvrir"
+  "command.grimstorage.debug.open": "Cliquez pour ouvrir",
+  "item.grimstorage.network_wrench": "Clé réseau",
+  "message.grimstorage.network.copied": "ID du réseau copié : {0}",
+  "tooltip.grimstorage.network_wrench.held": "Réseau : {0}",
+  "tooltip.grimstorage.network_wrench.none": "Non défini. Clic droit sur un contrôleur réseau pour prendre son réseau."
 }

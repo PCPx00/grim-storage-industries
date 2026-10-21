@@ -53,6 +53,30 @@ public final class BalanceConfig {
                     "The Singularity Terminal always reaches everywhere.")
             .defineInRange("wirelessRange", 128, 8, 30_000_000);
 
+    public static final ModConfigSpec.IntValue WIRELESS_LOW_RANGE = BUILDER
+            .comment("Reach of the low-range wireless card, in blocks.")
+            .defineInRange("wirelessLowRange", 32, 1, 30_000_000);
+
+    public static final ModConfigSpec.IntValue WIRELESS_HIGH_RANGE = BUILDER
+            .comment("Reach of the high-range wireless card, in blocks. The medium card uses wirelessRange.")
+            .defineInRange("wirelessHighRange", 512, 1, 30_000_000);
+
+    public static final ModConfigSpec.BooleanValue INFINITE_WIRELESS = BUILDER
+            .comment("Whether the infinite wireless card (any distance, any dimension) can be crafted at all.")
+            .define("infiniteWirelessCard", true);
+
+    public static final ModConfigSpec.IntValue WIRELESS_BIND_LIMIT = BUILDER
+            .comment("How many wireless devices one network can bind. 0 means no limit.")
+            .defineInRange("wirelessBindLimit", 0, 0, 1_000_000);
+
+    public static final ModConfigSpec.BooleanValue WIRELESS_CROSS_DIMENSION = BUILDER
+            .comment("Whether a wireless device can bind to a network in another dimension (only the infinite card reaches that far).")
+            .define("wirelessCrossDimension", true);
+
+    public static final ModConfigSpec.IntValue WIRELESS_ENERGY_PER_TICK = BUILDER
+            .comment("Energy each wireless device uses per tick, on top of its network's own use.")
+            .defineInRange("wirelessEnergyPerTick", 16, 0, 1_000_000);
+
     public static final ModConfigSpec SPEC = BUILDER.build();
 
     private BalanceConfig() {}
@@ -94,5 +118,29 @@ public final class BalanceConfig {
 
     public static int wirelessRange() {
         return SPEC.isLoaded() ? WIRELESS_RANGE.get() : 128;
+    }
+
+    public static int wirelessLowRange() {
+        return SPEC.isLoaded() ? WIRELESS_LOW_RANGE.get() : 32;
+    }
+
+    public static int wirelessHighRange() {
+        return SPEC.isLoaded() ? WIRELESS_HIGH_RANGE.get() : 512;
+    }
+
+    public static boolean infiniteWireless() {
+        return !SPEC.isLoaded() || INFINITE_WIRELESS.get();
+    }
+
+    public static int wirelessBindLimit() {
+        return SPEC.isLoaded() ? WIRELESS_BIND_LIMIT.get() : 0;
+    }
+
+    public static boolean wirelessCrossDimension() {
+        return !SPEC.isLoaded() || WIRELESS_CROSS_DIMENSION.get();
+    }
+
+    public static int wirelessEnergyPerTick() {
+        return SPEC.isLoaded() ? WIRELESS_ENERGY_PER_TICK.get() : 16;
     }
 }

@@ -268,6 +268,8 @@ public final class Registration {
             () -> new ProcessingCardItem(new Item.Properties().stacksTo(16)));
     public static final DeferredItem<com.xtri6.grimstorage.item.SoulWrenchItem> SOUL_WRENCH = ITEMS.register("soul_wrench",
             () -> new com.xtri6.grimstorage.item.SoulWrenchItem(new Item.Properties()));
+    public static final DeferredItem<com.xtri6.grimstorage.item.NetworkWrenchItem> NETWORK_WRENCH = ITEMS.register("network_wrench",
+            () -> new com.xtri6.grimstorage.item.NetworkWrenchItem(new Item.Properties()));
     public static final DeferredItem<Item> SPEED_UPGRADE = item("speed_upgrade", new Item.Properties().stacksTo(16).rarity(Rarity.UNCOMMON));
     public static final DeferredItem<WirelessTerminalItem> WIRELESS_TERMINAL = ITEMS.register("wireless_terminal",
             () -> new WirelessTerminalItem(false, new Item.Properties().rarity(Rarity.UNCOMMON)));
@@ -295,6 +297,8 @@ public final class Registration {
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CardData.Processing>> PROCESSING_CARD_DATA =
             COMPONENTS.registerComponentType("processing_card",
                     b -> b.persistent(CardData.Processing.CODEC).networkSynchronized(CardData.Processing.STREAM_CODEC));
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<java.util.UUID>> NETWORK_ID = COMPONENTS.registerComponentType(
+            "network_id", b -> b.persistent(net.minecraft.core.UUIDUtil.CODEC).networkSynchronized(net.minecraft.core.UUIDUtil.STREAM_CODEC));
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> BOUND_POS = COMPONENTS.registerComponentType(
             "bound_pos", b -> b.persistent(GlobalPos.CODEC).networkSynchronized(GlobalPos.STREAM_CODEC));
 
@@ -362,7 +366,7 @@ public final class Registration {
                                 }
                             }
                         }
-                        order.addAll(List.of(SOUL_WRENCH, RECIPE_CARD, PROCESSING_CARD, SPEED_UPGRADE, WIRELESS_TERMINAL, SINGULARITY_TERMINAL, SOUL_TETHER));
+                        order.addAll(List.of(SOUL_WRENCH, NETWORK_WRENCH, RECIPE_CARD, PROCESSING_CARD, SPEED_UPGRADE, WIRELESS_TERMINAL, SINGULARITY_TERMINAL, SOUL_TETHER));
                         order.forEach(entry -> output.accept(entry.get()));
                     })
                     .build());

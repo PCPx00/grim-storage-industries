@@ -389,5 +389,9 @@
   "command.grimstorage.debug.none": "No network here. Look at any block of the network (or carry a linked wireless terminal) and try again.",
   "command.grimstorage.debug.failed": "Could not write the report: %s",
   "command.grimstorage.debug.done": "Network report saved to %s. Attach it to your bug report.",
-  "command.grimstorage.debug.open": "Click to open"
+  "command.grimstorage.debug.open": "Click to open",
+  "item.grimstorage.network_wrench": "Network Wrench",
+  "message.grimstorage.network.copied": "Network ID copied: {0}",
+  "tooltip.grimstorage.network_wrench.held": "Network: {0}",
+  "tooltip.grimstorage.network_wrench.none": "Not set. Right-click a Network Controller to take its network."
 }

@@ -389,5 +389,9 @@
   "command.grimstorage.debug.none": "这里没有网络。看着网络的任意方块（或携带已链接的无线终端）再试一次。",
   "command.grimstorage.debug.failed": "无法写入报告：%s",
   "command.grimstorage.debug.done": "网络报告已保存到 %s。把它附在你的错误报告里。",
-  "command.grimstorage.debug.open": "点击打开"
+  "command.grimstorage.debug.open": "点击打开",
+  "item.grimstorage.network_wrench": "网络扳手",
+  "message.grimstorage.network.copied": "已复制网络 ID：{0}",
+  "tooltip.grimstorage.network_wrench.held": "网络：{0}",
+  "tooltip.grimstorage.network_wrench.none": "未设置。右键点击网络控制器以获取其网络。"
 }
