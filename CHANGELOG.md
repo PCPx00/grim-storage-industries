@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.17.7
+- Wireless bus antennas sit much closer to the bus: they now stick out about 3 pixels instead of 10.
+- The antenna tip blinks blue at an even pace, half a second on and half a second off. Before, the bright flash was too
+  brief to notice.
+
 ## 1.17.6
 - Wireless Import, Export and Machine buses no longer have a cable stub or cable arms, and cables don't connect to them.
   Each has an antenna out the back instead, and its tip blinks blue.
