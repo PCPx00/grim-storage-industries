@@ -407,5 +407,14 @@
   "item.grimstorage.wireless_range_infinite": "Infinite Range Card",
   "item.grimstorage.netherite_infused_diamond": "Netherite Infused Diamond",
   "tooltip.grimstorage.range_card": "Wireless reach: {0} blocks",
-  "tooltip.grimstorage.range_card.infinite": "Wireless reach: any distance, and any dimension if the server allows it"
+  "tooltip.grimstorage.range_card.infinite": "Wireless reach: any distance, and any dimension if the server allows it",
+  "gui.grimstorage.bus.label.filters": "Filters",
+  "gui.grimstorage.bus.label.speed": "Speed",
+  "gui.grimstorage.bus.label.range": "Range",
+  "gui.grimstorage.bus.label.moves": "What to move",
+  "gui.grimstorage.bus.speed_slot.tooltip": "Speed Upgrades: up to 10 stack in this one slot. Each one adds the bus's base speed again.",
+  "gui.grimstorage.bus.range_slot.tooltip": "Range card (wireless buses only): one card. It sets how far this bus reaches its network.",
+  "gui.grimstorage.machine_bus.label.cards": "Processing cards",
+  "gui.grimstorage.machine_bus.label.range": "Range card",
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Range card (wireless only): one card. It sets how far this machine bus reaches its network."
 }

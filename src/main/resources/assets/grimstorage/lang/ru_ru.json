@@ -407,5 +407,14 @@
   "item.grimstorage.wireless_range_infinite": "Карта бесконечного радиуса",
   "item.grimstorage.netherite_infused_diamond": "Алмаз, пропитанный нетеритом",
   "tooltip.grimstorage.range_card": "Беспроводной радиус: {0} блоков",
-  "tooltip.grimstorage.range_card.infinite": "Беспроводной радиус: любое расстояние и любое измерение, если сервер разрешает"
+  "tooltip.grimstorage.range_card.infinite": "Беспроводной радиус: любое расстояние и любое измерение, если сервер разрешает",
+  "gui.grimstorage.bus.label.filters": "Фильтры",
+  "gui.grimstorage.bus.label.speed": "Скорость",
+  "gui.grimstorage.bus.label.range": "Радиус",
+  "gui.grimstorage.bus.label.moves": "Что перемещать",
+  "gui.grimstorage.bus.speed_slot.tooltip": "Улучшения скорости: до 10 складываются в этот один слот. Каждое снова добавляет базовую скорость шины.",
+  "gui.grimstorage.bus.range_slot.tooltip": "Карта радиуса (только беспроводные шины): одна карта. Задаёт, до какого расстояния шина достаёт до своей сети.",
+  "gui.grimstorage.machine_bus.label.cards": "Карты обработки",
+  "gui.grimstorage.machine_bus.label.range": "Карта радиуса",
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Карта радиуса (только беспроводная): одна карта. Задаёт, до какого расстояния машинная шина достаёт до своей сети."
 }

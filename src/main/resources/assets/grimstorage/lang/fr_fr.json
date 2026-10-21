@@ -407,5 +407,14 @@
   "item.grimstorage.wireless_range_infinite": "Carte de portée infinie",
   "item.grimstorage.netherite_infused_diamond": "Diamant infusé de netherite",
   "tooltip.grimstorage.range_card": "Portée sans fil : {0} blocs",
-  "tooltip.grimstorage.range_card.infinite": "Portée sans fil : toute distance, et toute dimension si le serveur l'autorise"
+  "tooltip.grimstorage.range_card.infinite": "Portée sans fil : toute distance, et toute dimension si le serveur l'autorise",
+  "gui.grimstorage.bus.label.filters": "Filtres",
+  "gui.grimstorage.bus.label.speed": "Vitesse",
+  "gui.grimstorage.bus.label.range": "Portée",
+  "gui.grimstorage.bus.label.moves": "Ce qui est déplacé",
+  "gui.grimstorage.bus.speed_slot.tooltip": "Améliorations de vitesse : jusqu'à 10 se cumulent dans ce seul emplacement. Chacune ajoute encore la vitesse de base du bus.",
+  "gui.grimstorage.bus.range_slot.tooltip": "Carte de portée (bus sans fil uniquement) : une carte. Elle définit la portée de ce bus vers son réseau.",
+  "gui.grimstorage.machine_bus.label.cards": "Cartes de traitement",
+  "gui.grimstorage.machine_bus.label.range": "Carte de portée",
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Carte de portée (sans fil uniquement) : une carte. Elle définit la portée de ce bus machine vers son réseau."
 }

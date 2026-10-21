@@ -407,5 +407,14 @@
   "item.grimstorage.wireless_range_infinite": "Cartão de Alcance Infinito",
   "item.grimstorage.netherite_infused_diamond": "Diamante Infundido de Netherita",
   "tooltip.grimstorage.range_card": "Alcance sem fio: {0} blocos",
-  "tooltip.grimstorage.range_card.infinite": "Alcance sem fio: qualquer distância, e qualquer dimensão se o servidor permitir"
+  "tooltip.grimstorage.range_card.infinite": "Alcance sem fio: qualquer distância, e qualquer dimensão se o servidor permitir",
+  "gui.grimstorage.bus.label.filters": "Filtros",
+  "gui.grimstorage.bus.label.speed": "Velocidade",
+  "gui.grimstorage.bus.label.range": "Alcance",
+  "gui.grimstorage.bus.label.moves": "O que mover",
+  "gui.grimstorage.bus.speed_slot.tooltip": "Melhorias de velocidade: até 10 empilham neste único espaço. Cada uma soma de novo a velocidade base do barramento.",
+  "gui.grimstorage.bus.range_slot.tooltip": "Cartão de alcance (só barramentos sem fio): um cartão. Define até onde este barramento alcança a sua rede.",
+  "gui.grimstorage.machine_bus.label.cards": "Cartões de processamento",
+  "gui.grimstorage.machine_bus.label.range": "Cartão de alcance",
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Cartão de alcance (só sem fio): um cartão. Define até onde este barramento de máquina alcança a sua rede."
 }

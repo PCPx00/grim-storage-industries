@@ -407,5 +407,14 @@
   "item.grimstorage.wireless_range_infinite": "无限距离卡",
   "item.grimstorage.netherite_infused_diamond": "下界合金注能钻石",
   "tooltip.grimstorage.range_card": "无线范围：{0} 格",
-  "tooltip.grimstorage.range_card.infinite": "无线范围：任意距离；若服务器允许，可跨维度"
+  "tooltip.grimstorage.range_card.infinite": "无线范围：任意距离；若服务器允许，可跨维度",
+  "gui.grimstorage.bus.label.filters": "过滤器",
+  "gui.grimstorage.bus.label.speed": "速度",
+  "gui.grimstorage.bus.label.range": "范围",
+  "gui.grimstorage.bus.label.moves": "移动什么",
+  "gui.grimstorage.bus.speed_slot.tooltip": "速度升级：最多 10 个可以叠放在这一个格子里。每个都会再增加总线的基础速度。",
+  "gui.grimstorage.bus.range_slot.tooltip": "范围卡（仅无线总线）：一张卡。决定此总线能与其网络连接的距离。",
+  "gui.grimstorage.machine_bus.label.cards": "处理卡",
+  "gui.grimstorage.machine_bus.label.range": "范围卡",
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "范围卡（仅无线）：一张卡。决定此机器总线能与其网络连接的距离。"
 }

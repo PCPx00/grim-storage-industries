@@ -18,8 +18,8 @@ public class MachineBusScreen extends GrimScreen<BlockMenus.MachineBus> {
     private GrimButton fuel;
 
     public MachineBusScreen(BlockMenus.MachineBus menu, Inventory inv, Component title) {
-        super(menu, inv, title, 176, 180);
-        this.inventoryLabelY = 87;
+        super(menu, inv, title, 176, 210);
+        this.inventoryLabelY = 114;
     }
 
     private void press(int id) {
@@ -31,9 +31,9 @@ public class MachineBusScreen extends GrimScreen<BlockMenus.MachineBus> {
     @Override
     protected void init() {
         super.init();
-        learn = addRenderableWidget(new GrimButton(leftPos + 70, topPos + 50, 98, 14, Component.empty(), b -> press(BlockMenus.MachineBus.LEARN)));
+        learn = addRenderableWidget(new GrimButton(leftPos + 70, topPos + 62, 98, 14, Component.empty(), b -> press(BlockMenus.MachineBus.LEARN)));
         learn.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.machine_bus.learn.tooltip")));
-        fuel = addRenderableWidget(new GrimButton(leftPos + 70, topPos + 67, 98, 14, Component.empty(), b -> press(BlockMenus.MachineBus.FUEL)));
+        fuel = addRenderableWidget(new GrimButton(leftPos + 70, topPos + 80, 98, 14, Component.empty(), b -> press(BlockMenus.MachineBus.FUEL)));
         fuel.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.machine_bus.fuel.tooltip")));
         refresh();
     }
@@ -47,6 +47,15 @@ public class MachineBusScreen extends GrimScreen<BlockMenus.MachineBus> {
     protected void containerTick() {
         super.containerTick();
         refresh();
+    }
+
+    @Override
+    public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
+        super.render(g, mouseX, mouseY, partialTick);
+        if (hoveredSlot instanceof net.minecraft.world.inventory.Slot slot && !slot.hasItem() && menu.getCarried().isEmpty()
+                && slot.index == com.xtri6.grimstorage.block.entity.MachineBusBlockEntity.SLOTS) {
+            g.renderTooltip(font, Component.translatable("gui.grimstorage.machine_bus.range_slot.tooltip"), mouseX, mouseY);
+        }
     }
 
     @Override
@@ -64,6 +73,10 @@ public class MachineBusScreen extends GrimScreen<BlockMenus.MachineBus> {
                 }
             }
         }
+        hint(g, Component.translatable("gui.grimstorage.machine_bus.label.cards"), 8, 22);
+        if (menu.wireless()) {
+            hint(g, Component.translatable("gui.grimstorage.machine_bus.label.range"), 8, 100);
+        }
         g.drawString(font, Component.translatable("gui.grimstorage.machine_bus.on"), 70, 22, t.textDim(), false);
         // long names (Enrichment Chamber, Precision Sawmill) shrink to fit rather than get cut off
         String name = machine.getString();
@@ -74,6 +87,6 @@ public class MachineBusScreen extends GrimScreen<BlockMenus.MachineBus> {
         g.drawString(font, font.plainSubstrByWidth(name, (int) (98 / scale)), 0, 0, t.accent(), false);
         g.pose().popPose();
         Component recipes = Component.translatable("gui.grimstorage.machine_bus.recipes", menu.recipes());
-        g.drawString(font, recipes, 70, 41, menu.recipes() > 0 ? t.ok() : t.textFaint(), false);
+        g.drawString(font, recipes, 70, 46, menu.recipes() > 0 ? t.ok() : t.textFaint(), false);
     }
 }

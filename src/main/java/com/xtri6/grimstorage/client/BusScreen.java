@@ -26,7 +26,8 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
     private final List<Toggle> toggles = new ArrayList<>();
 
     public BusScreen(BlockMenus.Bus menu, Inventory inv, Component title) {
-        super(menu, inv, title, 222, 186);
+        super(menu, inv, title, 222, 222);
+        this.inventoryLabelY = 124;
     }
 
     private record Toggle(GrimButton button, int bit) {}
@@ -39,10 +40,10 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
     protected void init() {
         super.init();
         toggles.clear();
-        mode = addRenderableWidget(new GrimButton(leftPos + 8, topPos + 42, 78, 14, Component.empty(), b -> send(BlockMenus.Bus.BLACKLIST)));
-        match = addRenderableWidget(new GrimButton(leftPos + 90, topPos + 42, 78, 14, Component.empty(), b -> send(BlockMenus.Bus.MATCH_COMPONENTS)));
+        mode = addRenderableWidget(new GrimButton(leftPos + 8, topPos + 58, 78, 14, Component.empty(), b -> send(BlockMenus.Bus.BLACKLIST)));
+        match = addRenderableWidget(new GrimButton(leftPos + 90, topPos + 58, 78, 14, Component.empty(), b -> send(BlockMenus.Bus.MATCH_COMPONENTS)));
         match.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.bus.match.tooltip")));
-        direction = addRenderableWidget(new GrimButton(leftPos + 8, topPos + 57, 160, 12, Component.empty(), b -> send(BlockMenus.Bus.DIRECTION)));
+        direction = addRenderableWidget(new GrimButton(leftPos + 8, topPos + 76, 160, 12, Component.empty(), b -> send(BlockMenus.Bus.DIRECTION)));
         direction.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.bus.direction.tooltip")));
         int x = leftPos + 8;
         addToggle(x, BusBlockEntity.ITEMS_BIT, new ItemStack(Items.CHEST), Component.translatable("gui.grimstorage.kind.items"));
@@ -63,7 +64,7 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
     }
 
     private void addToggle(int x, int bit, ItemStack icon, Component name) {
-        GrimButton b = new GrimButton(x, topPos + 70, 20, 20, Component.empty(), btn -> send(BlockMenus.Bus.RESOURCE + bit)) {
+        GrimButton b = new GrimButton(x, topPos + 104, 20, 20, Component.empty(), btn -> send(BlockMenus.Bus.RESOURCE + bit)) {
             @Override
             protected void renderWidget(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
                 super.renderWidget(g, mouseX, mouseY, partialTick);
@@ -111,22 +112,27 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
         int x = imageWidth - 22 - w;
         g.fill(x - 7, 9, x - 3, 13, color);
         g.drawString(font, text, x, 7, color, false);
-        int n = 0;
-        for (int i = 0; i < com.xtri6.grimstorage.block.entity.BusLogic.UPGRADE_SLOTS; i++) {
-            n += menu.getSlot(9 + i).hasItem() ? 1 : 0;
+        // section labels for the grid and the upgrade column
+        hint(g, Component.translatable("gui.grimstorage.bus.label.filters"), 8, 22);
+        hint(g, Component.translatable("gui.grimstorage.bus.label.moves"), 8, 92);
+        hint(g, Component.translatable("gui.grimstorage.bus.label.speed"), BlockMenus.Bus.SPEED_X, 22);
+        int speedCount = menu.getSlot(BlockMenus.Bus.SPEED_SLOT_INDEX).getItem().getCount();
+        g.drawString(font, "x" + (1 + speedCount), BlockMenus.Bus.SPEED_X, 52, speedCount > 0 ? t.accent() : t.textDim(), false);
+        if (menu.wireless()) {
+            hint(g, Component.translatable("gui.grimstorage.bus.label.range"), BlockMenus.Bus.RANGE_X, 62);
         }
-        Component speed = Component.translatable("gui.grimstorage.bus.speed", 1 + n);
-        g.drawString(font, speed, BlockMenus.Bus.UPGRADE_X + 36 - font.width(speed), BlockMenus.Bus.UPGRADE_Y + 76, n > 0 ? t.accent() : t.textDim(), false);
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         super.render(g, mouseX, mouseY, partialTick);
         if (hoveredSlot instanceof net.minecraft.world.inventory.Slot slot && !slot.hasItem() && menu.getCarried().isEmpty()) {
-            if (slot.index < 9) {
+            if (slot.index < BlockMenus.Bus.SPEED_SLOT_INDEX) {
                 g.renderTooltip(font, Component.translatable("gui.grimstorage.bus.slot"), mouseX, mouseY);
-            } else if (slot.index < 9 + com.xtri6.grimstorage.block.entity.BusLogic.UPGRADE_SLOTS) {
-                g.renderTooltip(font, Component.translatable("gui.grimstorage.bus.upgrade_slot"), mouseX, mouseY);
+            } else if (slot.index == BlockMenus.Bus.SPEED_SLOT_INDEX) {
+                g.renderTooltip(font, Component.translatable("gui.grimstorage.bus.speed_slot.tooltip"), mouseX, mouseY);
+            } else if (slot.index == BlockMenus.Bus.RANGE_SLOT_INDEX) {
+                g.renderTooltip(font, Component.translatable("gui.grimstorage.bus.range_slot.tooltip"), mouseX, mouseY);
             }
         }
     }

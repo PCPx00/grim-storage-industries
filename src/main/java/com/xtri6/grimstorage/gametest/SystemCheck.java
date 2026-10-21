@@ -982,13 +982,12 @@ public final class SystemCheck {
                 }
                 com.xtri6.grimstorage.block.CableBlock.attachBus(level, cable, Direction.NORTH, false);
                 var bus = ((com.xtri6.grimstorage.block.entity.CableBusBlockEntity) level.getBlockEntity(cable)).part(Direction.NORTH);
-                ItemStack extra = bus.upgrades().insertItem(0, new ItemStack(Registration.SPEED_UPGRADE.get(), 2), false);
-                for (int i = 1; i < 8; i++) {
-                    bus.upgrades().insertItem(i, new ItemStack(Registration.SPEED_UPGRADE.get()), false);
-                }
-                ItemStack ninth = new ItemStack(Items.FLINT);
-                info("speed upgrades in={} speed=x{} second one in slot 0 refused={} flint refused={}", bus.upgradeCount(), bus.speed(),
-                        extra.getCount() == 1, !bus.upgrades().isItemValid(0, ninth));
+                // eight speed upgrades stack in the one speed slot, which makes the bus 9x as fast
+                ItemStack extra = bus.upgrades().insertItem(com.xtri6.grimstorage.block.entity.BusLogic.SPEED_SLOT,
+                        new ItemStack(Registration.SPEED_UPGRADE.get(), 8), false);
+                ItemStack flint = new ItemStack(Items.FLINT);
+                info("speed upgrades in={} speed=x{} extra left={} flint refused={}", bus.upgradeCount(), bus.speed(),
+                        extra.getCount(), !bus.upgrades().isItemValid(com.xtri6.grimstorage.block.entity.BusLogic.SPEED_SLOT, flint));
                 return false;
             }
             if (sp[0]++ < 4) {
@@ -1394,11 +1393,11 @@ public final class SystemCheck {
             com.xtri6.grimstorage.block.entity.ControllerBlockEntity ctrl = (com.xtri6.grimstorage.block.entity.ControllerBlockEntity) level.getBlockEntity(WL);
             // range cards: medium reaches 128, so 10 blocks is in and 130 is out; the infinite card reaches 200
             ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(near)).logic().upgrades()
-                    .setStackInSlot(0, new ItemStack(Registration.WIRELESS_RANGE_MEDIUM.get()));
+                    .setStackInSlot(com.xtri6.grimstorage.block.entity.BusLogic.RANGE_SLOT, new ItemStack(Registration.WIRELESS_RANGE_MEDIUM.get()));
             ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(far)).logic().upgrades()
-                    .setStackInSlot(0, new ItemStack(Registration.WIRELESS_RANGE_MEDIUM.get()));
+                    .setStackInSlot(com.xtri6.grimstorage.block.entity.BusLogic.RANGE_SLOT, new ItemStack(Registration.WIRELESS_RANGE_MEDIUM.get()));
             ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(infinite)).logic().upgrades()
-                    .setStackInSlot(0, new ItemStack(Registration.WIRELESS_RANGE_INFINITE.get()));
+                    .setStackInSlot(com.xtri6.grimstorage.block.entity.BusLogic.RANGE_SLOT, new ItemStack(Registration.WIRELESS_RANGE_INFINITE.get()));
             for (BlockPos p : List.of(near, far, infinite)) {
                 ((com.xtri6.grimstorage.block.entity.WirelessDevice) level.getBlockEntity(p)).bindNetwork(ctrl.networkId());
             }

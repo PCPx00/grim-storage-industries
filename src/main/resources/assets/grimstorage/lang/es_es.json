@@ -407,5 +407,14 @@
   "item.grimstorage.wireless_range_infinite": "Tarjeta de alcance infinito",
   "item.grimstorage.netherite_infused_diamond": "Diamante infundido de netherita",
   "tooltip.grimstorage.range_card": "Alcance inalámbrico: {0} bloques",
-  "tooltip.grimstorage.range_card.infinite": "Alcance inalámbrico: cualquier distancia y cualquier dimensión si el servidor lo permite"
+  "tooltip.grimstorage.range_card.infinite": "Alcance inalámbrico: cualquier distancia y cualquier dimensión si el servidor lo permite",
+  "gui.grimstorage.bus.label.filters": "Filtros",
+  "gui.grimstorage.bus.label.speed": "Velocidad",
+  "gui.grimstorage.bus.label.range": "Alcance",
+  "gui.grimstorage.bus.label.moves": "Qué mover",
+  "gui.grimstorage.bus.speed_slot.tooltip": "Mejoras de velocidad: hasta 10 se apilan en este único espacio. Cada una vuelve a sumar la velocidad base del bus.",
+  "gui.grimstorage.bus.range_slot.tooltip": "Tarjeta de alcance (solo buses inalámbricos): una carta. Define hasta dónde llega este bus a su red.",
+  "gui.grimstorage.machine_bus.label.cards": "Tarjetas de procesamiento",
+  "gui.grimstorage.machine_bus.label.range": "Tarjeta de alcance",
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Tarjeta de alcance (solo inalámbrico): una carta. Define hasta dónde llega este bus de máquina a su red."
 }

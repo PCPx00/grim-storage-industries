@@ -133,6 +133,11 @@ public final class BlockMenus {
         private final ContainerData data;
         @javax.annotation.Nullable
         private final com.xtri6.grimstorage.block.entity.MachineBusBlockEntity be;
+        private final boolean wireless;
+
+        public boolean wireless() {
+            return wireless;
+        }
 
         public MachineBus(int id, Inventory inv, IItemHandler cards, @javax.annotation.Nullable IItemHandler range, ContainerData data, BlockPos pos,
                           ContainerLevelAccess access, Block block,
@@ -142,13 +147,14 @@ public final class BlockMenus {
             this.data = data;
             this.be = be;
             for (int i = 0; i < com.xtri6.grimstorage.block.entity.MachineBusBlockEntity.SLOTS; i++) {
-                addSlot(new SlotItemHandler(cards, i, 8 + (i % 3) * 18, 22 + (i / 3) * 18));
+                addSlot(new SlotItemHandler(cards, i, 8 + (i % 3) * 18, 34 + (i / 3) * 18));
             }
+            this.wireless = range != null;
             if (range != null) {
-                addSlot(new SlotItemHandler(range, 0, 44, 76));
+                addSlot(new SlotItemHandler(range, 0, 8, 112));
             }
             addDataSlots(data);
-            addPlayerInventory(inv, 8, 98);
+            addPlayerInventory(inv, 8, 124);
         }
 
         public static MachineBus server(int id, Inventory inv, com.xtri6.grimstorage.block.entity.MachineBusBlockEntity be) {
@@ -439,23 +445,36 @@ public final class BlockMenus {
         @javax.annotation.Nullable
         private final BusLogic be;
 
-        /** Where the 8 Speed Upgrade slots start (2 columns, right of the filters). */
-        public static final int UPGRADE_X = 182;
-        public static final int UPGRADE_Y = 20;
+        /** Filters run along one row; the upgrade column is on the right, speed above range. */
+        public static final int FILTER_Y = 32;
+        public static final int SPEED_X = 182;
+        public static final int SPEED_Y = 32;
+        public static final int RANGE_X = 182;
+        public static final int RANGE_Y = 74;
+        /** Slot numbers of the speed slot and the range slot (the range slot only exists on wireless buses). */
+        public static final int SPEED_SLOT_INDEX = FilterBlockEntity.SLOTS;
+        public static final int RANGE_SLOT_INDEX = FilterBlockEntity.SLOTS + 1;
+        private final boolean wireless;
 
-        public Bus(int id, Inventory inv, GhostContainer filters, IItemHandler upgrades, ContainerData data, ContainerLevelAccess access, Block block,
-                   @javax.annotation.Nullable BusLogic be) {
+        public Bus(int id, Inventory inv, GhostContainer filters, IItemHandler upgrades, boolean wireless, ContainerData data,
+                   ContainerLevelAccess access, Block block, @javax.annotation.Nullable BusLogic be) {
             super(Registration.BUS_MENU.get(), id, access, block);
             this.data = data;
             this.be = be;
+            this.wireless = wireless;
             for (int i = 0; i < FilterBlockEntity.SLOTS; i++) {
-                addSlot(new GhostSlot(filters, i, 8 + i * 18, 20, false));
+                addSlot(new GhostSlot(filters, i, 8 + i * 18, FILTER_Y, false));
             }
-            for (int i = 0; i < BusLogic.UPGRADE_SLOTS; i++) {
-                addSlot(new SlotItemHandler(upgrades, i, UPGRADE_X + (i % 2) * 18, UPGRADE_Y + (i / 2) * 18));
+            addSlot(new SlotItemHandler(upgrades, BusLogic.SPEED_SLOT, SPEED_X, SPEED_Y));
+            if (wireless) {
+                addSlot(new SlotItemHandler(upgrades, BusLogic.RANGE_SLOT, RANGE_X, RANGE_Y));
             }
             addDataSlots(data);
-            addPlayerInventory(inv, 8, 104);
+            addPlayerInventory(inv, 8, 136);
+        }
+
+        public boolean wireless() {
+            return wireless;
         }
 
         /** A bus block, or a bus on one side of a cable ({@code block} is whatever block hosts it). */
@@ -478,22 +497,25 @@ public final class BlockMenus {
                     return 3;
                 }
             };
-            return new Bus(id, inv, be.filters(), be.upgrades(), data, access, block, be);
+            return new Bus(id, inv, be.filters(), be.upgrades(), be.wireless(), data, access, block, be);
         }
 
         public static Bus client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
+            buf.readBlockPos();
+            boolean wireless = buf.readBoolean();
             return new Bus(id, inv, new GhostContainer(FilterBlockEntity.SLOTS, false, () -> {}),
                     new ItemStackHandler(BusLogic.UPGRADE_SLOTS) {
                         @Override
                         public boolean isItemValid(int slot, net.minecraft.world.item.ItemStack stack) {
-                            return stack.is(Registration.SPEED_UPGRADE.get());
+                            return slot == BusLogic.SPEED_SLOT ? stack.is(Registration.SPEED_UPGRADE.get())
+                                    : stack.getItem() instanceof com.xtri6.grimstorage.item.RangeCardItem;
                         }
 
                         @Override
                         public int getSlotLimit(int slot) {
-                            return 1;
+                            return slot == BusLogic.SPEED_SLOT ? BusLogic.SPEED_STACK : 1;
                         }
-                    }, new SimpleContainerData(3), ContainerLevelAccess.NULL, null, null);
+                    }, wireless, new SimpleContainerData(3), ContainerLevelAccess.NULL, null, null);
         }
 
         public boolean blacklist() {

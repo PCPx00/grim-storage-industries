@@ -17,6 +17,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -79,8 +80,12 @@ public final class BusLogic implements PipePort {
     private static final long SOURCE_BUDGET = 10_000;
     private static final long XP_BUDGET = 10_000;
     private static final int MAX_SLEEP = 20;
-    /** Speed Upgrades a bus can hold. Each one adds the base speed again, so 8 make it 9x as fast. */
-    public static final int UPGRADE_SLOTS = 8;
+    /** Upgrade slots: a speed slot (up to {@link #SPEED_STACK} Speed Upgrades stacked in it) and a range card slot. */
+    public static final int UPGRADE_SLOTS = 2;
+    public static final int SPEED_SLOT = 0;
+    public static final int RANGE_SLOT = 1;
+    /** Speed Upgrades stacked in the one speed slot. Each one adds the base speed again, so 10 make it 11x as fast. */
+    public static final int SPEED_STACK = 10;
 
     /** NO_FILTER: an Export Bus with nothing picked to send. */
     public enum Status { WORKING, IDLE, NO_NETWORK, NOTHING_ATTACHED, OWN_NETWORK, FULL, NO_FILTER }
@@ -127,7 +132,7 @@ public final class BusLogic implements PipePort {
         return filters;
     }
 
-    /** Speed Upgrades, one per slot. */
+    /** Speed Upgrades (one stack, slot 0) and a wireless range card (slot 1, wireless buses only). */
     final net.neoforged.neoforge.items.ItemStackHandler upgrades = new net.neoforged.neoforge.items.ItemStackHandler(UPGRADE_SLOTS) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -140,13 +145,15 @@ public final class BusLogic implements PipePort {
 
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return stack.is(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get())
-                    || (stack.getItem() instanceof com.xtri6.grimstorage.item.RangeCardItem && host instanceof WirelessDevice);
+            if (slot == SPEED_SLOT) {
+                return stack.is(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get());
+            }
+            return stack.getItem() instanceof com.xtri6.grimstorage.item.RangeCardItem && host instanceof WirelessDevice;
         }
 
         @Override
         public int getSlotLimit(int slot) {
-            return 1;
+            return slot == SPEED_SLOT ? SPEED_STACK : 1;
         }
     };
     private int speedCache = -1;
@@ -164,13 +171,15 @@ public final class BusLogic implements PipePort {
     /** How many Speed Upgrades are in (range cards don't count). */
     public int upgradeCount() {
         if (speedCache < 0) {
-            int n = 0;
-            for (int i = 0; i < UPGRADE_SLOTS; i++) {
-                n += upgrades.getStackInSlot(i).is(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get()) ? 1 : 0;
-            }
-            speedCache = n;
+            ItemStack speed = upgrades.getStackInSlot(SPEED_SLOT);
+            speedCache = speed.is(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get()) ? speed.getCount() : 0;
         }
         return speedCache;
+    }
+
+    /** Whether this bus is a wireless one, so it takes a range card. */
+    public boolean wireless() {
+        return host instanceof WirelessDevice;
     }
 
     /** Budget multiplier: 1 with no upgrades, up to 9 with all 8. */
@@ -1059,6 +1068,23 @@ public final class BusLogic implements PipePort {
         tag.put("upgrades", upgrades.serializeNBT(registries));
     }
 
+    /** Older worlds had eight single-card slots. Every Speed Upgrade now stacks into the speed slot. */
+    private void loadUpgrades(CompoundTag tag, HolderLookup.Provider registries) {
+        int speed = 0;
+        ItemStack range = ItemStack.EMPTY;
+        for (Tag t : tag.getList("Items", Tag.TAG_COMPOUND)) {
+            ItemStack st = ItemStack.parseOptional(registries, (CompoundTag) t);
+            if (st.is(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get())) {
+                speed += st.getCount();
+            } else if (st.getItem() instanceof com.xtri6.grimstorage.item.RangeCardItem && range.isEmpty()) {
+                range = st;
+            }
+        }
+        upgrades.setStackInSlot(SPEED_SLOT, speed > 0 ? new ItemStack(com.xtri6.grimstorage.Registration.SPEED_UPGRADE.get(),
+                Math.min(SPEED_STACK, speed)) : ItemStack.EMPTY);
+        upgrades.setStackInSlot(RANGE_SLOT, range);
+    }
+
     public void load(CompoundTag tag, HolderLookup.Provider registries) {
         for (int i = 0; i < filters.items().size(); i++) {
             filters.items().set(i, ItemStack.EMPTY);
@@ -1070,7 +1096,7 @@ public final class BusLogic implements PipePort {
             resources = tag.getInt("resources");
         }
         if (tag.contains("upgrades")) {
-            upgrades.deserializeNBT(registries, tag.getCompound("upgrades"));
+            loadUpgrades(tag.getCompound("upgrades"), registries);
         }
         speedCache = -1;
     }

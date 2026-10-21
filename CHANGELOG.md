@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.17.2
+- Import and Export Buses: Speed Upgrades now stack in one slot, up to 10 (11x speed with a full stack). The eight separate
+  slots are gone. Upgrades already in an older world are merged into that slot when it loads.
+- Wireless Import, Export and Machine buses: the range card has its own slot, labelled and with a hover tip.
+- Bus screen reorganised: filters along the top, then a labelled Speed slot and Range slot on the right, with the switches
+  below. Each slot says what goes in it.
+- Wireless Machine Bus screen reorganised: a labelled grid of processing cards, with its range card slot labelled beneath.
+- Assembler speed is unchanged.
+
 ## 1.17.1
 - Wireless buses, part 2: the Wireless Import Bus, Wireless Export Bus and Wireless Machine Bus can now be crafted. Each one is the matching bus
   plus an Echo Soulite Shard, Infused Soulite and an Ender Eye.

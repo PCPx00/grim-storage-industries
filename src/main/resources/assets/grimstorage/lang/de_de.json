@@ -407,5 +407,14 @@
   "item.grimstorage.wireless_range_infinite": "Unendliche Reichweitenkarte",
   "item.grimstorage.netherite_infused_diamond": "Netherit-infundierter Diamant",
   "tooltip.grimstorage.range_card": "Drahtlose Reichweite: {0} Blöcke",
-  "tooltip.grimstorage.range_card.infinite": "Drahtlose Reichweite: beliebige Entfernung und beliebige Dimension, wenn der Server es erlaubt"
+  "tooltip.grimstorage.range_card.infinite": "Drahtlose Reichweite: beliebige Entfernung und beliebige Dimension, wenn der Server es erlaubt",
+  "gui.grimstorage.bus.label.filters": "Filter",
+  "gui.grimstorage.bus.label.speed": "Tempo",
+  "gui.grimstorage.bus.label.range": "Reichweite",
+  "gui.grimstorage.bus.label.moves": "Was bewegt wird",
+  "gui.grimstorage.bus.speed_slot.tooltip": "Geschwindigkeits-Upgrades: bis zu 10 stapeln sich in diesem einen Slot. Jedes erhöht die Grundgeschwindigkeit des Busses erneut.",
+  "gui.grimstorage.bus.range_slot.tooltip": "Reichweitenkarte (nur drahtlose Busse): eine Karte. Sie legt fest, wie weit dieser Bus sein Netzwerk erreicht.",
+  "gui.grimstorage.machine_bus.label.cards": "Verarbeitungskarten",
+  "gui.grimstorage.machine_bus.label.range": "Reichweitenkarte",
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Reichweitenkarte (nur drahtlos): eine Karte. Sie legt fest, wie weit dieser Maschinenbus sein Netzwerk erreicht."
 }

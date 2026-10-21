@@ -78,8 +78,12 @@ public final class Menus {
 
     public static void openBus(ServerPlayer p, BlockPos pos) {
         if (p.level().getBlockEntity(pos) instanceof BusBlockEntity be) {
+            boolean wireless = be.logic().wireless();
             p.openMenu(new SimpleMenuProvider((id, inv, pl) -> BlockMenus.Bus.server(id, inv, be.logic(),
-                    ContainerLevelAccess.create(p.level(), pos), be.getBlockState().getBlock()), title(p, pos)), pos);
+                    ContainerLevelAccess.create(p.level(), pos), be.getBlockState().getBlock()), title(p, pos)), buf -> {
+                        buf.writeBlockPos(pos);
+                        buf.writeBoolean(wireless);
+                    });
         }
     }
 
