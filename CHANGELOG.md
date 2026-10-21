@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.17.5
+- Echo Soulite Shard redrawn as a faceted teal crystal with a bright ridge and sparkles.
+- Netherite Infused Diamond redrawn as a brilliant-cut gem set in a dark netherite rim with gold trim and purple glints,
+  so it stands apart as a rare item.
+
 ## 1.17.4
 - Speed and range cards redrawn with a bevelled metal frame, a groove, corner studs and a lit panel. Each keeps its colour
   family, so the tiers are still easy to tell apart.
