@@ -88,7 +88,7 @@ public final class BusLogic implements PipePort {
     public static final int SPEED_STACK = 10;
 
     /** NO_FILTER: an Export Bus with nothing picked to send. */
-    public enum Status { WORKING, IDLE, NO_NETWORK, NOTHING_ATTACHED, OWN_NETWORK, FULL, NO_FILTER }
+    public enum Status { WORKING, IDLE, NO_NETWORK, NOTHING_ATTACHED, OWN_NETWORK, FULL, NO_FILTER, NO_RANGE_CARD, OUT_OF_RANGE }
 
     private boolean export;
     private boolean blacklist;
@@ -364,7 +364,9 @@ public final class BusLogic implements PipePort {
     private boolean run(ServerLevel level) {
         StorageNetwork net = network();
         if (net == null) {
-            status = Status.NO_NETWORK;
+            // a bound wireless device that isn't in a network says why: no range card, or the controller is out of reach
+            boolean bound = host instanceof WirelessDevice w && w.boundNetwork() != null;
+            status = !bound ? Status.NO_NETWORK : rangeTier() == null ? Status.NO_RANGE_CARD : Status.OUT_OF_RANGE;
             return false;
         }
         link(level);

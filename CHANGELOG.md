@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.17.9
+- Wireless buses bound with the Network Wrench now say why they aren't in the network, instead of just "No network":
+  - "Needs a range card" when the device has no range card. The wrench also says so right after binding.
+  - "Out of range" when the device has a card but its controller is beyond the card's reach.
+- Wrench binding is covered by a system check that clicks the bus with the wrench held, as a player would.
+
 ## 1.17.8
 - Screen layout pass across every machine and bus GUI, checked with screenshots of each one:
   - The title rule sits higher, so the top row of slots no longer touches it.

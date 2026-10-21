@@ -416,5 +416,8 @@
   "gui.grimstorage.bus.range_slot.tooltip": "Карта радиуса (только беспроводные шины): одна карта. Задаёт, до какого расстояния шина достаёт до своей сети.",
   "gui.grimstorage.machine_bus.label.cards": "Карты",
   "gui.grimstorage.machine_bus.label.range": "Карта радиуса",
-  "gui.grimstorage.machine_bus.range_slot.tooltip": "Карта радиуса (только беспроводная): одна карта. Задаёт, до какого расстояния машинная шина достаёт до своей сети."
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Карта радиуса (только беспроводная): одна карта. Задаёт, до какого расстояния машинная шина достаёт до своей сети.",
+  "gui.grimstorage.bus.status.no_range_card": "Нужна карта дальности",
+  "gui.grimstorage.bus.status.out_of_range": "Вне зоны действия",
+  "message.grimstorage.wireless_device.no_range": "Привязано. Вставьте карту дальности, чтобы подключиться к сети."
 }

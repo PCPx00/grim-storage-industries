@@ -89,7 +89,11 @@ public class NetworkWrenchItem extends Item {
             return InteractionResult.FAIL;
         }
         device.bindNetwork(id);
-        message(player, Component.translatable("message.grimstorage.wireless_device.bound", shortId(id)));
+        if (device.wirelessRange() == 0) {
+            message(player, Component.translatable("message.grimstorage.wireless_device.no_range"));
+        } else {
+            message(player, Component.translatable("message.grimstorage.wireless_device.bound", shortId(id)));
+        }
         return InteractionResult.SUCCESS;
     }
 

@@ -416,5 +416,8 @@
   "gui.grimstorage.bus.range_slot.tooltip": "Cartão de alcance (só barramentos sem fio): um cartão. Define até onde este barramento alcança a sua rede.",
   "gui.grimstorage.machine_bus.label.cards": "Cartões",
   "gui.grimstorage.machine_bus.label.range": "Cartão de alcance",
-  "gui.grimstorage.machine_bus.range_slot.tooltip": "Cartão de alcance (só sem fio): um cartão. Define até onde este barramento de máquina alcança a sua rede."
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Cartão de alcance (só sem fio): um cartão. Define até onde este barramento de máquina alcança a sua rede.",
+  "gui.grimstorage.bus.status.no_range_card": "Precisa de um cartão de alcance",
+  "gui.grimstorage.bus.status.out_of_range": "Fora de alcance",
+  "message.grimstorage.wireless_device.no_range": "Vinculado. Adicione um cartão de alcance para entrar na rede."
 }

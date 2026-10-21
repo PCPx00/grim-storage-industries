@@ -416,5 +416,8 @@
   "gui.grimstorage.bus.range_slot.tooltip": "Reichweitenkarte (nur drahtlose Busse): eine Karte. Sie legt fest, wie weit dieser Bus sein Netzwerk erreicht.",
   "gui.grimstorage.machine_bus.label.cards": "Karten",
   "gui.grimstorage.machine_bus.label.range": "Reichweitenkarte",
-  "gui.grimstorage.machine_bus.range_slot.tooltip": "Reichweitenkarte (nur drahtlos): eine Karte. Sie legt fest, wie weit dieser Maschinenbus sein Netzwerk erreicht."
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Reichweitenkarte (nur drahtlos): eine Karte. Sie legt fest, wie weit dieser Maschinenbus sein Netzwerk erreicht.",
+  "gui.grimstorage.bus.status.no_range_card": "Braucht eine Reichweitenkarte",
+  "gui.grimstorage.bus.status.out_of_range": "Außer Reichweite",
+  "message.grimstorage.wireless_device.no_range": "Gebunden. Füge eine Reichweitenkarte hinzu, um dem Netzwerk beizutreten."
 }

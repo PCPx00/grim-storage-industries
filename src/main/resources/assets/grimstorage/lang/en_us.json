@@ -416,5 +416,8 @@
   "gui.grimstorage.bus.range_slot.tooltip": "Range card (wireless buses only): one card. It sets how far this bus reaches its network.",
   "gui.grimstorage.machine_bus.label.cards": "Cards",
   "gui.grimstorage.machine_bus.label.range": "Range card",
-  "gui.grimstorage.machine_bus.range_slot.tooltip": "Range card (wireless only): one card. It sets how far this machine bus reaches its network."
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Range card (wireless only): one card. It sets how far this machine bus reaches its network.",
+  "gui.grimstorage.bus.status.no_range_card": "Needs a range card",
+  "gui.grimstorage.bus.status.out_of_range": "Out of range",
+  "message.grimstorage.wireless_device.no_range": "Bound. Add a range card to join the network."
 }

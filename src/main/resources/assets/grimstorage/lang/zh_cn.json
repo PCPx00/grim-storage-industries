@@ -416,5 +416,8 @@
   "gui.grimstorage.bus.range_slot.tooltip": "范围卡（仅无线总线）：一张卡。决定此总线能与其网络连接的距离。",
   "gui.grimstorage.machine_bus.label.cards": "卡片",
   "gui.grimstorage.machine_bus.label.range": "范围卡",
-  "gui.grimstorage.machine_bus.range_slot.tooltip": "范围卡（仅无线）：一张卡。决定此机器总线能与其网络连接的距离。"
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "范围卡（仅无线）：一张卡。决定此机器总线能与其网络连接的距离。",
+  "gui.grimstorage.bus.status.no_range_card": "需要范围卡",
+  "gui.grimstorage.bus.status.out_of_range": "超出范围",
+  "message.grimstorage.wireless_device.no_range": "已绑定。放入范围卡即可加入网络。"
 }

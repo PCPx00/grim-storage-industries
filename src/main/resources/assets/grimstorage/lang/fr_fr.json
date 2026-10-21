@@ -416,5 +416,8 @@
   "gui.grimstorage.bus.range_slot.tooltip": "Carte de portée (bus sans fil uniquement) : une carte. Elle définit la portée de ce bus vers son réseau.",
   "gui.grimstorage.machine_bus.label.cards": "Cartes",
   "gui.grimstorage.machine_bus.label.range": "Carte de portée",
-  "gui.grimstorage.machine_bus.range_slot.tooltip": "Carte de portée (sans fil uniquement) : une carte. Elle définit la portée de ce bus machine vers son réseau."
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Carte de portée (sans fil uniquement) : une carte. Elle définit la portée de ce bus machine vers son réseau.",
+  "gui.grimstorage.bus.status.no_range_card": "Carte de portée requise",
+  "gui.grimstorage.bus.status.out_of_range": "Hors de portée",
+  "message.grimstorage.wireless_device.no_range": "Lié. Ajoute une carte de portée pour rejoindre le réseau."
 }

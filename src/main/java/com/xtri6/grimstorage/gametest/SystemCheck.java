@@ -1404,6 +1404,40 @@ public final class SystemCheck {
             NetworkManager.markDirty();
             return true;
         }));
+        // the way a player does it: hold the wrench, copy the controller's network, then right-click the bus
+        BlockPos wc = new BlockPos(60, 230, 80);
+        BlockPos wbus = wc.east(5);
+        STEPS.add(new Step("network wrench: right-click a wireless bus with the wrench binds it, and it joins the network", 0, () -> {
+            level.setChunkForced(wc.getX() >> 4, wc.getZ() >> 4, true);
+            level.setBlockAndUpdate(wc, Registration.CONTROLLER.get().defaultBlockState());
+            level.setBlockAndUpdate(wbus, Registration.WIRELESS_IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
+            ((com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(wbus)).logic().upgrades()
+                    .setStackInSlot(com.xtri6.grimstorage.block.entity.BusLogic.RANGE_SLOT, new ItemStack(Registration.WIRELESS_RANGE_MEDIUM.get()));
+            FakePlayer fp = FakePlayerFactory.getMinecraft(level);
+            ItemStack wrench = new ItemStack(Registration.NETWORK_WRENCH.get());
+            fp.setItemInHand(net.minecraft.world.InteractionHand.MAIN_HAND, wrench);
+            var hitCtrl = new net.minecraft.world.phys.BlockHitResult(wc.getCenter(), Direction.UP, wc, false);
+            wrench.useOn(new net.minecraft.world.item.context.UseOnContext(fp, net.minecraft.world.InteractionHand.MAIN_HAND, hitCtrl));
+            var hitBus = new net.minecraft.world.phys.BlockHitResult(wbus.getCenter().add(-0.5, 0, 0), Direction.WEST, wbus, false);
+            var result = level.getBlockState(wbus).useItemOn(wrench, level, fp, net.minecraft.world.InteractionHand.MAIN_HAND, hitBus);
+            var be = (com.xtri6.grimstorage.block.entity.WirelessDevice) level.getBlockEntity(wbus);
+            var ctrl = (com.xtri6.grimstorage.block.entity.ControllerBlockEntity) level.getBlockEntity(wc);
+            info("wrench click result={} bound={} controller={}", result, be.boundNetwork(), ctrl.networkId());
+            // a second bus with no range card: the wrench binds it, and it says it needs a card
+            BlockPos noCard = wc.east(7);
+            level.setBlockAndUpdate(noCard, Registration.WIRELESS_EXPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
+            var hitNoCard = new net.minecraft.world.phys.BlockHitResult(noCard.getCenter().add(-0.5, 0, 0), Direction.WEST, noCard, false);
+            level.getBlockState(noCard).useItemOn(wrench, level, fp, net.minecraft.world.InteractionHand.MAIN_HAND, hitNoCard);
+            return be.boundNetwork() != null && be.boundNetwork().equals(ctrl.networkId());
+        }));
+        STEPS.add(new Step("network wrench: the wrench-bound bus is a member, and a bus with no range card says so", 60, () -> {
+            StorageNetwork n = NetworkManager.get(level, wbus);
+            boolean member = n != null && n.controller().getBlockPos().equals(wc);
+            var noCardBus = (com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(wc.east(7));
+            var noCardStatus = noCardBus.logic().status();
+            info("wrench-bound member={} network={} no-card bus status={}", member, n == null ? "none" : "found", noCardStatus);
+            return member && noCardStatus == com.xtri6.grimstorage.block.entity.BusLogic.Status.NO_RANGE_CARD;
+        }));
         STEPS.add(new Step("wireless bus: in reach is a member, out of reach is not, infinite card reaches 200", 60, () -> {
             StorageNetwork n = NetworkManager.get(level, WL.east(10));
             boolean nearOk = n != null && n.controller().getBlockPos().equals(WL);

@@ -416,5 +416,8 @@
   "gui.grimstorage.bus.range_slot.tooltip": "Tarjeta de alcance (solo buses inalámbricos): una carta. Define hasta dónde llega este bus a su red.",
   "gui.grimstorage.machine_bus.label.cards": "Tarjetas",
   "gui.grimstorage.machine_bus.label.range": "Tarjeta de alcance",
-  "gui.grimstorage.machine_bus.range_slot.tooltip": "Tarjeta de alcance (solo inalámbrico): una carta. Define hasta dónde llega este bus de máquina a su red."
+  "gui.grimstorage.machine_bus.range_slot.tooltip": "Tarjeta de alcance (solo inalámbrico): una carta. Define hasta dónde llega este bus de máquina a su red.",
+  "gui.grimstorage.bus.status.no_range_card": "Necesita una tarjeta de alcance",
+  "gui.grimstorage.bus.status.out_of_range": "Fuera de alcance",
+  "message.grimstorage.wireless_device.no_range": "Vinculado. Añade una tarjeta de alcance para unirte a la red."
 }
