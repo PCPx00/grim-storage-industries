@@ -153,7 +153,7 @@ public final class SimpleScreens {
         String[] keys = {first, second};
         for (int i = 0; i < 2; i++) {
             g.pose().pushPose();
-            g.pose().translate(64, 65 + i * 8, 0);
+            g.pose().translate(8, 73 + i * 9, 0);
             g.pose().scale(0.75f, 0.75f, 1f);
             g.drawString(font, Component.translatable(keys[i]), 0, 0, i == 0 ? com.xtri6.grimstorage.client.ui.Theme.get().textFaint()
                     : com.xtri6.grimstorage.client.ui.Theme.get().accent(), false);
@@ -163,7 +163,7 @@ public final class SimpleScreens {
 
     public static class RecipeCard extends GrimScreen<CardMenus.Recipe> {
         public RecipeCard(CardMenus.Recipe menu, Inventory inv, Component title) {
-            super(menu, inv, title, 176, 166);
+            super(menu, inv, title, 176, 186);
         }
 
         private com.xtri6.grimstorage.client.ui.GrimButton variants;
@@ -199,7 +199,7 @@ public final class SimpleScreens {
 
     public static class ProcessingCard extends GrimScreen<CardMenus.Processing> {
         public ProcessingCard(CardMenus.Processing menu, Inventory inv, Component title) {
-            super(menu, inv, title, 176, 166);
+            super(menu, inv, title, 176, 186);
         }
 
         @Override

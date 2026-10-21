@@ -18,8 +18,8 @@ public class MachineBusScreen extends GrimScreen<BlockMenus.MachineBus> {
     private GrimButton fuel;
 
     public MachineBusScreen(BlockMenus.MachineBus menu, Inventory inv, Component title) {
-        super(menu, inv, title, 176, 210);
-        this.inventoryLabelY = 114;
+        super(menu, inv, title, 176, menu.wireless() ? 222 : 210);
+        this.inventoryLabelY = menu.wireless() ? 126 : 114;
     }
 
     private void press(int id) {
@@ -75,7 +75,7 @@ public class MachineBusScreen extends GrimScreen<BlockMenus.MachineBus> {
         }
         hint(g, Component.translatable("gui.grimstorage.machine_bus.label.cards"), 8, 22);
         if (menu.wireless()) {
-            hint(g, Component.translatable("gui.grimstorage.machine_bus.label.range"), 8, 100);
+            hint(g, Component.translatable("gui.grimstorage.machine_bus.label.range"), 8, 96);
         }
         g.drawString(font, Component.translatable("gui.grimstorage.machine_bus.on"), 70, 22, t.textDim(), false);
         // long names (Enrichment Chamber, Precision Sawmill) shrink to fit rather than get cut off

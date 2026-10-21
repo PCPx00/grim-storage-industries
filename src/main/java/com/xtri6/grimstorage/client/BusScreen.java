@@ -119,7 +119,7 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
         int speedCount = menu.getSlot(BlockMenus.Bus.SPEED_SLOT_INDEX).getItem().getCount();
         g.drawString(font, "x" + (1 + speedCount), BlockMenus.Bus.SPEED_X, 52, speedCount > 0 ? t.accent() : t.textDim(), false);
         if (menu.wireless()) {
-            hint(g, Component.translatable("gui.grimstorage.bus.label.range"), BlockMenus.Bus.RANGE_X, 62);
+            hint(g, Component.translatable("gui.grimstorage.bus.label.range"), BlockMenus.Bus.RANGE_X, 68);
         }
     }
 

@@ -78,7 +78,7 @@ public final class CardMenus {
                 addSlot(new GhostSlot(grid, i, 30 + (i % 3) * 18, 17 + (i / 3) * 18, false));
             }
             addSlot(new DisplaySlot(result, 0, 124, 35));
-            addPlayerInventory(inv, 8, 84);
+            addPlayerInventory(inv, 8, 104);
         }
 
         public static Recipe client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {
@@ -154,7 +154,7 @@ public final class CardMenus {
             for (int i = 0; i < 3; i++) {
                 addSlot(new GhostSlot(outputs, i, 124, 17 + i * 18, true));
             }
-            addPlayerInventory(inv, 8, 84);
+            addPlayerInventory(inv, 8, 104);
         }
 
         public static Processing client(int id, Inventory inv, RegistryFriendlyByteBuf buf) {

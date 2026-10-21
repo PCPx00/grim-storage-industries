@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.17.8
+- Screen layout pass across every machine and bus GUI, checked with screenshots of each one:
+  - The title rule sits higher, so the top row of slots no longer touches it.
+  - Machine Bus: the "Processing cards" label is now "Cards" and no longer overlaps "Machine:". The wireless range card
+    has its own row above the inventory instead of sitting on top of it.
+  - Wireless buses: the range slot sits lower, clear of the speed multiplier.
+  - Chest Link: the hint wraps onto two lines inside the panel, and the usage bar only shows when it is linked.
+  - Controller: the resource tiles show the amount beside the icon and the name under it, so names no longer spill into
+    the next tile.
+  - Recipe Card and Processing Card: the hints sit under the grid instead of over its right column.
+
 ## 1.17.7
 - Wireless bus antennas sit much closer to the bus: they now stick out about 3 pixels instead of 10.
 - The antenna tip blinks blue at an even pace, half a second on and half a second off. Before, the bright flash was too

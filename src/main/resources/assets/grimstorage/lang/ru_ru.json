@@ -414,7 +414,7 @@
   "gui.grimstorage.bus.label.moves": "Что перемещать",
   "gui.grimstorage.bus.speed_slot.tooltip": "Улучшения скорости: до 10 складываются в этот один слот. Каждое снова добавляет базовую скорость шины.",
   "gui.grimstorage.bus.range_slot.tooltip": "Карта радиуса (только беспроводные шины): одна карта. Задаёт, до какого расстояния шина достаёт до своей сети.",
-  "gui.grimstorage.machine_bus.label.cards": "Карты обработки",
+  "gui.grimstorage.machine_bus.label.cards": "Карты",
   "gui.grimstorage.machine_bus.label.range": "Карта радиуса",
   "gui.grimstorage.machine_bus.range_slot.tooltip": "Карта радиуса (только беспроводная): одна карта. Задаёт, до какого расстояния машинная шина достаёт до своей сети."
 }

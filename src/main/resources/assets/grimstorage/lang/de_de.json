@@ -414,7 +414,7 @@
   "gui.grimstorage.bus.label.moves": "Was bewegt wird",
   "gui.grimstorage.bus.speed_slot.tooltip": "Geschwindigkeits-Upgrades: bis zu 10 stapeln sich in diesem einen Slot. Jedes erhöht die Grundgeschwindigkeit des Busses erneut.",
   "gui.grimstorage.bus.range_slot.tooltip": "Reichweitenkarte (nur drahtlose Busse): eine Karte. Sie legt fest, wie weit dieser Bus sein Netzwerk erreicht.",
-  "gui.grimstorage.machine_bus.label.cards": "Verarbeitungskarten",
+  "gui.grimstorage.machine_bus.label.cards": "Karten",
   "gui.grimstorage.machine_bus.label.range": "Reichweitenkarte",
   "gui.grimstorage.machine_bus.range_slot.tooltip": "Reichweitenkarte (nur drahtlos): eine Karte. Sie legt fest, wie weit dieser Maschinenbus sein Netzwerk erreicht."
 }

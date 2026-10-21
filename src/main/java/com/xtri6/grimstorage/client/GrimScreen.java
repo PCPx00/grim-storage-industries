@@ -22,6 +22,7 @@ public abstract class GrimScreen<T extends AbstractContainerMenu> extends Abstra
         this.imageWidth = width;
         this.imageHeight = height;
         this.inventoryLabelY = height - 94;
+        this.titleLabelY = 4;
     }
 
     protected static Theme t() {

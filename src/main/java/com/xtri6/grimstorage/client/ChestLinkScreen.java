@@ -20,7 +20,7 @@ public class ChestLinkScreen extends GrimScreen<BlockMenus.ChestLink> {
     private GrimButton first;
 
     public ChestLinkScreen(BlockMenus.ChestLink menu, Inventory inv, Component title) {
-        super(menu, inv, title, 176, 104);
+        super(menu, inv, title, 176, 116);
         this.inventoryLabelY = 10_000;
     }
 
@@ -33,9 +33,9 @@ public class ChestLinkScreen extends GrimScreen<BlockMenus.ChestLink> {
     @Override
     protected void init() {
         super.init();
-        mode = addRenderableWidget(new GrimButton(leftPos + 8, topPos + 62, 160, 14, Component.empty(), b -> press(BlockMenus.ChestLink.MODE)));
+        mode = addRenderableWidget(new GrimButton(leftPos + 8, topPos + 72, 160, 14, Component.empty(), b -> press(BlockMenus.ChestLink.MODE)));
         mode.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.chest_link.mode.tooltip")));
-        first = addRenderableWidget(new GrimButton(leftPos + 8, topPos + 80, 160, 14, Component.empty(), b -> press(BlockMenus.ChestLink.FIRST)));
+        first = addRenderableWidget(new GrimButton(leftPos + 8, topPos + 90, 160, 14, Component.empty(), b -> press(BlockMenus.ChestLink.FIRST)));
         first.setTooltip(Tooltip.create(Component.translatable("gui.grimstorage.chest_link.first.tooltip")));
     }
 
@@ -51,7 +51,9 @@ public class ChestLinkScreen extends GrimScreen<BlockMenus.ChestLink> {
         Theme t = t();
         int cap = menu.capacity();
         float f = cap <= 0 ? 0 : (float) menu.used() / cap;
-        Ui.bar(g, t, leftPos + 8, topPos + 48, 160, 6, f, f > 0.95f ? t.danger() : t.accent());
+        if (menu.linked()) {
+            Ui.bar(g, t, leftPos + 8, topPos + 48, 160, 6, f, f > 0.95f ? t.danger() : t.accent());
+        }
     }
 
     @Override
@@ -72,7 +74,11 @@ public class ChestLinkScreen extends GrimScreen<BlockMenus.ChestLink> {
         g.drawString(font, font.plainSubstrByWidth(target.getString(), 160), 8, 32,
                 menu.linked() ? t.accent() : t.danger(), false);
         if (!menu.linked()) {
-            hint(g, Component.translatable("gui.grimstorage.chest_link.nothing"), 8, 48);
+            int ly = 46;
+            for (net.minecraft.util.FormattedCharSequence line : font.split(Component.translatable("gui.grimstorage.chest_link.nothing"), 160)) {
+                g.drawString(font, line, 8, ly, t.textFaint(), false);
+                ly += 9;
+            }
         } else {
             String used = Fmt.compact(menu.used()) + " / " + Fmt.compact(menu.capacity());
             g.drawString(font, used, 168 - font.width(used), 22, t.textDim(), false);

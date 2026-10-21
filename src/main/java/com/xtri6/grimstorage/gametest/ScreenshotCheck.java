@@ -47,6 +47,46 @@ public final class ScreenshotCheck {
 
     private ScreenshotCheck() {}
 
+    private static int guiIndex = 0;
+
+    /** One shot per machine and bus screen, each device on its own spot. Run with -Dgrimstorage.only=g. */
+    private static void gui(String name, java.util.function.Supplier<net.minecraft.world.level.block.Block> block,
+                            java.util.function.BiConsumer<ServerPlayer, BlockPos> open) {
+        BlockPos at = new BlockPos(120, 230, 120).offset(3 * guiIndex++, 0, 0);
+        SHOTS.add(new Shot(name, true, sp -> {
+            sp.teleportTo(sp.serverLevel(), at.getX() + 0.5, at.getY() + 1.0, at.getZ() - 2.5, 0f, 0f);
+            sp.serverLevel().setBlockAndUpdate(at, block.get().defaultBlockState());
+            open.accept(sp, at);
+        }, () -> {}));
+    }
+
+    private static void guiShots() {
+        gui("g01_import_bus", () -> com.xtri6.grimstorage.Registration.IMPORT_BUS.get(), Menus::openBus);
+        gui("g02_export_bus", () -> com.xtri6.grimstorage.Registration.EXPORT_BUS.get(), Menus::openBus);
+        gui("g03_machine_bus", () -> com.xtri6.grimstorage.Registration.MACHINE_BUS.get(), Menus::openMachineBus);
+        gui("g04_wireless_import_bus", () -> com.xtri6.grimstorage.Registration.WIRELESS_IMPORT_BUS.get(), Menus::openBus);
+        gui("g05_wireless_export_bus", () -> com.xtri6.grimstorage.Registration.WIRELESS_EXPORT_BUS.get(), Menus::openBus);
+        gui("g06_wireless_machine_bus", () -> com.xtri6.grimstorage.Registration.WIRELESS_MACHINE_BUS.get(), Menus::openMachineBus);
+        gui("g07_drive", () -> com.xtri6.grimstorage.Registration.DRIVE.get(), Menus::openDrive);
+        gui("g08_assembler", () -> com.xtri6.grimstorage.Registration.ASSEMBLER.get(), Menus::openAssembler);
+        gui("g09_processing", () -> com.xtri6.grimstorage.Registration.PROCESSING_INTERFACE.get(), Menus::openProcessing);
+        gui("g10_soul_infuser", () -> com.xtri6.grimstorage.Registration.SOUL_INFUSER.get(), Menus::openInfuser);
+        gui("g11_stock_keeper", () -> com.xtri6.grimstorage.Registration.STOCK_KEEPER.get(), Menus::openStockKeeper);
+        gui("g12_chest_link", () -> com.xtri6.grimstorage.Registration.CHEST_LINK.get(), Menus::openChestLink);
+        gui("g13_emitter", () -> com.xtri6.grimstorage.Registration.REDSTONE_EMITTER.get(), Menus::openEmitter);
+        gui("g14_controller", () -> com.xtri6.grimstorage.Registration.CONTROLLER.get(), Menus::openController);
+        gui("g15_terminal", () -> com.xtri6.grimstorage.Registration.TERMINAL.get(), Menus::openTerminal);
+        gui("g16_void_filter", () -> com.xtri6.grimstorage.Registration.VOID_FILTER.get(), Menus::openFilter);
+        SHOTS.add(new Shot("g17_recipe_card", true, sp -> {
+            sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.RECIPE_CARD.get()));
+            Menus.openRecipeCard(sp, InteractionHand.MAIN_HAND);
+        }, () -> {}));
+        SHOTS.add(new Shot("g18_processing_card", true, sp -> {
+            sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.PROCESSING_CARD.get()));
+            Menus.openProcessingCard(sp, InteractionHand.MAIN_HAND);
+        }, () -> {}));
+    }
+
     private static void terminalWithGrid(ServerPlayer sp) {
         Menus.openTerminal(sp, BASE.offset(5, 0, 0));
         if (sp.containerMenu instanceof TerminalMenu m) {
@@ -70,6 +110,7 @@ public final class ScreenshotCheck {
             }
             sp.teleportTo(sp.serverLevel(), mb.getX() + 4.5, mb.getY() + 2.6, mb.getZ() + 4.5, 135f, 28f);
         }, none));
+        guiShots();
         if (Boolean.getBoolean("grimstorage.emi")) {
             SHOTS.add(new Shot("e01_emi_terminal_search", true, sp -> {
                 sp.teleportTo(sp.serverLevel(), 2.5, 220.6, 4.5, 200f, 15f);
@@ -160,7 +201,6 @@ public final class ScreenshotCheck {
             }
         }
         var dir = com.xtri6.grimstorage.block.FacingDeviceBlock.All.FACING;
-        var R = com.xtri6.grimstorage.Registration.class;
         lvl.setBlockAndUpdate(o.east(), com.xtri6.grimstorage.Registration.SOUL_INFUSER.get().defaultBlockState());
         // bus on the infuser's west face; cable comes in from the bus's north side
         lvl.setBlockAndUpdate(o, com.xtri6.grimstorage.Registration.IMPORT_BUS.get().defaultBlockState().setValue(dir, net.minecraft.core.Direction.EAST));

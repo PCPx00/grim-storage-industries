@@ -287,11 +287,20 @@ public class ControllerScreen extends GrimScreen<ControllerMenu> {
             int cx = 8 + chip * (cw + 3);
             long kUsed = s.bulkStats().length > k.ordinal() * 2 + 1 ? s.bulkStats()[k.ordinal() * 2] : 0;
             long kCap = s.bulkStats().length > k.ordinal() * 2 + 1 ? s.bulkStats()[k.ordinal() * 2 + 1] : 0;
+            // the amount sits beside the icon, the name under it; each shrinks to fit its tile so it never reaches the next one
+            String amount = kCap <= 0 ? "-" : Fmt.shortAmount(k, kUsed);
+            Component name = Component.translatable("gui.grimstorage.chip." + k.id());
+            float as = Math.min(0.7f, (cw - 22) / (float) Math.max(1, font.width(amount)));
+            float ns = Math.min(0.7f, (cw - 4) / (float) Math.max(1, font.width(name)));
             g.pose().pushPose();
-            g.pose().translate(cx + 21, 86 + 5, 0);
-            g.pose().scale(0.7f, 0.7f, 1f);
-            g.drawString(font, kCap <= 0 ? "-" : Fmt.shortAmount(k, kUsed), 0, 0, t.text(), false);
-            g.drawString(font, Component.translatable("gui.grimstorage.chip." + k.id()), 0, 10, t.textFaint(), false);
+            g.pose().translate(cx + 21, 86 + 3, 0);
+            g.pose().scale(as, as, 1f);
+            g.drawString(font, amount, 0, 0, t.text(), false);
+            g.pose().popPose();
+            g.pose().pushPose();
+            g.pose().translate(cx + 3, 86 + 21, 0);
+            g.pose().scale(ns, ns, 1f);
+            g.drawString(font, name, 0, 0, t.textFaint(), false);
             g.pose().popPose();
             chip++;
         }

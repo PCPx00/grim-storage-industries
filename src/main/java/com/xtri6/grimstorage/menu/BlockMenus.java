@@ -151,10 +151,10 @@ public final class BlockMenus {
             }
             this.wireless = range != null;
             if (range != null) {
-                addSlot(new SlotItemHandler(range, 0, 8, 112));
+                addSlot(new SlotItemHandler(range, 0, 8, 106));
             }
             addDataSlots(data);
-            addPlayerInventory(inv, 8, 124);
+            addPlayerInventory(inv, 8, range != null ? 136 : 124);
         }
 
         public static MachineBus server(int id, Inventory inv, com.xtri6.grimstorage.block.entity.MachineBusBlockEntity be) {
@@ -450,7 +450,7 @@ public final class BlockMenus {
         public static final int SPEED_X = 182;
         public static final int SPEED_Y = 32;
         public static final int RANGE_X = 182;
-        public static final int RANGE_Y = 74;
+        public static final int RANGE_Y = 80;
         /** Slot numbers of the speed slot and the range slot (the range slot only exists on wireless buses). */
         public static final int SPEED_SLOT_INDEX = FilterBlockEntity.SLOTS;
         public static final int RANGE_SLOT_INDEX = FilterBlockEntity.SLOTS + 1;
