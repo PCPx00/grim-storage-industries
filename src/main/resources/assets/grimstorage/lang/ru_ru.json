@@ -393,5 +393,12 @@
   "item.grimstorage.network_wrench": "Сетевой ключ",
   "message.grimstorage.network.copied": "ID сети скопирован: {0}",
   "tooltip.grimstorage.network_wrench.held": "Сеть: {0}",
-  "tooltip.grimstorage.network_wrench.none": "Не задано. Щёлкните правой кнопкой по контроллеру сети, чтобы взять его сеть."
+  "tooltip.grimstorage.network_wrench.none": "Не задано. Щёлкните правой кнопкой по контроллеру сети, чтобы взять его сеть.",
+  "block.grimstorage.wireless_import_bus": "Беспроводная шина импорта",
+  "block.grimstorage.wireless_export_bus": "Беспроводная шина экспорта",
+  "block.grimstorage.wireless_machine_bus": "Беспроводная шина машин",
+  "message.grimstorage.wireless_device.bound": "Привязано к сети {0}",
+  "message.grimstorage.wireless_device.unbound": "Привязка к сети снята",
+  "message.grimstorage.wireless_device.no_network": "Сначала возьмите сетевой ключ с сохранённой сетью. Щёлкните им по сетевому контроллеру правой кнопкой.",
+  "message.grimstorage.wireless_device.limit": "В этой сети уже {0} беспроводных устройств"
 }

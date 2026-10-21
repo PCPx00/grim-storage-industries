@@ -4,6 +4,7 @@ import javax.annotation.Nullable;
 
 import com.xtri6.grimstorage.storage.NetworkManager;
 import com.xtri6.grimstorage.storage.StorageNetwork;
+import com.xtri6.grimstorage.storage.WirelessDevices;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -29,6 +30,9 @@ public abstract class NetworkBlockEntity extends BlockEntity {
         super.onLoad();
         if (level != null && !level.isClientSide) {
             NetworkManager.markDirty();
+            if (this instanceof WirelessDevice) {
+                WirelessDevices.add(this);
+            }
         }
     }
 
@@ -36,12 +40,18 @@ public abstract class NetworkBlockEntity extends BlockEntity {
     public void onChunkUnloaded() {
         super.onChunkUnloaded();
         NetworkManager.markDirty();
+        if (this instanceof WirelessDevice) {
+            WirelessDevices.remove(this);
+        }
     }
 
     @Override
     public void setRemoved() {
         super.setRemoved();
         NetworkManager.markDirty();
+        if (this instanceof WirelessDevice) {
+            WirelessDevices.remove(this);
+        }
     }
 
     @Nullable

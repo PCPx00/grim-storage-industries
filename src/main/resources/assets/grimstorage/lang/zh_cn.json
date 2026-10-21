@@ -393,5 +393,12 @@
   "item.grimstorage.network_wrench": "网络扳手",
   "message.grimstorage.network.copied": "已复制网络 ID：{0}",
   "tooltip.grimstorage.network_wrench.held": "网络：{0}",
-  "tooltip.grimstorage.network_wrench.none": "未设置。右键点击网络控制器以获取其网络。"
+  "tooltip.grimstorage.network_wrench.none": "未设置。右键点击网络控制器以获取其网络。",
+  "block.grimstorage.wireless_import_bus": "无线导入总线",
+  "block.grimstorage.wireless_export_bus": "无线导出总线",
+  "block.grimstorage.wireless_machine_bus": "无线机器总线",
+  "message.grimstorage.wireless_device.bound": "已绑定到网络 {0}",
+  "message.grimstorage.wireless_device.unbound": "已解除网络绑定",
+  "message.grimstorage.wireless_device.no_network": "请先让网络扳手持有一个网络。用它右键点击网络控制器。",
+  "message.grimstorage.wireless_device.limit": "该网络已有 {0} 个无线设备"
 }

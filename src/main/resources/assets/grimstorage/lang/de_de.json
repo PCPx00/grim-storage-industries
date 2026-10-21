@@ -393,5 +393,12 @@
   "item.grimstorage.network_wrench": "Netzwerkschlüssel",
   "message.grimstorage.network.copied": "Netzwerk-ID kopiert: {0}",
   "tooltip.grimstorage.network_wrench.held": "Netzwerk: {0}",
-  "tooltip.grimstorage.network_wrench.none": "Nicht gesetzt. Rechtsklick auf einen Netzwerk-Controller, um sein Netzwerk zu übernehmen."
+  "tooltip.grimstorage.network_wrench.none": "Nicht gesetzt. Rechtsklick auf einen Netzwerk-Controller, um sein Netzwerk zu übernehmen.",
+  "block.grimstorage.wireless_import_bus": "Drahtloser Importbus",
+  "block.grimstorage.wireless_export_bus": "Drahtloser Exportbus",
+  "block.grimstorage.wireless_machine_bus": "Drahtloser Maschinenbus",
+  "message.grimstorage.wireless_device.bound": "Mit Netzwerk {0} verbunden",
+  "message.grimstorage.wireless_device.unbound": "Vom Netzwerk getrennt",
+  "message.grimstorage.wireless_device.no_network": "Halte zuerst einen Netzwerkschlüssel mit einem Netzwerk. Rechtsklick auf einen Netzwerk-Controller.",
+  "message.grimstorage.wireless_device.limit": "Dieses Netzwerk hat bereits {0} drahtlose Geräte"
 }

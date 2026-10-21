@@ -393,5 +393,12 @@
   "item.grimstorage.network_wrench": "Chave de rede",
   "message.grimstorage.network.copied": "ID da rede copiado: {0}",
   "tooltip.grimstorage.network_wrench.held": "Rede: {0}",
-  "tooltip.grimstorage.network_wrench.none": "Não definida. Clique com o botão direito em um Controlador de rede para pegar a rede dele."
+  "tooltip.grimstorage.network_wrench.none": "Não definida. Clique com o botão direito em um Controlador de rede para pegar a rede dele.",
+  "block.grimstorage.wireless_import_bus": "Barramento de Importação Sem Fio",
+  "block.grimstorage.wireless_export_bus": "Barramento de Exportação Sem Fio",
+  "block.grimstorage.wireless_machine_bus": "Barramento de Máquina Sem Fio",
+  "message.grimstorage.wireless_device.bound": "Vinculado à rede {0}",
+  "message.grimstorage.wireless_device.unbound": "Desvinculado da rede",
+  "message.grimstorage.wireless_device.no_network": "Segure uma Chave de Rede com uma rede guardada. Clique com o botão direito em um Controlador de Rede com ela.",
+  "message.grimstorage.wireless_device.limit": "Esta rede já tem {0} dispositivos sem fio"
 }

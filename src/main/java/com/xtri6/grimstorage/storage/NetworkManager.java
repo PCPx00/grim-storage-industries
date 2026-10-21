@@ -50,6 +50,7 @@ public final class NetworkManager {
 
     public static void clearAll() {
         INDEX.clear();
+        WirelessDevices.clear();
         epoch++;
     }
 }

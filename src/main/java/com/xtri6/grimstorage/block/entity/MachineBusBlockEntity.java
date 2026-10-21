@@ -65,7 +65,12 @@ public class MachineBusBlockEntity extends NetworkBlockEntity implements Machine
     private Component machineName;
 
     public MachineBusBlockEntity(BlockPos pos, BlockState state) {
-        super(Registration.MACHINE_BUS_ENTITY.get(), pos, state);
+        this(Registration.MACHINE_BUS_ENTITY.get(), pos, state);
+    }
+
+    /** For the wireless variant, which needs its own block entity type. */
+    protected MachineBusBlockEntity(net.minecraft.world.level.block.entity.BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
     public ItemStackHandler cardHandler() {

@@ -1357,6 +1357,7 @@ public final class SystemCheck {
             return gravel < 1_000_000 && dirt == 50_000 && stored == 0;
         }));
         addMachineBusSteps();
+        addWirelessSteps();
         STEPS.add(new Step("save totals for the persistence run", 0, () -> {
             info("cable bus at save: {} be={}", level.getBlockState(at(1, 1, 0)), level.getBlockEntity(at(1, 1, 0)));
             long total = net().contents().values().stream().mapToLong(Long::longValue).sum();
@@ -1376,6 +1377,31 @@ public final class SystemCheck {
     // ------------------------------------------------------------------ machine bus (its own small network)
 
     private static final BlockPos MB = new BlockPos(24, 230, 0);
+    private static final BlockPos WL = new BlockPos(60, 230, 0);
+
+    private static void addWirelessSteps() {
+        STEPS.add(new Step("wireless bus in reach joins the network it is bound to, and not one out of reach", 0, () -> {
+            level.setChunkForced(WL.getX() >> 4, WL.getZ() >> 4, true);
+            level.setChunkForced((WL.getX() + 130) >> 4, WL.getZ() >> 4, true);
+            level.setBlockAndUpdate(WL, Registration.CONTROLLER.get().defaultBlockState());
+            BlockPos near = WL.east(10);
+            BlockPos far = WL.east(130);
+            level.setBlockAndUpdate(near, Registration.WIRELESS_IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
+            level.setBlockAndUpdate(far, Registration.WIRELESS_IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
+            com.xtri6.grimstorage.block.entity.ControllerBlockEntity ctrl = (com.xtri6.grimstorage.block.entity.ControllerBlockEntity) level.getBlockEntity(WL);
+            ((com.xtri6.grimstorage.block.entity.WirelessDevice) level.getBlockEntity(near)).bindNetwork(ctrl.networkId());
+            ((com.xtri6.grimstorage.block.entity.WirelessDevice) level.getBlockEntity(far)).bindNetwork(ctrl.networkId());
+            NetworkManager.markDirty();
+            return true;
+        }));
+        STEPS.add(new Step("wireless bus: in reach is a member, out of reach is not", 60, () -> {
+            StorageNetwork n = NetworkManager.get(level, WL.east(10));
+            boolean nearOk = n != null && n.controller().getBlockPos().equals(WL);
+            boolean farOut = NetworkManager.get(level, WL.east(130)) == null;
+            info("wireless near member={} far out={}", nearOk, farOut);
+            return nearOk && farOut;
+        }));
+    }
 
     private static StorageNetwork mbNet() {
         return NetworkManager.get(level, MB);

@@ -182,6 +182,22 @@ public final class StorageNetwork {
         queue.add(new Node(origin, start));
         seen.add(GlobalPos.of(origin.dimension(), start));
 
+        // Wireless devices bound to this network and within reach of its controller join it without any cable.
+        ServerLevel home = (ServerLevel) controller.getLevel();
+        for (BlockEntity device : WirelessDevices.bound(controller.networkId())) {
+            if (!(device.getLevel() instanceof ServerLevel deviceLevel) || deviceLevel.dimension() != home.dimension()) {
+                continue;
+            }
+            int reach = ((com.xtri6.grimstorage.block.entity.WirelessDevice) device).wirelessRange();
+            if (device.getBlockPos().distSqr(start) > (double) reach * reach) {
+                continue;
+            }
+            GlobalPos key = GlobalPos.of(deviceLevel.dimension(), device.getBlockPos());
+            if (seen.add(key)) {
+                queue.add(new Node(deviceLevel, device.getBlockPos()));
+            }
+        }
+
         int limit = com.xtri6.grimstorage.ServerConfig.maxBlocks();
         while (!queue.isEmpty() && members.size() < limit) {
             Node node = queue.poll();

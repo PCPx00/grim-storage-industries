@@ -393,5 +393,12 @@
   "item.grimstorage.network_wrench": "Network Wrench",
   "message.grimstorage.network.copied": "Network ID copied: {0}",
   "tooltip.grimstorage.network_wrench.held": "Network: {0}",
-  "tooltip.grimstorage.network_wrench.none": "Not set. Right-click a Network Controller to take its network."
+  "tooltip.grimstorage.network_wrench.none": "Not set. Right-click a Network Controller to take its network.",
+  "block.grimstorage.wireless_import_bus": "Wireless Import Bus",
+  "block.grimstorage.wireless_export_bus": "Wireless Export Bus",
+  "block.grimstorage.wireless_machine_bus": "Wireless Machine Bus",
+  "message.grimstorage.wireless_device.bound": "Bound to network {0}",
+  "message.grimstorage.wireless_device.unbound": "Unbound from its network",
+  "message.grimstorage.wireless_device.no_network": "Hold a Network Wrench holding a network first. Right-click a Network Controller with it.",
+  "message.grimstorage.wireless_device.limit": "This network already has {0} wireless devices"
 }

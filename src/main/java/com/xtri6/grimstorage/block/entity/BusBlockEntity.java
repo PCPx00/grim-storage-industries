@@ -13,6 +13,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -26,8 +27,14 @@ public class BusBlockEntity extends NetworkBlockEntity implements Ticking, PipeP
     private final BusLogic logic;
 
     public BusBlockEntity(BlockPos pos, BlockState state) {
-        super(state.is(Registration.EXPORT_BUS.get()) ? Registration.EXPORT_BUS_ENTITY.get() : Registration.IMPORT_BUS_ENTITY.get(), pos, state);
-        this.logic = new BusLogic(this, state.is(Registration.EXPORT_BUS.get()));
+        this(state.is(Registration.EXPORT_BUS.get()) ? Registration.EXPORT_BUS_ENTITY.get() : Registration.IMPORT_BUS_ENTITY.get(),
+                pos, state, state.is(Registration.EXPORT_BUS.get()));
+    }
+
+    /** For the wireless variants, which need their own block entity type. */
+    protected BusBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state, boolean export) {
+        super(type, pos, state);
+        this.logic = new BusLogic(this, export);
     }
 
     public BusLogic logic() {
@@ -70,13 +77,20 @@ public class BusBlockEntity extends NetworkBlockEntity implements Ticking, PipeP
         logic.flipDirection();
         CompoundTag tag = new CompoundTag();
         logic.save(tag, level.registryAccess());
+        java.util.UUID bound = this instanceof WirelessDevice w ? w.boundNetwork() : null;
+        boolean wireless = this instanceof WirelessDevice;
         BlockPos pos = worldPosition;
         Level lvl = level;
-        BlockState next = (logic.isExport() ? Registration.EXPORT_BUS.get() : Registration.IMPORT_BUS.get()).defaultBlockState()
-                .setValue(BusBlock.FACING, facing());
+        net.minecraft.world.level.block.Block nextBlock = wireless
+                ? (logic.isExport() ? Registration.WIRELESS_EXPORT_BUS.get() : Registration.WIRELESS_IMPORT_BUS.get())
+                : (logic.isExport() ? Registration.EXPORT_BUS.get() : Registration.IMPORT_BUS.get());
+        BlockState next = nextBlock.defaultBlockState().setValue(BusBlock.FACING, facing());
         lvl.setBlock(pos, next, net.minecraft.world.level.block.Block.UPDATE_ALL);
         if (lvl.getBlockEntity(pos) instanceof BusBlockEntity fresh) {
             fresh.logic.load(tag, lvl.registryAccess());
+            if (fresh instanceof WirelessDevice fw) {
+                fw.bindNetwork(bound);
+            }
             fresh.setChanged();
         }
         com.xtri6.grimstorage.menu.Menus.openBus(player, pos);

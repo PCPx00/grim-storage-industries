@@ -62,7 +62,8 @@ public final class GrimStorage {
         event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, Registration.INTERFACE_ENTITY.get(), (be, side) -> be.fluidHandler());
         event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, Registration.INTERFACE_ENTITY.get(), (be, side) -> be.energyStorage());
         // Import / Export Buses take any mod's pipes on every side.
-        for (var type : java.util.List.of(Registration.IMPORT_BUS_ENTITY.get(), Registration.EXPORT_BUS_ENTITY.get())) {
+        for (var type : java.util.List.of(Registration.IMPORT_BUS_ENTITY.get(), Registration.EXPORT_BUS_ENTITY.get(),
+                Registration.WIRELESS_IMPORT_BUS_ENTITY.get(), Registration.WIRELESS_EXPORT_BUS_ENTITY.get())) {
             event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, type, (be, side) -> be.pipeItems());
             event.registerBlockEntity(Capabilities.FluidHandler.BLOCK, type, (be, side) -> be.pipeFluids());
             event.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, type, (be, side) -> be.pipeEnergy());

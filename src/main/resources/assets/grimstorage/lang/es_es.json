@@ -393,5 +393,12 @@
   "item.grimstorage.network_wrench": "Llave de red",
   "message.grimstorage.network.copied": "ID de red copiada: {0}",
   "tooltip.grimstorage.network_wrench.held": "Red: {0}",
-  "tooltip.grimstorage.network_wrench.none": "Sin definir. Haz clic derecho en un Controlador de red para tomar su red."
+  "tooltip.grimstorage.network_wrench.none": "Sin definir. Haz clic derecho en un Controlador de red para tomar su red.",
+  "block.grimstorage.wireless_import_bus": "Bus de importación inalámbrico",
+  "block.grimstorage.wireless_export_bus": "Bus de exportación inalámbrico",
+  "block.grimstorage.wireless_machine_bus": "Bus de máquina inalámbrico",
+  "message.grimstorage.wireless_device.bound": "Vinculado a la red {0}",
+  "message.grimstorage.wireless_device.unbound": "Desvinculado de su red",
+  "message.grimstorage.wireless_device.no_network": "Primero sostén una llave de red con una red. Haz clic derecho en un controlador de red con ella.",
+  "message.grimstorage.wireless_device.limit": "Esta red ya tiene {0} dispositivos inalámbricos"
 }

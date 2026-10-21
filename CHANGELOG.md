@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.17.0
+- Wireless buses, part 1: Network Controllers now have a network ID. The new Network Wrench copies it: right-click a
+  Network Controller to take the ID, then right-click a wireless device to bind it to that network. Crouch-right-click a
+  wireless device to unbind it.
+- New blocks: Wireless Import Bus, Wireless Export Bus and Wireless Machine Bus. A bound device within reach of its
+  network's controller works as part of that network, with no cable needed. For now every wireless device reaches
+  `wirelessRange` blocks (default 128). Crafting recipes, range cards and energy use come in the next part.
+- New server config values (for modpack makers): `wirelessLowRange`, `wirelessHighRange`, `infiniteWirelessCard`,
+  `wirelessBindLimit`, `wirelessCrossDimension` and `wirelessEnergyPerTick`. The range cards and energy use these
+  settings are not active yet.
+
 ## 1.16.13
 - Debug report: a new section lists every recipe in the world that makes a dust or grit, grouped by recipe type, with sample
   recipe ids. It shows which recipe type a machine has to read to make an item like obsidian dust or diamond grit.

@@ -184,6 +184,13 @@ public final class Registration {
             () -> new com.xtri6.grimstorage.item.BusItem(IMPORT_BUS.get(), false, new Item.Properties()));
     public static final DeferredItem<com.xtri6.grimstorage.item.BusItem> EXPORT_BUS_ITEM = ITEMS.register("export_bus",
             () -> new com.xtri6.grimstorage.item.BusItem(EXPORT_BUS.get(), true, new Item.Properties()));
+    /** Wireless buses join their network by binding to it with a Network Wrench, not by cable. */
+    public static final DeferredBlock<NetworkDeviceBlock> WIRELESS_IMPORT_BUS = device("wireless_import_bus",
+            () -> new BusBlock(machine().noOcclusion(), Registration.WIRELESS_IMPORT_BUS_ENTITY, Menus::openBus));
+    public static final DeferredBlock<NetworkDeviceBlock> WIRELESS_EXPORT_BUS = device("wireless_export_bus",
+            () -> new BusBlock(machine().noOcclusion(), Registration.WIRELESS_EXPORT_BUS_ENTITY, Menus::openBus));
+    public static final DeferredBlock<NetworkDeviceBlock> WIRELESS_MACHINE_BUS = device("wireless_machine_bus",
+            () -> new BusBlock(machine().noOcclusion(), Registration.WIRELESS_MACHINE_BUS_ENTITY, Menus::openMachineBus));
     public static final DeferredBlock<NetworkDeviceBlock> QUANTUM_LINK = device("quantum_link",
             () -> new NetworkDeviceBlock(machine().lightLevel(s -> 9), Registration.QUANTUM_LINK_ENTITY, null));
     public static final DeferredBlock<CableBlock> CABLE = device("soul_cable",
@@ -224,6 +231,12 @@ public final class Registration {
             be("chest_link", com.xtri6.grimstorage.block.entity.ChestLinkBlockEntity::new, CHEST_LINK);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity>> REDSTONE_EMITTER_ENTITY =
             be("redstone_emitter", com.xtri6.grimstorage.block.entity.RedstoneEmitterBlockEntity::new, REDSTONE_EMITTER);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.WirelessBusBlockEntity>> WIRELESS_IMPORT_BUS_ENTITY =
+            be("wireless_import_bus", com.xtri6.grimstorage.block.entity.WirelessBusBlockEntity::new, WIRELESS_IMPORT_BUS);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.WirelessBusBlockEntity>> WIRELESS_EXPORT_BUS_ENTITY =
+            be("wireless_export_bus", com.xtri6.grimstorage.block.entity.WirelessBusBlockEntity::new, WIRELESS_EXPORT_BUS);
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.WirelessMachineBusBlockEntity>> WIRELESS_MACHINE_BUS_ENTITY =
+            be("wireless_machine_bus", com.xtri6.grimstorage.block.entity.WirelessMachineBusBlockEntity::new, WIRELESS_MACHINE_BUS);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<com.xtri6.grimstorage.block.entity.CableBusBlockEntity>> CABLE_BUS_ENTITY =
             be("cable_bus", com.xtri6.grimstorage.block.entity.CableBusBlockEntity::new, CABLE);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<QuantumLinkBlockEntity>> QUANTUM_LINK_ENTITY =
@@ -354,7 +367,7 @@ public final class Registration {
                                 RAW_SOULITE_BLOCK, SOULITE_BLOCK,
                                 RAW_SOULITE, SOULITE_DUST, SOULITE_NUGGET, SOULITE_INGOT,
                                 INFUSED_SOULITE, ECHO_SOULITE_SHARD, ECHO_SOULITE_ALLOY, SINGULARITY_CORE,
-                                SOUL_INFUSER, CONTROLLER, DRIVE, TERMINAL, CABLE, SOUL_GLASS, INTERFACE, IMPORT_BUS, EXPORT_BUS, MACHINE_BUS, CHEST_LINK, REDSTONE_EMITTER,
+                                SOUL_INFUSER, CONTROLLER, DRIVE, TERMINAL, CABLE, SOUL_GLASS, INTERFACE, IMPORT_BUS, EXPORT_BUS, MACHINE_BUS, WIRELESS_IMPORT_BUS, WIRELESS_EXPORT_BUS, WIRELESS_MACHINE_BUS, CHEST_LINK, REDSTONE_EMITTER,
                                 ASSEMBLER, STOCK_KEEPER, VOID_FILTER, PROCESSING_INTERFACE, QUANTUM_LINK));
                         for (CellTier t : CellTier.values()) {
                             order.add(CELLS.get(t));

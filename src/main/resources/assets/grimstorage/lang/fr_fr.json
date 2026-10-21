@@ -393,5 +393,12 @@
   "item.grimstorage.network_wrench": "Clé réseau",
   "message.grimstorage.network.copied": "ID du réseau copié : {0}",
   "tooltip.grimstorage.network_wrench.held": "Réseau : {0}",
-  "tooltip.grimstorage.network_wrench.none": "Non défini. Clic droit sur un contrôleur réseau pour prendre son réseau."
+  "tooltip.grimstorage.network_wrench.none": "Non défini. Clic droit sur un contrôleur réseau pour prendre son réseau.",
+  "block.grimstorage.wireless_import_bus": "Bus d'importation sans fil",
+  "block.grimstorage.wireless_export_bus": "Bus d'exportation sans fil",
+  "block.grimstorage.wireless_machine_bus": "Bus machine sans fil",
+  "message.grimstorage.wireless_device.bound": "Lié au réseau {0}",
+  "message.grimstorage.wireless_device.unbound": "Délié de son réseau",
+  "message.grimstorage.wireless_device.no_network": "Tiens une clé réseau contenant un réseau. Clic droit sur un contrôleur réseau avec elle.",
+  "message.grimstorage.wireless_device.limit": "Ce réseau a déjà {0} appareils sans fil"
 }
