@@ -186,11 +186,11 @@ public final class Registration {
             () -> new com.xtri6.grimstorage.item.BusItem(EXPORT_BUS.get(), true, new Item.Properties()));
     /** Wireless buses join their network by binding to it with a Network Wrench, not by cable. */
     public static final DeferredBlock<NetworkDeviceBlock> WIRELESS_IMPORT_BUS = device("wireless_import_bus",
-            () -> new BusBlock(machine().noOcclusion(), Registration.WIRELESS_IMPORT_BUS_ENTITY, Menus::openBus));
+            () -> new BusBlock(machine().noOcclusion(), Registration.WIRELESS_IMPORT_BUS_ENTITY, Menus::openBus, true));
     public static final DeferredBlock<NetworkDeviceBlock> WIRELESS_EXPORT_BUS = device("wireless_export_bus",
-            () -> new BusBlock(machine().noOcclusion(), Registration.WIRELESS_EXPORT_BUS_ENTITY, Menus::openBus));
+            () -> new BusBlock(machine().noOcclusion(), Registration.WIRELESS_EXPORT_BUS_ENTITY, Menus::openBus, true));
     public static final DeferredBlock<NetworkDeviceBlock> WIRELESS_MACHINE_BUS = device("wireless_machine_bus",
-            () -> new BusBlock(machine().noOcclusion(), Registration.WIRELESS_MACHINE_BUS_ENTITY, Menus::openMachineBus));
+            () -> new BusBlock(machine().noOcclusion(), Registration.WIRELESS_MACHINE_BUS_ENTITY, Menus::openMachineBus, true));
     public static final DeferredBlock<NetworkDeviceBlock> QUANTUM_LINK = device("quantum_link",
             () -> new NetworkDeviceBlock(machine().lightLevel(s -> 9), Registration.QUANTUM_LINK_ENTITY, null));
     public static final DeferredBlock<CableBlock> CABLE = device("soul_cable",

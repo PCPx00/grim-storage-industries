@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.17.6
+- Wireless Import, Export and Machine buses no longer have a cable stub or cable arms, and cables don't connect to them.
+  Each has an antenna out the back instead, and its tip blinks blue.
+- Wireless buses join their network by binding only, so the antenna is purely visual.
+
 ## 1.17.5
 - Echo Soulite Shard redrawn as a faceted teal crystal with a bright ridge and sparkles.
 - Netherite Infused Diamond redrawn as a brilliant-cut gem set in a dark netherite rim with gold trim and purple glints,

@@ -5,7 +5,7 @@
         "facing": "north"
       },
       "apply": {
-        "model": "grimstorage:block/export_bus_base"
+        "model": "grimstorage:block/wireless_export_bus"
       }
     },
     {
@@ -13,7 +13,7 @@
         "facing": "south"
       },
       "apply": {
-        "model": "grimstorage:block/export_bus_base",
+        "model": "grimstorage:block/wireless_export_bus",
         "y": 180
       }
     },
@@ -22,7 +22,7 @@
         "facing": "east"
       },
       "apply": {
-        "model": "grimstorage:block/export_bus_base",
+        "model": "grimstorage:block/wireless_export_bus",
         "y": 90
       }
     },
@@ -31,7 +31,7 @@
         "facing": "west"
       },
       "apply": {
-        "model": "grimstorage:block/export_bus_base",
+        "model": "grimstorage:block/wireless_export_bus",
         "y": 270
       }
     },
@@ -40,7 +40,7 @@
         "facing": "up"
       },
       "apply": {
-        "model": "grimstorage:block/export_bus_base",
+        "model": "grimstorage:block/wireless_export_bus",
         "x": 270
       }
     },
@@ -49,60 +49,7 @@
         "facing": "down"
       },
       "apply": {
-        "model": "grimstorage:block/export_bus_base",
-        "x": 90
-      }
-    },
-    {
-      "when": {
-        "north": "true"
-      },
-      "apply": {
-        "model": "grimstorage:block/soul_cable_arm"
-      }
-    },
-    {
-      "when": {
-        "south": "true"
-      },
-      "apply": {
-        "model": "grimstorage:block/soul_cable_arm",
-        "y": 180
-      }
-    },
-    {
-      "when": {
-        "east": "true"
-      },
-      "apply": {
-        "model": "grimstorage:block/soul_cable_arm",
-        "y": 90
-      }
-    },
-    {
-      "when": {
-        "west": "true"
-      },
-      "apply": {
-        "model": "grimstorage:block/soul_cable_arm",
-        "y": 270
-      }
-    },
-    {
-      "when": {
-        "up": "true"
-      },
-      "apply": {
-        "model": "grimstorage:block/soul_cable_arm",
-        "x": 270
-      }
-    },
-    {
-      "when": {
-        "down": "true"
-      },
-      "apply": {
-        "model": "grimstorage:block/soul_cable_arm",
+        "model": "grimstorage:block/wireless_export_bus",
         "x": 90
       }
     }

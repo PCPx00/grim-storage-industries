@@ -49,8 +49,16 @@ public class BusBlock extends FacingDeviceBlock.All {
         };
     }
 
+    /** Wireless buses join their network by binding, so they never take a cable arm or connect to one. */
+    private final boolean wireless;
+
     public BusBlock(Properties props, Supplier<? extends BlockEntityType<?>> type, Opener opener) {
+        this(props, type, opener, false);
+    }
+
+    public BusBlock(Properties props, Supplier<? extends BlockEntityType<?>> type, Opener opener, boolean wireless) {
         super(props, type, opener);
+        this.wireless = wireless;
         BlockState st = defaultBlockState();
         for (var p : LINKS.values()) {
             st = st.setValue(p, false);
@@ -64,12 +72,12 @@ public class BusBlock extends FacingDeviceBlock.All {
         LINKS.values().forEach(builder::add);
     }
 
-    private static boolean links(BlockState self, Direction dir, BlockState neighbor) {
-        return dir != self.getValue(FACING) && neighbor.getBlock() instanceof NetworkMember m && m.connectsTo(neighbor, dir.getOpposite());
+    private boolean links(BlockState self, Direction dir, BlockState neighbor) {
+        return !wireless && dir != self.getValue(FACING) && neighbor.getBlock() instanceof NetworkMember m && m.connectsTo(neighbor, dir.getOpposite());
     }
 
     /** Every side worked out from the neighbors: an arm wherever cable or a network block touches (never the front). */
-    private static BlockState linked(BlockState state, BlockGetter level, BlockPos pos) {
+    private BlockState linked(BlockState state, BlockGetter level, BlockPos pos) {
         for (Direction d : Direction.values()) {
             state = state.setValue(LINKS.get(d), links(state, d, level.getBlockState(pos.relative(d))));
         }
@@ -103,7 +111,7 @@ public class BusBlock extends FacingDeviceBlock.All {
     /** The front sits on the block being imported from or exported to, so the network never reaches through it. */
     @Override
     public boolean connectsTo(BlockState state, Direction side) {
-        return side != state.getValue(FACING);
+        return !wireless && side != state.getValue(FACING);
     }
 
     @Override
