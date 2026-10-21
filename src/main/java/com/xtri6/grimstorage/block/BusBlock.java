@@ -119,6 +119,22 @@ public class BusBlock extends FacingDeviceBlock.All {
         });
     }
 
+    /**
+     * Vanilla opens the GUI before an item gets its useOn, so a wrench on a wireless bus would open the menu instead of
+     * binding. Hand the click to the wrench first and consume it; everything else keeps the normal GUI behaviour.
+     */
+    @Override
+    protected net.minecraft.world.ItemInteractionResult useItemOn(net.minecraft.world.item.ItemStack stack, BlockState state, Level level,
+                                                                 BlockPos pos, net.minecraft.world.entity.player.Player player,
+                                                                 net.minecraft.world.InteractionHand hand, net.minecraft.world.phys.BlockHitResult hit) {
+        if (stack.getItem() instanceof com.xtri6.grimstorage.item.NetworkWrenchItem
+                && level.getBlockEntity(pos) instanceof com.xtri6.grimstorage.block.entity.WirelessDevice) {
+            stack.useOn(new net.minecraft.world.item.context.UseOnContext(player, hand, hit));
+            return net.minecraft.world.ItemInteractionResult.sidedSuccess(level.isClientSide);
+        }
+        return super.useItemOn(stack, state, level, pos, player, hand, hit);
+    }
+
     @Override
     protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block neighbor, BlockPos from, boolean moving) {
         super.neighborChanged(state, level, pos, neighbor, from, moving);

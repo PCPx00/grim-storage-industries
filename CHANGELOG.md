@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.17.3
+- Network Wrench: right-clicking a Wireless Import, Export or Machine Bus now binds it to the wrench's network instead of
+  opening the bus GUI. Crouch-right-click still unbinds it. Other buses still open their GUI as before.
+
 ## 1.17.2
 - Import and Export Buses: Speed Upgrades now stack in one slot, up to 10 (11x speed with a full stack). The eight separate
   slots are gone. Upgrades already in an older world are merged into that slot when it loads.
