@@ -314,7 +314,7 @@ public class GuideScreen extends Screen {
             g.pose().scale(0.75f, 0.75f, 1f);
             g.renderItem(new ItemStack(BuiltInRegistries.ITEM.get(c.icon())), 0, 0);
             g.pose().popPose();
-            String name = font.plainSubstrByWidth(c.title(), SIDE - 30);
+            String name = Ui.fit(font, c.title(), SIDE - 30);
             g.drawString(font, name, left + 23, y + 3, sel ? t.text() : t.textDim(), false);
         }
 
@@ -325,7 +325,7 @@ public class GuideScreen extends Screen {
 
         List<View> pages = views.get(chapter);
         View v = pages.get(page);
-        g.drawString(font, font.plainSubstrByWidth(v.title(), PW - 20), left + PX, top + 9, t.text(), false);
+        g.drawString(font, Ui.fit(font, v.title(), PW - 20), left + PX, top + 9, t.text(), false);
         Ui.rule(g, t, left + PX, top + 20, PW);
         int y = top + TEXT_TOP;
         for (Line line : v.lines()) {

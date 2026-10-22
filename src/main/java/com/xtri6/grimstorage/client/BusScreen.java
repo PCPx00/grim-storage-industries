@@ -110,8 +110,8 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
         Component text = Component.translatable("gui.grimstorage.bus.status." + s.name().toLowerCase(java.util.Locale.ROOT));
         int w = font.width(text);
         int x = imageWidth - 22 - w;
-        g.fill(x - 7, 9, x - 3, 13, color);
-        g.drawString(font, text, x, 7, color, false);
+        g.fill(x - 7, 6, x - 3, 10, color);
+        g.drawString(font, text, x, 4, color, false);
         // section labels for the grid and the upgrade column
         hint(g, Component.translatable("gui.grimstorage.bus.label.filters"), 8, 22);
         hint(g, Component.translatable("gui.grimstorage.bus.label.moves"), 8, 92);

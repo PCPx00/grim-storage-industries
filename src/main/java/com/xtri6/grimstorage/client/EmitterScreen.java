@@ -91,8 +91,9 @@ public class EmitterScreen extends GrimScreen<BlockMenus.Emitter> {
                 : Component.translatable(menu.emitting() ? "gui.grimstorage.emitter.on" : "gui.grimstorage.emitter.off");
         // under the lamp, small
         g.pose().pushPose();
-        g.pose().translate(26, 44, 0);
-        g.pose().scale(0.75f, 0.75f, 1f);
+        // starts right of the lamp and stops short of the amount box, so long words such as "On redstone" never touch it
+        g.pose().translate(23, 44, 0);
+        g.pose().scale(0.7f, 0.7f, 1f);
         g.drawString(font, state, 0, 0, craft ? t.accent() : menu.emitting() ? 0xFFFF5050 : t.textFaint(), false);
         g.pose().popPose();
     }

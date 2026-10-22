@@ -688,7 +688,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
     @Override
     protected void renderLabels(GuiGraphics g, int mouseX, int mouseY) {
         Theme t = t();
-        String name = font.plainSubstrByWidth(title.getString(), 86);
+        String name = Ui.fit(font, title.getString(), 86);
         g.drawString(font, name, 8, 6, t.text(), false);
         g.drawString(font, playerInventoryTitle, 8, inventoryLabelY, t.textDim(), false);
         g.drawString(font, Component.translatable("gui.grimstorage.crafting"), RIGHT_X, 18, t.textDim(), false);
@@ -698,7 +698,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             g.drawString(font, used, RIGHT_X, 162, t.text(), false);
             g.drawString(font, Component.translatable("gui.grimstorage.types", storedTypes), RIGHT_X, 172, t.textFaint(), false);
             if (!jobs) {
-                g.drawString(font, font.plainSubstrByWidth((all ? Component.translatable("gui.grimstorage.kind.all")
+                g.drawString(font, Ui.fit(font, (all ? Component.translatable("gui.grimstorage.kind.all")
                         : Component.translatable(category.langKey())).getString(), W - RIGHT_X - 8), RIGHT_X, 190, t.accent(), false);
             }
         } else {
@@ -711,7 +711,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             }
         }
         if (jobs) {
-            g.drawString(font, font.plainSubstrByWidth(Component.translatable("gui.grimstorage.kind.jobs").getString(), W - RIGHT_X - 8),
+            g.drawString(font, Ui.fit(font, Component.translatable("gui.grimstorage.kind.jobs").getString(), W - RIGHT_X - 8),
                     RIGHT_X, 190, t.accent(), false);
             g.drawString(font, Component.translatable("gui.grimstorage.jobs.running", menu.clientJobs.size()), RIGHT_X, 200, t.textFaint(), false);
         } else if (mode == null || mode.typed()) {
@@ -1043,9 +1043,9 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                     g.fill(x0, y, x0 + 2, y + 2 * LINE - 1, t.warn());
                 }
                 String name = Fmt.compact(info.amount()) + "x " + info.icon().getHoverName().getString();
-                g.drawString(font, font.plainSubstrByWidth(name, x1 - x0 - 24 - CONTROLS.length * CONTROL_W), x0 + 21, y + 2,
+                g.drawString(font, Ui.fit(font, name, x1 - x0 - 24 - CONTROLS.length * CONTROL_W), x0 + 21, y + 2,
                         info.paused() ? t.textDim() : t.text(), false);
-                small(g, font.plainSubstrByWidth(info.status().getString(), (int) ((x1 - x0 - 50) / 0.75f)), x0 + 21, y + 10, t.textDim());
+                small(g, Ui.fit(font, info.status().getString(), (int) ((x1 - x0 - 50) / 0.75f)), x0 + 21, y + 10, t.textDim());
                 String pct = Math.round(info.progress() * 100) + "%";
                 small(g, pct, x1 - 3 - (int) (font.width(pct) * 0.75f), y + 10, t.accent());
                 Ui.bar(g, t, x0 + 21, y + 16, x1 - x0 - 24, 3, info.progress(), t.accent());
@@ -1083,7 +1083,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
                     text += " \u00b7 " + Component.translatable("gui.grimstorage.jobs.in_machines", st.inMachines()).getString();
                 }
                 int color = done ? t.textFaint() : busy ? t.purple() : t.textDim();
-                small(g, font.plainSubstrByWidth(done ? "\u2714 " + text : text, (int) ((x1 - x0 - 20) / 0.75f)), x0 + 17, y + 2, color);
+                small(g, Ui.fit(font, done ? "\u2714 " + text : text, (int) ((x1 - x0 - 20) / 0.75f)), x0 + 17, y + 2, color);
                 if (mouseX >= x0 && mouseX < x1 && mouseY >= Math.max(y, y0) && mouseY < Math.min(y + LINE, y1)) {
                     List<Component> lines2 = new ArrayList<>();
                     lines2.add(st.output().getHoverName());
@@ -1174,7 +1174,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
         g.renderItem(crafting.key().stack(), x + 9, y + 9);
         g.drawString(font, Component.translatable("gui.grimstorage.craft.title"), x + 32, y + 9, t.text(), false);
         String name = crafting.key().stack().getHoverName().getString();
-        g.drawString(font, font.plainSubstrByWidth(name, w - 100), x + 32, y + 19, t.accent(), false);
+        g.drawString(font, Ui.fit(font, name, w - 100), x + 32, y + 19, t.accent(), false);
         // amount box, top right
         Ui.field(g, t, x + w - 64, y + 9, 56, 14, true);
         craftAmount.setPosition(x + w - 60, y + 12);
@@ -1203,7 +1203,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             Payloads.PreviewLine l = r.line();
             if (l.amount() < 0) {
                 // why the item above is missing, wrapped onto a second row only if it has to be cut
-                small(g, font.plainSubstrByWidth("\u21b3 " + l.by().getString(), (int) ((w - 30) / 0.75f)), x + 18, ry + 3, r.color());
+                small(g, Ui.fit(font, "\u21b3 " + l.by().getString(), (int) ((w - 30) / 0.75f)), x + 18, ry + 3, r.color());
                 continue;
             }
             g.pose().pushPose();
@@ -1218,7 +1218,7 @@ public class TerminalScreen extends GrimScreen<TerminalMenu> {
             } else if (!l.by().getString().isEmpty()) {
                 text += "  \u00b7  " + l.by().getString();
             }
-            small(g, font.plainSubstrByWidth(text, (int) ((w - 36) / 0.75f)), x + 24, ry + 3, r.color());
+            small(g, Ui.fit(font, text, (int) ((w - 36) / 0.75f)), x + 24, ry + 3, r.color());
         }
         if (max > 0) {
             int barH = Math.max(8, listH * PREVIEW_ROWS / rows.size());

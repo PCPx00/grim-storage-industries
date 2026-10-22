@@ -8,6 +8,15 @@ import net.minecraft.network.chat.Component;
 public final class Ui {
     private Ui() {}
 
+    /** The text cut to fit {@code maxWidth}, ending in "..." when anything was cut, so a clipped name never looks finished. */
+    public static String fit(Font font, String text, int maxWidth) {
+        if (font.width(text) <= maxWidth) {
+            return text;
+        }
+        int room = maxWidth - font.width("...");
+        return room <= 0 ? "" : font.plainSubstrByWidth(text, room) + "...";
+    }
+
     /** A rounded, gradient panel with a soft drop shadow and a lit top edge. */
     public static void panel(GuiGraphics g, Theme t, int x, int y, int w, int h) {
         int a = t.panelAlpha();

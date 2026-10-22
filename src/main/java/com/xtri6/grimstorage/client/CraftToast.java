@@ -2,6 +2,7 @@ package com.xtri6.grimstorage.client;
 
 import com.xtri6.grimstorage.ClientConfig;
 import com.xtri6.grimstorage.client.ui.Theme;
+import com.xtri6.grimstorage.client.ui.Ui;
 import com.xtri6.grimstorage.net.Payloads;
 import com.xtri6.grimstorage.util.Fmt;
 
@@ -35,6 +36,13 @@ public final class CraftToast implements Toast {
         }
     }
 
+    /** Wide enough for the text, between the usual toast width and a cap; longer lines end in "...". */
+    @Override
+    public int width() {
+        Font font = Minecraft.getInstance().font;
+        return Math.min(240, Math.max(160, Math.max(font.width(title), font.width(line)) + 40));
+    }
+
     @Override
     public Visibility render(GuiGraphics g, ToastComponent toasts, long time) {
         Theme t = Theme.get();
@@ -45,7 +53,7 @@ public final class CraftToast implements Toast {
         g.fill(1, 1, 3, h - 1, done ? t.ok() : t.warn());
         g.renderItem(icon, 8, 8);
         g.drawString(font, title, 30, 7, done ? t.ok() : t.warn(), false);
-        g.drawString(font, font.plainSubstrByWidth(line.getString(), w - 36), 30, 18, t.text(), false);
+        g.drawString(font, Ui.fit(font, line.getString(), w - 36), 30, 18, t.text(), false);
         return time >= SHOW_FOR ? Visibility.HIDE : Visibility.SHOW;
     }
 }

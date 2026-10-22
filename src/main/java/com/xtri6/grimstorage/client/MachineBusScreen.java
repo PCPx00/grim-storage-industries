@@ -3,6 +3,7 @@ package com.xtri6.grimstorage.client;
 import com.xtri6.grimstorage.block.BusBlock;
 import com.xtri6.grimstorage.client.ui.GrimButton;
 import com.xtri6.grimstorage.client.ui.Theme;
+import com.xtri6.grimstorage.client.ui.Ui;
 import com.xtri6.grimstorage.menu.BlockMenus;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -84,7 +85,7 @@ public class MachineBusScreen extends GrimScreen<BlockMenus.MachineBus> {
         g.pose().pushPose();
         g.pose().translate(70, 32 + (1 - scale) * 4, 0);
         g.pose().scale(scale, scale, 1f);
-        g.drawString(font, font.plainSubstrByWidth(name, (int) (98 / scale)), 0, 0, t.accent(), false);
+        g.drawString(font, Ui.fit(font, name, (int) (98 / scale)), 0, 0, t.accent(), false);
         g.pose().popPose();
         Component recipes = Component.translatable("gui.grimstorage.machine_bus.recipes", menu.recipes());
         g.drawString(font, recipes, 70, 46, menu.recipes() > 0 ? t.ok() : t.textFaint(), false);

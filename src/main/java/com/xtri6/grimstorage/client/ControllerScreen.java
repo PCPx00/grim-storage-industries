@@ -313,7 +313,7 @@ public class ControllerScreen extends GrimScreen<ControllerMenu> {
             Payloads.JobInfo job = jobs.get(i + scroll);
             int jy = JOB_Y + i * JOB_H;
             g.renderItem(job.icon(), 11, jy + 3);
-            g.drawString(font, font.plainSubstrByWidth(Fmt.compact(job.amount()) + "x " + job.icon().getHoverName().getString(), imageWidth - 64),
+            g.drawString(font, Ui.fit(font, Fmt.compact(job.amount()) + "x " + job.icon().getHoverName().getString(), imageWidth - 64),
                     32, jy + 3, t.text(), false);
             g.pose().pushPose();
             g.pose().translate(32, jy + 12, 0);

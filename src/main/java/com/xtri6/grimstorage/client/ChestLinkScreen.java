@@ -71,7 +71,7 @@ public class ChestLinkScreen extends GrimScreen<BlockMenus.ChestLink> {
             }
         }
         g.drawString(font, Component.translatable("gui.grimstorage.chest_link.linked"), 8, 22, t.textDim(), false);
-        g.drawString(font, font.plainSubstrByWidth(target.getString(), 160), 8, 32,
+        g.drawString(font, Ui.fit(font, target.getString(), 160), 8, 32,
                 menu.linked() ? t.accent() : t.danger(), false);
         if (!menu.linked()) {
             int ly = 46;

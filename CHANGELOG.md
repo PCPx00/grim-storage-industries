@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.17.10
+- Text that doesn't fit now ends in "..." instead of being cut off mid-letter:
+  - Job queue rows in the Soul Terminal (item name, status line, and each step's machine line).
+  - Craft toasts: they grow to fit their text, up to a cap, so "Waiting for Clean Iron Slurry" reads in full.
+  - Guide page titles, Chest Link and Controller names, machine and bus titles, and the terminal's list entries.
+- Bus screens: the status text (for example "No network") lines up with the title.
+- Redstone Emitter: the signal text next to the lamp no longer touches the amount box.
+
 ## 1.17.9
 - Wireless buses bound with the Network Wrench now say why they aren't in the network, instead of just "No network":
   - "Needs a range card" when the device has no range card. The wrench also says so right after binding.
