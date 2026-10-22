@@ -16,7 +16,7 @@ set "DETECTED_JAVA_HOME="
 for /f "tokens=2 delims==" %%i in ('java -XshowSettings:properties -version 2^>^&1 ^| findstr /c:"java.home"') do set "DETECTED_JAVA_HOME=%%i"
 for /f "tokens=*" %%a in ("%DETECTED_JAVA_HOME%") do set "DETECTED_JAVA_HOME=%%a"
 if not exist "%DETECTED_JAVA_HOME%\bin\java.exe" (
-  echo Could not work out where Java is installed. Send a screenshot of this window to Claude.
+  echo Could not work out where Java is installed. Send a screenshot of this window to the mod author.
   pause
   exit /b 1
 )
@@ -27,7 +27,7 @@ echo.
 call gradlew.bat build "-Dorg.gradle.java.home=%DETECTED_JAVA_HOME%"
 if errorlevel 1 (
   echo.
-  echo BUILD FAILED. Copy the error lines above and send them to Claude.
+  echo BUILD FAILED. Copy the error lines above and send them to the mod author.
   pause
   exit /b 1
 )
