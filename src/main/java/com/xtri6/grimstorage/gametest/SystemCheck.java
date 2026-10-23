@@ -1583,6 +1583,37 @@ public final class SystemCheck {
             return iron == 4 && raw == 0 && n.jobs().isEmpty()
                     && mbFurnace(Direction.EAST).getItem(2).isEmpty() && mbFurnace(Direction.SOUTH).getItem(2).isEmpty();
         }));
+        // A wireless machine bus on its own network, with a furnace in front of it and an infinite range card.
+        STEPS.add(new Step("wireless machine bus: learns the furnace recipes and they are in the network", 60, () -> {
+            BlockPos w = new BlockPos(64, 230, 64);
+            if (!wirelessMachineBuilt[0]) {
+                wirelessMachineBuilt[0] = true;
+                level.setChunkForced(w.getX() >> 4, w.getZ() >> 4, true);
+                level.setBlockAndUpdate(w, Registration.CONTROLLER.get().defaultBlockState());
+                level.setBlockAndUpdate(w.west(), Registration.DRIVE.get().defaultBlockState());
+                DriveBlockEntity d = (DriveBlockEntity) level.getBlockEntity(w.west());
+                d.cells().setStackInSlot(0, new ItemStack(Registration.CELLS.get(CellTier.GOLD).get()));
+                BlockPos bus = w.north(2);
+                level.setBlockAndUpdate(bus, Registration.WIRELESS_MACHINE_BUS.get().defaultBlockState()
+                        .setValue(FacingDeviceBlock.All.FACING, Direction.NORTH));
+                level.setBlockAndUpdate(bus.north(), Blocks.FURNACE.defaultBlockState());
+                var be = (com.xtri6.grimstorage.block.entity.WirelessMachineBusBlockEntity) level.getBlockEntity(bus);
+                be.bindNetwork(((com.xtri6.grimstorage.block.entity.ControllerBlockEntity) level.getBlockEntity(w)).networkId());
+                be.rangeHandler().setStackInSlot(0, new ItemStack(Registration.WIRELESS_RANGE_INFINITE.get()));
+                return false;
+            }
+            StorageNetwork n = NetworkManager.get(level, w);
+            if (n == null) {
+                return false;
+            }
+            n.insert(key(Items.RAW_IRON), 4, false);
+            CraftingPlanner.Plan p = n.plan(key(Items.IRON_INGOT), 4);
+            var bus = (com.xtri6.grimstorage.block.entity.WirelessMachineBusBlockEntity) level.getBlockEntity(w.north(2));
+            int cable = machineBus(Direction.EAST).recipeCount();
+            info("wireless machine bus: learned={} cable machine bus learned={} plan ok={} missing={} patterns={}",
+                    bus.learnedCount(), cable, p.ok(), p.missing(), n.patternsFor(key(Items.IRON_INGOT)).size());
+            return bus.learnedCount() > 0 && p.ok() && bus.learnedCount() == cable;
+        }));
         STEPS.add(new Step("machine bus with a card only takes that card's outputs", 20, () -> {
             IItemHandler chest = level.getCapability(Capabilities.ItemHandler.BLOCK, MB.north(2), null);
             if (chest.getStackInSlot(0).isEmpty() && chest.getStackInSlot(1).isEmpty()) {
@@ -2091,6 +2122,7 @@ public final class SystemCheck {
     // ------------------------------------------------------------------ chains of chemical machines, Source, the job queue
 
     private static final BlockPos CHAIN = new BlockPos(48, 230, 48);
+    private static final boolean[] wirelessMachineBuilt = {false};
 
     private static BulkKey mekChem(String id) {
         return BulkKey.chemical(ResourceLocation.fromNamespaceAndPath("mekanism", id));
