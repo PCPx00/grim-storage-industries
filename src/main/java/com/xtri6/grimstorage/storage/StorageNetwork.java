@@ -24,6 +24,7 @@ import com.xtri6.grimstorage.block.entity.QuantumLinkBlockEntity;
 import com.xtri6.grimstorage.block.entity.StockKeeperBlockEntity;
 import com.xtri6.grimstorage.block.entity.VoidFilterBlockEntity;
 import com.xtri6.grimstorage.item.BulkCellItem;
+import com.xtri6.grimstorage.item.CreativeEnergyBatteryItem;
 import com.xtri6.grimstorage.item.CardData;
 import com.xtri6.grimstorage.item.StorageCellItem;
 
@@ -639,10 +640,18 @@ public final class StorageNetwork {
         return out;
     }
 
+    /** A creative energy battery in this network: it hands out and takes in any amount of FE. */
+    private boolean creativeEnergy(BulkKind kind) {
+        return kind == BulkKind.ENERGY && bulkCells(kind).stream().anyMatch(c -> c.cell() instanceof CreativeEnergyBatteryItem);
+    }
+
     /** Puts a fluid/chemical/energy/Source amount in. Returns how much was accepted. */
     public long insertBulk(@Nullable BulkKey key, long amount, boolean simulate) {
         if (!isActive() || key == null || amount <= 0) {
             return 0;
+        }
+        if (creativeEnergy(key.kind())) {
+            return amount;
         }
         long left = amount;
         List<BulkRef> cells = bulkCells(key.kind());
@@ -664,6 +673,9 @@ public final class StorageNetwork {
         if (!isActive() || key == null || amount <= 0) {
             return 0;
         }
+        if (creativeEnergy(key.kind())) {
+            return amount;
+        }
         long left = amount;
         for (BulkRef c : bulkCells(key.kind())) {
             if (left > 0) {
@@ -676,6 +688,9 @@ public final class StorageNetwork {
     public long countBulk(@Nullable BulkKey key) {
         if (key == null || !isActive()) {
             return 0;
+        }
+        if (creativeEnergy(key.kind())) {
+            return CreativeEnergyBatteryItem.SUPPLY;
         }
         long n = 0;
         for (BulkRef c : bulkCells(key.kind())) {

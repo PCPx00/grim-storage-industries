@@ -490,6 +490,36 @@ public final class SystemCheck {
             info("source accepted={} (cell holds 10k) stored={}", in, net().countBulk(src));
             return in == 10_000 && net().countBulk(src) == 10_000;
         }));
+        STEPS.add(new Step("swapping a wireless bus keeps its range card: one card, none dropped", 0, () -> {
+            BlockPos p = at(30, 8, 30);
+            level.setBlockAndUpdate(p, Registration.WIRELESS_IMPORT_BUS.get().defaultBlockState().setValue(FacingDeviceBlock.All.FACING, Direction.EAST));
+            var before = (com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(p);
+            before.logic().upgrades().setStackInSlot(com.xtri6.grimstorage.block.entity.BusLogic.RANGE_SLOT,
+                    new ItemStack(Registration.WIRELESS_RANGE_MEDIUM.get()));
+            before.switchDirection(FakePlayerFactory.getMinecraft(level));
+            var after = (com.xtri6.grimstorage.block.entity.BusBlockEntity) level.getBlockEntity(p);
+            boolean exportNow = level.getBlockState(p).is(Registration.WIRELESS_EXPORT_BUS.get());
+            ItemStack kept = after == null ? ItemStack.EMPTY
+                    : after.logic().upgrades().getStackInSlot(com.xtri6.grimstorage.block.entity.BusLogic.RANGE_SLOT);
+            long dropped = level.getEntitiesOfClass(net.minecraft.world.entity.item.ItemEntity.class,
+                    new net.minecraft.world.phys.AABB(p).inflate(3),
+                    e -> e.getItem().is(Registration.WIRELESS_RANGE_MEDIUM.get())).size();
+            info("swap: export={} kept={} dropped={}", exportNow, kept.getItem(), dropped);
+            level.setBlockAndUpdate(p, Blocks.AIR.defaultBlockState());
+            return exportNow && kept.is(Registration.WIRELESS_RANGE_MEDIUM.get()) && dropped == 0;
+        }));
+        STEPS.add(new Step("creative energy battery: endless FE in and out, and it never counts down", 0, () -> {
+            DriveBlockEntity drive = (DriveBlockEntity) level.getBlockEntity(at(1, 0, 0));
+            drive.cells().setStackInSlot(7, new ItemStack(Registration.CREATIVE_ENERGY_BATTERY.get()));
+            BulkKey fe = BulkKey.flat(BulkKind.ENERGY);
+            long out = net().extractBulk(fe, 1_000_000_000_000L, false);
+            long in = net().insertBulk(fe, 1_000_000_000_000L, false);
+            long count = net().countBulk(fe);
+            drive.cells().setStackInSlot(7, ItemStack.EMPTY);
+            info("creative battery out={} in={} count={}", out, in, count);
+            return out == 1_000_000_000_000L && in == 1_000_000_000_000L
+                    && count == com.xtri6.grimstorage.item.CreativeEnergyBatteryItem.SUPPLY;
+        }));
         STEPS.add(new Step("terminal: fill and empty a bucket and a Mekanism tank", 0, () -> {
             FakePlayer fp = FakePlayerFactory.getMinecraft(level);
             fp.getInventory().clearContent();

@@ -24,6 +24,7 @@ import com.xtri6.grimstorage.block.entity.SoulInfuserBlockEntity;
 import com.xtri6.grimstorage.block.entity.StockKeeperBlockEntity;
 import com.xtri6.grimstorage.block.entity.VoidFilterBlockEntity;
 import com.xtri6.grimstorage.item.BulkCellItem;
+import com.xtri6.grimstorage.item.CreativeEnergyBatteryItem;
 import com.xtri6.grimstorage.item.CardData;
 import com.xtri6.grimstorage.item.GuideBookItem;
 import com.xtri6.grimstorage.item.ProcessingCardItem;
@@ -275,6 +276,9 @@ public final class Registration {
         }
     }
 
+    /** Creative tab only, no recipe: an endless energy supply for testing and building. */
+    public static final DeferredItem<CreativeEnergyBatteryItem> CREATIVE_ENERGY_BATTERY = ITEMS.register("creative_energy_battery",
+            () -> new CreativeEnergyBatteryItem(new Item.Properties().rarity(Rarity.EPIC)));
     public static final DeferredItem<RecipeCardItem> RECIPE_CARD = ITEMS.register("recipe_card",
             () -> new RecipeCardItem(new Item.Properties().stacksTo(16)));
     public static final DeferredItem<ProcessingCardItem> PROCESSING_CARD = ITEMS.register("processing_card",
@@ -390,6 +394,7 @@ public final class Registration {
                                 }
                             }
                         }
+                        order.add(CREATIVE_ENERGY_BATTERY);
                         order.addAll(List.of(SOUL_WRENCH, NETWORK_WRENCH, RECIPE_CARD, PROCESSING_CARD, SPEED_UPGRADE, WIRELESS_RANGE_LOW, WIRELESS_RANGE_MEDIUM, WIRELESS_RANGE_HIGH, WIRELESS_RANGE_INFINITE, WIRELESS_TERMINAL, SINGULARITY_TERMINAL, SOUL_TETHER));
                         order.forEach(entry -> output.accept(entry.get()));
                     })

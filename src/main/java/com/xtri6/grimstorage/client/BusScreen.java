@@ -110,8 +110,21 @@ public class BusScreen extends GrimScreen<BlockMenus.Bus> {
         Component text = Component.translatable("gui.grimstorage.bus.status." + s.name().toLowerCase(java.util.Locale.ROOT));
         int w = font.width(text);
         int x = imageWidth - 22 - w;
-        g.fill(x - 7, 6, x - 3, 10, color);
-        g.drawString(font, text, x, 4, color, false);
+        int titleEnd = titleLabelX + font.width(title);
+        if (x - 8 >= titleEnd) {
+            // room beside the title: status sits at the right, on the title line
+            g.fill(x - 7, 6, x - 3, 10, color);
+            g.drawString(font, text, x, 4, color, false);
+        } else {
+            // a long title ("Wireless Machine Bus") plus a long status would collide, so the status drops to its own
+            // small line under the title rule
+            g.fill(titleLabelX, 16, titleLabelX + 3, 19, color);
+            g.pose().pushPose();
+            g.pose().translate(titleLabelX + 6, 15, 0);
+            g.pose().scale(0.75f, 0.75f, 1f);
+            g.drawString(font, text, 0, 0, color, false);
+            g.pose().popPose();
+        }
         // section labels for the grid and the upgrade column
         hint(g, Component.translatable("gui.grimstorage.bus.label.filters"), 8, 22);
         hint(g, Component.translatable("gui.grimstorage.bus.label.moves"), 8, 92);

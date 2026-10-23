@@ -77,6 +77,9 @@ public class BusBlockEntity extends NetworkBlockEntity implements Ticking, PipeP
         logic.flipDirection();
         CompoundTag tag = new CompoundTag();
         logic.save(tag, level.registryAccess());
+        // The tag already carries the upgrades (range card, speed) to the new block. Empty the old slots first, or
+        // replacing this block would drop them into the world as well: that is the duplicate.
+        logic.takeUpgrades();
         java.util.UUID bound = this instanceof WirelessDevice w ? w.boundNetwork() : null;
         boolean wireless = this instanceof WirelessDevice;
         BlockPos pos = worldPosition;
