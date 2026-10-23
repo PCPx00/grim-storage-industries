@@ -31,6 +31,13 @@
           ]
         },
         {
+          "title": "Conquistas",
+          "text": [
+            "Grim Storage tem sua própria aba na tela de conquistas. As comuns marcam seu primeiro drive, controlador, barramento e assim por diante.",
+            "As **lendárias** têm moldura roxa e marcam os grandes marcos. Uma delas fica escondida até você encontrá-la."
+          ]
+        },
+        {
           "title": "Perdeu este livro?",
           "text": "Fabrique um novo com qualquer livro e um Lingote de Soulita.",
           "recipe": "grimstorage:guide_book"
@@ -144,6 +151,18 @@
             "O jogador que coloca um **Controlador de Rede** é o dono da rede. Ninguém mais pode abrir os blocos dela, usar um terminal sem fio nela ou quebrar e colocar blocos dela.",
             "Abra o controlador e clique na **chave** para confiar em outros jogadores pelo nome, ou para abrir a rede para todos.",
             "Uma rede sem dono (construída antes disto, ou colocada por uma máquina) é aberta, e qualquer um pode **reivindicá-la** ali. Operadores do servidor sempre podem entrar."
+          ]
+        },
+        {
+          "title": "Números de rede",
+          "text": [
+            "Cada rede tem seu próprio **número de 8 dígitos**, que não é compartilhado com outra rede do mesmo mundo.",
+            "- Clique com o botão direito num **Controlador de Rede** com a **Chave de rede** para copiar o número.",
+            "- Clique com o botão direito num dispositivo sem fio com a chave para **vincular** à rede. Agachado, clique com o botão direito para desvincular.",
+            "Dispositivos sem fio entram na rede à qual estão vinculados."
+          ],
+          "items": [
+            "grimstorage:network_wrench"
           ]
         }
       ]
@@ -442,6 +461,15 @@
           "recipe": "grimstorage:machine_bus"
         },
         {
+          "title": "Barramento de Máquina Sem Fio",
+          "text": [
+            "O **Barramento de Máquina Sem Fio** entra na rede vinculando-se a ela com a Chave de rede, em vez de cabo. Ele aprende receitas como um Barramento de Máquina com cabo.",
+            "Ele precisa de um **Cartão de alcance** no slot de alcance. Sem um, não alcança a rede e não aprende nada. A tela mostra **Precisa de um cartão de alcance** até você colocar um, e **Sem rede** até estar vinculado.",
+            "Quando a linha de status disser **Conectado à sua rede**, as receitas dele estão na rede, como num barramento com cabo."
+          ],
+          "recipe": "grimstorage:wireless_machine_bus"
+        },
+        {
           "title": "Truques do Barramento de Máquina",
           "text": [
             "- **Mantém as máquinas rodando:** fornalhas recebem combustível e máquinas elétricas recebem energia da sua rede.",
@@ -456,7 +484,8 @@
           "text": [
             "O Barramento de Máquina aprende receitas do **Mekanism** (todas as máquinas de itens e fábricas, incluindo a Câmara de Purificação e o Compressor de Ósmio), **Create** (Moinho), **Ender IO** (Moinho SAG, Fornalha de Ligas), **Ars Nouveau** (Câmara de Imbuição), **Immersive Engineering**, **Powah**, **Modern Industrialization**, **Oritech** e **Actually Additions**.",
             "Máquinas de outros mods costumam funcionar também quando o nome da máquina combina com as receitas dela (um triturador tritura).",
-            "Nas máquinas do Mekanism ele abre sozinho o lado em que encosta. Não precisa de Configurador."
+            "Nas máquinas do Mekanism ele abre sozinho o lado em que encosta. Não precisa de Configurador.",
+            "**Criadores de pacotes:** rode `/grimstorage_export_machines` com JEI e todos os mods instalados. Ele grava `grimstorage_export/grimstorage_machines.json`: cada máquina em que o JEI mostra uma receita, e os tipos de receita dela. Coloque em um datapack em `data/grimstorage/grimstorage_machines/`."
           ]
         },
         {

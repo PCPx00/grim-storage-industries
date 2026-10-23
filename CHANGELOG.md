@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.17.12
+- Advancements: a Grim Storage tab with 19 advancements, 10 ordinary and 9 legendary (purple frame). One legendary is hidden until you earn it.
+- Wireless Machine Bus: a status line under the title says "No network", "Needs a range card", or "Connected to its network". Once bound with a range card, its recipes reach the network the same way a wired bus's do.
+- Network numbers: every network has an 8-digit number, never shared with another network in the same world. The Network Wrench copies and shows it.
+- New `/grimstorage_export_machines` (client, JEI required): writes every machine JEI shows a recipe on to a Machine Bus datapack file, so pack makers can cover modded machines without per-mod rules.
+- Guide: new pages on advancements, network numbers, the Wireless Machine Bus, and the export command (English, Portuguese, Chinese).
+- Fixed: advancements were in the wrong data folder, so none showed up. They now load from `advancement`.
+- Fixed: a network's ID could change after a reload if nothing had asked for it yet, which broke its wireless bindings.
+
 ## 1.17.11
 - Creative Energy Battery: a creative-tab-only energy cell with endless FE. It has no recipe, so it can't be crafted
   in survival. It always gives energy and takes any you send, and reads as "Creative Energy Battery (infinite FE)".

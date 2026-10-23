@@ -31,6 +31,13 @@
           ]
         },
         {
+          "title": "Advancements",
+          "text": [
+            "Grim Storage has its own tab in the advancements screen. Ordinary ones mark your first drive, controller, bus and so on.",
+            "**Legendary** ones have a purple frame and mark the big milestones. One of them is hidden until you find it."
+          ]
+        },
+        {
           "title": "Lost this book?",
           "text": "Craft a new one from any book and a Soulite Ingot.",
           "recipe": "grimstorage:guide_book"
@@ -144,6 +151,18 @@
             "The player who places a **Network Controller** owns the network. Nobody else can open its blocks, use a wireless terminal on it, or break or add its blocks.",
             "Open the controller and click the **key** to trust other players by name, or to open the network to everyone.",
             "A network nobody owns (built before this, or placed by a machine) is open, and anyone can **claim** it there. Server operators can always get in."
+          ]
+        },
+        {
+          "title": "Network numbers",
+          "text": [
+            "Every network gets its own **8-digit number**, never shared with another network in the same world.",
+            "- Right-click a **Network Controller** with a **Network Wrench** to copy its number.",
+            "- Right-click a wireless device with the wrench to **bind** it to that network. Crouch-right-click to unbind it.",
+            "Wireless devices join the network they are bound to."
+          ],
+          "items": [
+            "grimstorage:network_wrench"
           ]
         }
       ]
@@ -442,6 +461,15 @@
           "recipe": "grimstorage:machine_bus"
         },
         {
+          "title": "Wireless Machine Bus",
+          "text": [
+            "The **Wireless Machine Bus** joins its network by binding to it with a Network Wrench, instead of a cable. It learns recipes like a wired Machine Bus.",
+            "It needs a **Range Card** in its range slot. Without one it can't reach the network, so it learns nothing. Its screen says **Needs a range card** until you add one, and **No network** until it's bound.",
+            "When the status line says **Connected to its network**, its recipes are in the network, just like a wired bus."
+          ],
+          "recipe": "grimstorage:wireless_machine_bus"
+        },
+        {
           "title": "Machine Bus tricks",
           "text": [
             "- **Keeps machines going:** furnaces get fuel and powered machines get energy from your network.",
@@ -456,7 +484,8 @@
           "text": [
             "The Machine Bus learns recipes from **Mekanism** (all its item machines and factories, the Purification Chamber and Osmium Compressor too), **Create** (Millstone), **Ender IO** (SAG Mill, Alloy Smelter), **Ars Nouveau** (Imbuement Chamber), **Immersive Engineering**, **Powah**, **Modern Industrialization**, **Oritech** and **Actually Additions**.",
             "Other mods' machines often work too when the machine's name matches its recipes (a crusher crushes).",
-            "On Mekanism machines it opens the side it touches by itself. No Configurator needed."
+            "On Mekanism machines it opens the side it touches by itself. No Configurator needed.",
+            "**Pack makers:** run `/grimstorage_export_machines` with JEI and every mod installed. It writes `grimstorage_export/grimstorage_machines.json`: every machine JEI shows a recipe on, and its recipe types. Put it in a datapack at `data/grimstorage/grimstorage_machines/`."
           ]
         },
         {
