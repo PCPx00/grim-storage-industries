@@ -10,19 +10,24 @@ Made by **xTri6** for the Nine Craft modpack.
 
 ## The machines, redesigned
 
-Every machine has its own shape and colours, so you can tell them apart at a glance. The glowing parts show what each one is doing.
+Every machine has its own core, colour and top part, so you can tell them apart from across the room.
 
 <p align="center"><img src="media/screenshot-machines.png" alt="The machines" width="800"></p>
 
-- **Soul Infuser:** a violet crucible on a narrow tower, with glowing liquid.
-- **Soul Assembler:** teal, with a robotic arm on the front.
-- **Soul Drive:** blue, with eight cell bays that each show their own status light.
-- **Soul Terminal:** a sloped console with a glowing screen.
-- **Network Controller:** a gold pillar with a green core, the heart of the network.
-- **Stock Keeper:** amber, with a gauge on the front and a funnel on top.
-- **Redstone Emitter:** a red lamp dome on a plinth.
-- **Processing Interface, Network Interface, Void Filter, Quantum Link and Chest Link:** each with its own colours and motifs.
-- **Buses:** green for import, orange for export, and violet for the machine bus.
+Every machine is built on the same Grim Industries frame as Grim Soul Industries: gunmetal corner posts, a glowing line around the base, and a lit core that moves.
+
+- **Network Controller:** pulsing purple lens, antenna on top.
+- **Soul Drive:** eight bays with blinking lights, two data plugs on top.
+- **Soul Terminal:** scrolling cyan screen, small antenna.
+- **Soul Infuser:** swirling purple core, a crystal on top.
+- **Soul Assembler:** a 3x3 grid lit cell by cell, a fan on top.
+- **Stock Keeper:** amber level meters, a dial on top.
+- **Redstone Emitter:** pulsing red lamp, a red beacon on top.
+- **Processing Interface:** a card slot with moving green arrows.
+- **Network Interface:** six ports with lime lights, four plugs on top.
+- **Void Filter:** a purple swirl into a black hole, a dark orb on top.
+- **Quantum Link:** a cyan ring with orbiting light, a cyan crystal and two antennas.
+- **Buses and Chest Link:** the same frame, each with a glowing icon in its colour (green import, orange export, violet machine bus, cyan chest link).
 
 
 <p align="center"><img src="media/showcase.gif" alt="Showcase" width="800"></p>
