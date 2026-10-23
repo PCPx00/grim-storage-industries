@@ -38,6 +38,7 @@ Every machine is built on the same Grim Industries frame as Grim Soul Industries
 - **Jobs survive restarts:** crafting jobs are saved with the world and carry on after a reboot.
 - **Tells you why:** anything missing comes with the reason, and `/grimstorage debug` writes a report for bug reports.
 - **Chest Link:** make any chest, barrel or drawer part of your storage.
+- **Advancements:** a Grim Storage tab with 19 advancements, 10 ordinary and 9 legendary. One legendary stays hidden until you earn it.
 - **Redstone Emitter:** a signal when you have enough (or too little) of something, or craft on redstone.
 - **Server-ready:** networks belong to the player who built them; trust friends by name.
 - **JEI, EMI and REI:** the + button, drag and drop, and search sync work with all three.
@@ -45,6 +46,8 @@ Every machine is built on the same Grim Industries frame as Grim Soul Industries
 - **A terminal you'll actually like:** an Everything tab that shows every item and resource in one list, search, `@mod` search, category tabs, a Craftable tab, a Crafting jobs tab that shows every step as it runs, Shift to keep everything in place while you take, search shared with JEI, a size that fits your screen (or Tall and Taller), a built-in crafting grid that refills itself, and dark mode by default.
 - **Soul Wrench:** cut or rejoin cable connections, take buses off cable, turn machines, and pick up your blocks.
 - **Wireless access** within 128 blocks, or anywhere in any dimension with the Singularity Terminal.
+- **Network numbers:** every network has its own 8-digit number, never shared with another network in the same world. The Network Wrench copies and shows it.
+- **Wireless Machine Bus status:** a line under its title says "No network", "Needs a range card" or "Connected to its network".
 - **Its own ore, Soulite,** and a five-tier progression up to the Singularity Core.
 - **Animated, glowing blocks** and cells whose tier you can see at a glance.
 - **A guide book** given to every player on first join, with live recipes.
@@ -121,6 +124,7 @@ The **Grim Storage Guide** you get when you first join explains every block and 
 - **Any pipe mod** that uses standard NeoForge capabilities works with the buses and the Network Interface.
 - **Pack makers:** every recipe, loot table and ore feature is a datapack file, the guide text can be replaced with a resource pack, and the first-join book can be turned off in the config. Cell sizes, Machine Bus speed and Wireless Terminal range are all configurable too.
 - **Languages:** English, Chinese, Russian, Portuguese (Brazil), Spanish, German and French, for the whole mod and the guide book.
+- **Machine export for pack makers:** `/grimstorage_export_machines` (client, JEI required) writes every machine JEI shows a recipe on to a Machine Bus datapack file, so modded machines are covered without per-mod rules.
 
 <img src="https://raw.githubusercontent.com/PCPx00/grim-storage-industries/main/media/section-family.gif" alt="Grim Industries" width="1200">
 
