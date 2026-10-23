@@ -1,0 +1,37 @@
+{
+  "parent": "grimstorage:root",
+  "display": {
+    "icon": {
+      "id": "grimstorage:redstone_emitter"
+    },
+    "title": {
+      "translate": "advancement.grimstorage.first_emitter.title"
+    },
+    "description": {
+      "translate": "advancement.grimstorage.first_emitter.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "grimstorage:redstone_emitter"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtained"
+    ]
+  ]
+}

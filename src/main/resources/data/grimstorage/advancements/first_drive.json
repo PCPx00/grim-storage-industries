@@ -1,0 +1,37 @@
+{
+  "parent": "grimstorage:root",
+  "display": {
+    "icon": {
+      "id": "grimstorage:drive"
+    },
+    "title": {
+      "translate": "advancement.grimstorage.first_drive.title"
+    },
+    "description": {
+      "translate": "advancement.grimstorage.first_drive.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "grimstorage:drive"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtained"
+    ]
+  ]
+}

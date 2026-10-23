@@ -1,0 +1,37 @@
+{
+  "parent": "grimstorage:root",
+  "display": {
+    "icon": {
+      "id": "grimstorage:chest_link"
+    },
+    "title": {
+      "translate": "advancement.grimstorage.chest_link.title"
+    },
+    "description": {
+      "translate": "advancement.grimstorage.chest_link.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "grimstorage:chest_link"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtained"
+    ]
+  ]
+}

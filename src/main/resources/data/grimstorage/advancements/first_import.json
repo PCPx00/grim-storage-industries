@@ -1,0 +1,37 @@
+{
+  "parent": "grimstorage:root",
+  "display": {
+    "icon": {
+      "id": "grimstorage:import_bus"
+    },
+    "title": {
+      "translate": "advancement.grimstorage.first_import.title"
+    },
+    "description": {
+      "translate": "advancement.grimstorage.first_import.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "grimstorage:import_bus"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtained"
+    ]
+  ]
+}

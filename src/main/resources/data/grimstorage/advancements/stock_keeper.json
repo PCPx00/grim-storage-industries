@@ -1,0 +1,37 @@
+{
+  "parent": "grimstorage:root",
+  "display": {
+    "icon": {
+      "id": "grimstorage:stock_keeper"
+    },
+    "title": {
+      "translate": "advancement.grimstorage.stock_keeper.title"
+    },
+    "description": {
+      "translate": "advancement.grimstorage.stock_keeper.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "grimstorage:stock_keeper"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtained"
+    ]
+  ]
+}
