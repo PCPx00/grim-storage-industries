@@ -437,6 +437,30 @@
       "icon": "grimstorage:processing_interface",
       "pages": [
         {
+          "title": "Machines at a glance",
+          "text": [
+            "Every machine has its own shape and colours, so you can tell them apart at a glance. The glowing parts show what it is doing.",
+            "- **Soul Infuser:** violet crucible on a narrow tower.",
+            "- **Soul Assembler:** teal, with a robotic arm on the front.",
+            "- **Soul Drive:** blue, eight cell bays, each with a status light.",
+            "- **Soul Terminal:** sloped console with a glowing screen.",
+            "- **Network Controller:** gold pillar with a green core.",
+            "- **Stock Keeper:** amber gauge and funnel.",
+            "- **Redstone Emitter:** red lamp dome.",
+            "- **Quantum Link:** violet portal ring."
+          ],
+          "items": [
+            "grimstorage:soul_infuser",
+            "grimstorage:soul_assembler",
+            "grimstorage:soul_drive",
+            "grimstorage:soul_terminal",
+            "grimstorage:network_controller",
+            "grimstorage:stock_keeper",
+            "grimstorage:redstone_emitter",
+            "grimstorage:quantum_link"
+          ]
+        },
+        {
           "title": "Using any machine",
           "text": [
             "Autocrafting can also use **furnaces and machines from any mod**.",

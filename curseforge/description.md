@@ -2,6 +2,22 @@
 
 **Grim Storage Industries** is a storage mod that is easy on day one and still holds up at the end game. Everything you store lives in one network, and the network can craft for you. There are **no channels, no byte or type limits and no cable rules**. Network blocks join just by touching, and one cable carries everything.
 
+## The machines, redesigned
+
+Every machine has its own shape and colours, so you can tell them apart at a glance. The glowing parts show what each one is doing.
+
+<p align="center"><img src="https://raw.githubusercontent.com/PCPx00/grim-storage-industries/main/media/screenshot-machines.png" alt="The machines" width="800"></p>
+
+- **Soul Infuser:** a violet crucible on a narrow tower, with glowing liquid.
+- **Soul Assembler:** teal, with a robotic arm on the front.
+- **Soul Drive:** blue, with eight cell bays that each show their own status light.
+- **Soul Terminal:** a sloped console with a glowing screen.
+- **Network Controller:** a gold pillar with a green core, the heart of the network.
+- **Stock Keeper:** amber, with a gauge on the front and a funnel on top.
+- **Redstone Emitter:** a red lamp dome on a plinth.
+- **Processing Interface, Network Interface, Void Filter, Quantum Link and Chest Link:** each with its own colours and motifs.
+- **Buses:** green for import, orange for export, and violet for the machine bus.
+
 <p align="center"><img src="https://raw.githubusercontent.com/PCPx00/grim-storage-industries/main/media/showcase.gif" alt="Showcase" width="800"></p>
 
 <img src="https://raw.githubusercontent.com/PCPx00/grim-storage-industries/main/media/section-features.gif" alt="Features" width="1200">

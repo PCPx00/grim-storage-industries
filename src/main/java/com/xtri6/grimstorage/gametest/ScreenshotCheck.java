@@ -77,6 +77,8 @@ public final class ScreenshotCheck {
         gui("g14_controller", () -> com.xtri6.grimstorage.Registration.CONTROLLER.get(), Menus::openController);
         gui("g15_terminal", () -> com.xtri6.grimstorage.Registration.TERMINAL.get(), Menus::openTerminal);
         gui("g16_void_filter", () -> com.xtri6.grimstorage.Registration.VOID_FILTER.get(), Menus::openFilter);
+        SHOTS.add(new Shot("w01_machines", true, sp -> gallery(sp, false), () -> {}));
+        SHOTS.add(new Shot("w02_machines_close", false, sp -> gallery(sp, true), () -> {}));
         SHOTS.add(new Shot("g17_recipe_card", true, sp -> {
             sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.RECIPE_CARD.get()));
             Menus.openRecipeCard(sp, InteractionHand.MAIN_HAND);
@@ -262,23 +264,32 @@ public final class ScreenshotCheck {
     }
 
     private static void gallery(ServerPlayer sp) {
+        gallery(sp, false);
+    }
+
+    /** Every machine in one row and a second row, for the store and CurseForge pictures. {@code close} moves in tight. */
+    private static void gallery(ServerPlayer sp, boolean close) {
         var lvl = sp.serverLevel();
-        lvl.setDayTime(18000);
+        lvl.setDayTime(6000);
         BlockPos o = BASE.offset(30, 10, -10);
         net.minecraft.world.level.block.Block[] row1 = {com.xtri6.grimstorage.Registration.CONTROLLER.get(), com.xtri6.grimstorage.Registration.DRIVE.get(),
                 com.xtri6.grimstorage.Registration.TERMINAL.get(), com.xtri6.grimstorage.Registration.ASSEMBLER.get(),
                 com.xtri6.grimstorage.Registration.STOCK_KEEPER.get(), com.xtri6.grimstorage.Registration.VOID_FILTER.get(),
                 com.xtri6.grimstorage.Registration.QUANTUM_LINK.get()};
         net.minecraft.world.level.block.Block[] row2 = {com.xtri6.grimstorage.Registration.INTERFACE.get(), com.xtri6.grimstorage.Registration.SOUL_INFUSER.get(),
-                com.xtri6.grimstorage.Registration.PROCESSING_INTERFACE.get(), com.xtri6.grimstorage.Registration.SOULITE_BLOCK.get(),
-                com.xtri6.grimstorage.Registration.SOUL_GLASS.get(), com.xtri6.grimstorage.Registration.SOULITE_ORE.get(),
+                com.xtri6.grimstorage.Registration.PROCESSING_INTERFACE.get(), com.xtri6.grimstorage.Registration.REDSTONE_EMITTER.get(),
+                com.xtri6.grimstorage.Registration.SOULITE_BLOCK.get(), com.xtri6.grimstorage.Registration.SOUL_GLASS.get(),
                 com.xtri6.grimstorage.Registration.ECHO_SOULITE_ORE.get()};
         for (int i = 0; i < row1.length; i++) {
             lvl.setBlockAndUpdate(o.offset(i, 0, 0), facingSouth(row1[i]));
             lvl.setBlockAndUpdate(o.offset(i, 1, 0), facingSouth(row2[i]));
             lvl.setBlockAndUpdate(o.offset(i, -1, 0), com.xtri6.grimstorage.Registration.CABLE.get().defaultBlockState());
         }
-        sp.teleportTo(lvl, o.getX() + 3.5, o.getY() - 0.2, o.getZ() + 5.2, 180f, 6f);
+        if (close) {
+            sp.teleportTo(lvl, o.getX() + 3.5, o.getY() + 0.4, o.getZ() + 3.2, 180f, 4f);
+        } else {
+            sp.teleportTo(lvl, o.getX() + 3.5, o.getY() + 1.6, o.getZ() + 10.5, 180f, 8f);
+        }
     }
 
     private static void pipes(ServerPlayer sp) {

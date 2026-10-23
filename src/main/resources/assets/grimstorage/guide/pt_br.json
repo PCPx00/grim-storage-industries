@@ -437,6 +437,30 @@
       "icon": "grimstorage:processing_interface",
       "pages": [
         {
+          "title": "Máquinas de relance",
+          "text": [
+            "Cada máquina tem sua própria forma e cores, para você reconhecê-las de longe. As partes que brilham mostram o que ela está fazendo.",
+            "- **Infusor das Almas:** cadinho violeta sobre uma torre estreita.",
+            "- **Montador das Almas:** verde-azulado, com um braço robótico na frente.",
+            "- **Drive das Almas:** azul, oito baias de células, cada uma com uma luz de estado.",
+            "- **Terminal das Almas:** console inclinado com tela brilhante.",
+            "- **Controlador de Rede:** pilar dourado com núcleo verde.",
+            "- **Guardião de Estoque:** medidor e funil âmbar.",
+            "- **Emissor de Redstone:** cúpula de lâmpada vermelha.",
+            "- **Elo Quântico:** anel de portal violeta."
+          ],
+          "items": [
+            "grimstorage:soul_infuser",
+            "grimstorage:soul_assembler",
+            "grimstorage:soul_drive",
+            "grimstorage:soul_terminal",
+            "grimstorage:network_controller",
+            "grimstorage:stock_keeper",
+            "grimstorage:redstone_emitter",
+            "grimstorage:quantum_link"
+          ]
+        },
+        {
           "title": "Usando qualquer máquina",
           "text": [
             "A fabricação automática também pode usar **fornalhas e máquinas de qualquer mod**.",

@@ -8,6 +8,23 @@ Part of the Grim Industries family with **Grim Soul Industries** and **Grim Pipe
 
 Made by **xTri6** for the Nine Craft modpack.
 
+## The machines, redesigned
+
+Every machine has its own shape and colours, so you can tell them apart at a glance. The glowing parts show what each one is doing.
+
+<p align="center"><img src="media/screenshot-machines.png" alt="The machines" width="800"></p>
+
+- **Soul Infuser:** a violet crucible on a narrow tower, with glowing liquid.
+- **Soul Assembler:** teal, with a robotic arm on the front.
+- **Soul Drive:** blue, with eight cell bays that each show their own status light.
+- **Soul Terminal:** a sloped console with a glowing screen.
+- **Network Controller:** a gold pillar with a green core, the heart of the network.
+- **Stock Keeper:** amber, with a gauge on the front and a funnel on top.
+- **Redstone Emitter:** a red lamp dome on a plinth.
+- **Processing Interface, Network Interface, Void Filter, Quantum Link and Chest Link:** each with its own colours and motifs.
+- **Buses:** green for import, orange for export, and violet for the machine bus.
+
+
 <p align="center"><img src="media/showcase.gif" alt="Showcase" width="800"></p>
 
 ## Getting started

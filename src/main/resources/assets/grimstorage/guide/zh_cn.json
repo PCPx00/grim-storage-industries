@@ -437,6 +437,30 @@
       "icon": "grimstorage:processing_interface",
       "pages": [
         {
+          "title": "机器一览",
+          "text": [
+            "每台机器都有自己的形状和颜色，一眼就能分辨。发光的部分显示它正在做什么。",
+            "- **灵魂注入器：**紫色坩埚，立在细长的塔上。",
+            "- **灵魂装配器：**青绿色，正面有一只机械臂。",
+            "- **灵魂驱动器：**蓝色，八个元件槽，每个都有状态灯。",
+            "- **灵魂终端：**带发光屏幕的斜面控制台。",
+            "- **网络控制器：**金色立柱，绿色核心。",
+            "- **库存管理器：**琥珀色仪表和漏斗。",
+            "- **红石发信器：**红色灯罩。",
+            "- **量子链接：**紫色传送门环。"
+          ],
+          "items": [
+            "grimstorage:soul_infuser",
+            "grimstorage:soul_assembler",
+            "grimstorage:soul_drive",
+            "grimstorage:soul_terminal",
+            "grimstorage:network_controller",
+            "grimstorage:stock_keeper",
+            "grimstorage:redstone_emitter",
+            "grimstorage:quantum_link"
+          ]
+        },
+        {
           "title": "使用任意机器",
           "text": [
             "自动合成也可以使用**熔炉和任意模组的机器**。",
