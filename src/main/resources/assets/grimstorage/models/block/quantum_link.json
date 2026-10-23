@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/block",
-  "render_type": "minecraft:translucent",
+  "render_type": "minecraft:cutout",
   "textures": {
     "particle": "grimstorage:block/quantum_link_front",
     "front": "grimstorage:block/quantum_link_front",

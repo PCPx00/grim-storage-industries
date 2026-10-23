@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/block",
-  "render_type": "minecraft:translucent",
+  "render_type": "minecraft:cutout",
   "textures": {
     "particle": "grimstorage:block/soul_assembler_front",
     "front": "grimstorage:block/soul_assembler_front",
