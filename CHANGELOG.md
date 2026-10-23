@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.17.13
+- Machine overhaul: every machine has its own look and silhouette. Each one has a stepped 3D model and its own
+  32x32 textures for front, side and top, with glowing parts that show what it is doing:
+  - Soul Infuser: a violet crucible on a narrow tower, with glowing liquid and window tubes.
+  - Soul Assembler: teal, with a robotic arm on the front and a grid of sockets on top.
+  - Soul Drive: blue, with eight cell bays, each with its own status light.
+  - Soul Terminal: a sloped console with a glowing screen.
+  - Network Controller: a gold pillar with a green core, the network's heart.
+  - Stock Keeper: amber, with a gauge on the front and a funnel on top.
+  - Redstone Emitter: a red lamp dome on a plinth.
+  - Processing Interface: green, with a card slot on the front.
+  - Network Interface: a lime port ring on a pipe collar.
+  - Void Filter: a dark violet void with a glowing rim.
+  - Quantum Link: a violet portal ring on a flared base.
+  - Chest Link: a brass chest band with a cyan lock.
+  - Import / Export / Machine Bus: green inward arrow, orange outward arrow, and a violet gear.
+- Collision is unchanged: every machine still takes up one full block.
+
 ## 1.17.12
 - Advancements: a Grim Storage tab with 19 advancements, 10 ordinary and 9 legendary (purple frame). One legendary is hidden until you earn it.
 - Wireless Machine Bus: a status line under the title says "No network", "Needs a range card", or "Connected to its network". Once bound with a range card, its recipes reach the network the same way a wired bus's do.

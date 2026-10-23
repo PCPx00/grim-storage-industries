@@ -2,10 +2,10 @@
   "parent": "minecraft:block/block",
   "render_type": "minecraft:cutout",
   "textures": {
+    "particle": "grimstorage:block/soul_infuser_front",
     "front": "grimstorage:block/soul_infuser_front",
     "side": "grimstorage:block/soul_infuser_side",
     "top": "grimstorage:block/soul_infuser_top",
-    "particle": "grimstorage:block/soul_infuser_front",
     "front_glow": "grimstorage:block/soul_infuser_front_glow",
     "side_glow": "grimstorage:block/soul_infuser_side_glow",
     "top_glow": "grimstorage:block/soul_infuser_top_glow"
@@ -19,7 +19,7 @@
       ],
       "to": [
         16,
-        16,
+        10,
         16
       ],
       "faces": {
@@ -40,8 +40,7 @@
           "cullface": "west"
         },
         "up": {
-          "texture": "#top",
-          "cullface": "up"
+          "texture": "#top"
         },
         "down": {
           "texture": "#top",
@@ -57,7 +56,7 @@
       ],
       "to": [
         16,
-        16,
+        10,
         16
       ],
       "shade": false,
@@ -84,12 +83,83 @@
           "cullface": "west"
         },
         "up": {
-          "texture": "#top_glow",
-          "cullface": "up"
+          "texture": "#top_glow"
         },
         "down": {
           "texture": "#top_glow",
           "cullface": "down"
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        10,
+        3
+      ],
+      "to": [
+        13,
+        16,
+        13
+      ],
+      "faces": {
+        "north": {
+          "texture": "#front"
+        },
+        "south": {
+          "texture": "#side"
+        },
+        "east": {
+          "texture": "#side"
+        },
+        "west": {
+          "texture": "#side"
+        },
+        "up": {
+          "texture": "#top",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#top"
+        }
+      }
+    },
+    {
+      "from": [
+        3,
+        10,
+        3
+      ],
+      "to": [
+        13,
+        16,
+        13
+      ],
+      "shade": false,
+      "neoforge_data": {
+        "block_light": 15,
+        "sky_light": 15,
+        "ambient_occlusion": false
+      },
+      "faces": {
+        "north": {
+          "texture": "#front_glow"
+        },
+        "south": {
+          "texture": "#side_glow"
+        },
+        "east": {
+          "texture": "#side_glow"
+        },
+        "west": {
+          "texture": "#side_glow"
+        },
+        "up": {
+          "texture": "#top_glow",
+          "cullface": "up"
+        },
+        "down": {
+          "texture": "#top_glow"
         }
       }
     }

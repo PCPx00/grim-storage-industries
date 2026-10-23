@@ -2,12 +2,13 @@
   "parent": "minecraft:block/block",
   "render_type": "minecraft:cutout",
   "textures": {
-    "front": "grimstorage:block/soul_drive_front",
-    "side": "grimstorage:block/machine_side",
-    "top": "grimstorage:block/machine_top",
     "particle": "grimstorage:block/soul_drive_front",
+    "front": "grimstorage:block/soul_drive_front",
+    "side": "grimstorage:block/soul_drive_side",
+    "top": "grimstorage:block/soul_drive_top",
     "front_glow": "grimstorage:block/soul_drive_front_glow",
-    "top_glow": "grimstorage:block/machine_top_glow"
+    "side_glow": "grimstorage:block/soul_drive_side_glow",
+    "top_glow": "grimstorage:block/soul_drive_top_glow"
   },
   "elements": [
     {
@@ -69,6 +70,18 @@
         "north": {
           "texture": "#front_glow",
           "cullface": "north"
+        },
+        "south": {
+          "texture": "#side_glow",
+          "cullface": "south"
+        },
+        "east": {
+          "texture": "#side_glow",
+          "cullface": "east"
+        },
+        "west": {
+          "texture": "#side_glow",
+          "cullface": "west"
         },
         "up": {
           "texture": "#top_glow",
