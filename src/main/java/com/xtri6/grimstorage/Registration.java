@@ -327,6 +327,9 @@ public final class Registration {
                     b -> b.persistent(CardData.Processing.CODEC).networkSynchronized(CardData.Processing.STREAM_CODEC));
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<java.util.UUID>> NETWORK_ID = COMPONENTS.registerComponentType(
             "network_id", b -> b.persistent(net.minecraft.core.UUIDUtil.CODEC).networkSynchronized(net.minecraft.core.UUIDUtil.STREAM_CODEC));
+    /** The 8-digit number of the network a Network Wrench holds, shown to players. */
+    public static final DeferredHolder<DataComponentType<?>, DataComponentType<Integer>> NETWORK_NUMBER = COMPONENTS.registerComponentType(
+            "network_number", b -> b.persistent(com.mojang.serialization.Codec.INT).networkSynchronized(net.minecraft.network.codec.ByteBufCodecs.VAR_INT));
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<GlobalPos>> BOUND_POS = COMPONENTS.registerComponentType(
             "bound_pos", b -> b.persistent(GlobalPos.CODEC).networkSynchronized(GlobalPos.STREAM_CODEC));
 

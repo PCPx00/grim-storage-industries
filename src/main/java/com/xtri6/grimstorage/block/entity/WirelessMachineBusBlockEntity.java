@@ -43,6 +43,14 @@ public class WirelessMachineBusBlockEntity extends MachineBusBlockEntity impleme
         return range;
     }
 
+    /** 0 connected, 1 not bound to a network, 2 bound but has no range card, so it never joins the network. */
+    public int wirelessStatus() {
+        if (bound == null) {
+            return 1;
+        }
+        return rangeHandler().getStackInSlot(0).isEmpty() ? 2 : 0;
+    }
+
     @Override
     public int wirelessRange() {
         var tier = com.xtri6.grimstorage.item.RangeCardItem.best(range);

@@ -460,5 +460,6 @@
   "advancement.grimstorage.soul_infuser.title": "Infused",
   "advancement.grimstorage.soul_infuser.description": "Get a Soul Infuser to make infused items",
   "advancement.grimstorage.guide.title": "Read the Manual",
-  "advancement.grimstorage.guide.description": "Get the Guide Book"
+  "advancement.grimstorage.guide.description": "Get the Guide Book",
+  "gui.grimstorage.machine_bus.status.connected": "Connected to its network"
 }

@@ -42,6 +42,16 @@ public class NetworkWrenchItem extends Item {
         return id.toString().substring(0, 8);
     }
 
+    /** The network's number as players see it. Wrenches made before numbers existed show the old short ID instead. */
+    public static String label(ItemStack stack) {
+        int number = stack.getOrDefault(Registration.NETWORK_NUMBER.get(), 0);
+        if (number != 0) {
+            return Integer.toString(number);
+        }
+        UUID id = held(stack);
+        return id == null ? "" : shortId(id);
+    }
+
     @Override
     public InteractionResult useOn(UseOnContext ctx) {
         Player player = ctx.getPlayer();
@@ -57,8 +67,9 @@ public class NetworkWrenchItem extends Item {
         if (!ctx.getLevel().isClientSide) {
             UUID id = controller.networkId();
             ctx.getItemInHand().set(Registration.NETWORK_ID.get(), id);
+            ctx.getItemInHand().set(Registration.NETWORK_NUMBER.get(), controller.networkNumber());
             if (player != null) {
-                player.displayClientMessage(Component.translatable("message.grimstorage.network.copied", shortId(id)), true);
+                player.displayClientMessage(Component.translatable("message.grimstorage.network.copied", label(ctx.getItemInHand())), true);
             }
         }
         return InteractionResult.sidedSuccess(ctx.getLevel().isClientSide);
@@ -92,7 +103,7 @@ public class NetworkWrenchItem extends Item {
         if (device.wirelessRange() == 0) {
             message(player, Component.translatable("message.grimstorage.wireless_device.no_range"));
         } else {
-            message(player, Component.translatable("message.grimstorage.wireless_device.bound", shortId(id)));
+            message(player, Component.translatable("message.grimstorage.wireless_device.bound", label(ctx.getItemInHand())));
         }
         return InteractionResult.SUCCESS;
     }
@@ -108,6 +119,6 @@ public class NetworkWrenchItem extends Item {
         UUID id = held(stack);
         tooltip.add(id == null
                 ? Component.translatable("tooltip.grimstorage.network_wrench.none").withStyle(ChatFormatting.GRAY)
-                : Component.translatable("tooltip.grimstorage.network_wrench.held", shortId(id)).withStyle(ChatFormatting.AQUA));
+                : Component.translatable("tooltip.grimstorage.network_wrench.held", label(stack)).withStyle(ChatFormatting.AQUA));
     }
 }

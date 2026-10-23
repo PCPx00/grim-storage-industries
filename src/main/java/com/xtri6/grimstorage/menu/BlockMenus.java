@@ -163,7 +163,8 @@ public final class BlockMenus {
                 public int get(int index) {
                     return switch (index) {
                         case 0 -> (be.learns() ? 1 : 0) | (be.fuels() ? 2 : 0);
-                        default -> be.recipeCount();
+                        case 1 -> be.recipeCount();
+                        default -> be instanceof com.xtri6.grimstorage.block.entity.WirelessMachineBusBlockEntity w ? w.wirelessStatus() : 0;
                     };
                 }
 
@@ -172,7 +173,7 @@ public final class BlockMenus {
 
                 @Override
                 public int getCount() {
-                    return 2;
+                    return 3;
                 }
             };
             IItemHandler range = be instanceof com.xtri6.grimstorage.block.entity.WirelessMachineBusBlockEntity w ? w.rangeHandler() : null;
@@ -185,7 +186,7 @@ public final class BlockMenus {
             boolean wireless = buf.readBoolean();
             return new MachineBus(id, inv, dummy(9, s -> s.getItem() instanceof ProcessingCardItem),
                     wireless ? dummy(1, s -> s.getItem() instanceof com.xtri6.grimstorage.item.RangeCardItem) : null,
-                    new SimpleContainerData(2), pos, ContainerLevelAccess.NULL, null, null);
+                    new SimpleContainerData(3), pos, ContainerLevelAccess.NULL, null, null);
         }
 
         public boolean learns() {
@@ -198,6 +199,11 @@ public final class BlockMenus {
 
         public int recipes() {
             return data.get(1);
+        }
+
+        /** 0 connected, 1 no network, 2 needs a range card. Only wireless machine buses report anything else than 0. */
+        public int wirelessStatus() {
+            return data.get(2);
         }
 
         @Override

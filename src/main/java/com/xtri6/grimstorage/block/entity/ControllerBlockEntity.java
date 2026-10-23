@@ -48,6 +48,17 @@ public class ControllerBlockEntity extends NetworkBlockEntity implements Ticking
         return networkId;
     }
 
+    /** The number players see for this network: 8 digits, unique within the world. 0 until the server gives one. */
+    private int networkNumber;
+
+    public int networkNumber() {
+        if (networkNumber == 0 && level != null && level.getServer() != null) {
+            networkNumber = com.xtri6.grimstorage.storage.NetworkNumbers.get(level.getServer()).assign();
+            setChanged();
+        }
+        return networkNumber;
+    }
+
     public UUID owner() {
         return owner;
     }
@@ -105,8 +116,13 @@ public class ControllerBlockEntity extends NetworkBlockEntity implements Ticking
             tag.putString("ownerName", ownerName);
         }
         tag.putBoolean("open", open);
-        if (networkId != null) {
-            tag.putUUID("networkId", networkId);
+        // always written: an ID made lazily but never saved would change on every reload and break its bindings
+        if (networkId == null) {
+            networkId = UUID.randomUUID();
+        }
+        tag.putUUID("networkId", networkId);
+        if (networkNumber != 0) {
+            tag.putInt("networkNumber", networkNumber);
         }
         ListTag list = new ListTag();
         trusted.forEach((id, name) -> {
@@ -143,6 +159,7 @@ public class ControllerBlockEntity extends NetworkBlockEntity implements Ticking
         ownerName = tag.getString("ownerName");
         open = tag.getBoolean("open");
         networkId = tag.hasUUID("networkId") ? tag.getUUID("networkId") : null;
+        networkNumber = tag.getInt("networkNumber");
         trusted.clear();
         for (Tag t : tag.getList("trusted", Tag.TAG_COMPOUND)) {
             CompoundTag c = (CompoundTag) t;

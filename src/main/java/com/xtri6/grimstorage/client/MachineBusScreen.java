@@ -77,6 +77,17 @@ public class MachineBusScreen extends GrimScreen<BlockMenus.MachineBus> {
         hint(g, Component.translatable("gui.grimstorage.machine_bus.label.cards"), 8, 22);
         if (menu.wireless()) {
             hint(g, Component.translatable("gui.grimstorage.machine_bus.label.range"), 8, 96);
+            // says why a wireless bus is not feeding its network: not bound, or no range card to reach it
+            int status = menu.wirelessStatus();
+            Component text = Component.translatable(status == 1 ? "gui.grimstorage.bus.status.no_network"
+                    : status == 2 ? "gui.grimstorage.bus.status.no_range_card" : "gui.grimstorage.machine_bus.status.connected");
+            int color = status == 0 ? t.ok() : status == 2 ? t.warn() : t.danger();
+            g.fill(8, 16, 11, 19, color);
+            g.pose().pushPose();
+            g.pose().translate(14, 15, 0);
+            g.pose().scale(0.75f, 0.75f, 1f);
+            g.drawString(font, text, 0, 0, color, false);
+            g.pose().popPose();
         }
         g.drawString(font, Component.translatable("gui.grimstorage.machine_bus.on"), 70, 22, t.textDim(), false);
         // long names (Enrichment Chamber, Precision Sawmill) shrink to fit rather than get cut off
