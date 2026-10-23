@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.17.14
+- Machines rebuilt from scratch on the Grim Industries machine frame, the same look as Grim Soul Industries:
+  gunmetal corner posts, casing slabs, an inset core and a glowing line around the base. No more stepped shapes.
+- Every machine has an animated core face, its own accent colour and its own part on top:
+  - Network Controller: pulsing purple lens, antenna.
+  - Soul Drive: eight bays with blinking lights, two data plugs.
+  - Soul Terminal: scrolling cyan screen, small antenna.
+  - Soul Infuser: swirling purple core, purple crystal.
+  - Soul Assembler: 3x3 grid lit cell by cell, fan.
+  - Stock Keeper: amber level meters, dial.
+  - Redstone Emitter: pulsing red lamp, red beacon.
+  - Processing Interface: card slot with moving green arrows.
+  - Network Interface: six ports with lime lights, four plugs.
+  - Void Filter: purple swirl into a black hole, dark orb.
+  - Quantum Link: cyan ring with orbiting light, cyan crystal, two antennas.
+- Bus plates and the Chest Link use the same kit, with a glowing icon in their colour.
+- Fixed blocks showing see-through faces: every machine renders solid again.
+- Guide: the "Machines at a glance" page describes the new look.
+
 ## 1.17.13
 - Machine overhaul: every machine has its own look and silhouette. Each one has a stepped 3D model and its own
   32x32 textures for front, side and top, with glowing parts that show what it is doing:

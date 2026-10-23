@@ -439,22 +439,26 @@
         {
           "title": "Máquinas de relance",
           "text": [
-            "Cada máquina tem sua própria forma e cores, para você reconhecê-las de longe. As partes que brilham mostram o que ela está fazendo.",
-            "- **Infusor das Almas:** cadinho violeta sobre uma torre estreita.",
-            "- **Montador das Almas:** verde-azulado, com um braço robótico na frente.",
-            "- **Drive das Almas:** azul, oito baias de células, cada uma com uma luz de estado.",
-            "- **Terminal das Almas:** console inclinado com tela brilhante.",
-            "- **Controlador de Rede:** pilar dourado com núcleo verde.",
-            "- **Guardião de Estoque:** medidor e funil âmbar.",
-            "- **Emissor de Redstone:** cúpula de lâmpada vermelha.",
-            "- **Elo Quântico:** anel de portal violeta."
+            "Toda máquina usa a mesma estrutura das Grim Industries, igual ao Grim Soul Industries: colunas de metal nos cantos, uma linha brilhante na base e um núcleo aceso que está sempre em movimento.",
+            "Cada uma tem sua própria face, cor e peça no topo, para você reconhecê-las de longe.",
+            "- **Controlador de Rede:** lente roxa pulsante, antena no topo.",
+            "- **Drive das Almas:** oito baias com luzes piscando, dois conectores no topo.",
+            "- **Terminal das Almas:** tela ciano rolando, pequena antena.",
+            "- **Infusor das Almas:** núcleo roxo em espiral, cristal no topo.",
+            "- **Montador das Almas:** grade 3x3 acesa célula por célula, ventoinha no topo.",
+            "- **Guardião de Estoque:** medidores âmbar, mostrador no topo.",
+            "- **Emissor de Redstone:** lâmpada vermelha pulsante, sinalizador vermelho no topo.",
+            "- **Interface de Processamento:** entrada de cartão com setas verdes.",
+            "- **Interface de Rede:** seis portas com luzes verde-limão, quatro conectores no topo.",
+            "- **Filtro do Vazio:** espiral roxa para um buraco negro, orbe escuro no topo.",
+            "- **Elo Quântico:** anel ciano com luz orbitando, cristal ciano e duas antenas."
           ],
           "items": [
-            "grimstorage:soul_infuser",
-            "grimstorage:soul_assembler",
+            "grimstorage:network_controller",
             "grimstorage:soul_drive",
             "grimstorage:soul_terminal",
-            "grimstorage:network_controller",
+            "grimstorage:soul_infuser",
+            "grimstorage:soul_assembler",
             "grimstorage:stock_keeper",
             "grimstorage:redstone_emitter",
             "grimstorage:quantum_link"

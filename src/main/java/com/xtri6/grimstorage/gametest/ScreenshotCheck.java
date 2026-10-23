@@ -79,6 +79,9 @@ public final class ScreenshotCheck {
         gui("g16_void_filter", () -> com.xtri6.grimstorage.Registration.VOID_FILTER.get(), Menus::openFilter);
         SHOTS.add(new Shot("w01_machines", true, sp -> gallery(sp, false), () -> {}));
         SHOTS.add(new Shot("w02_machines_close", false, sp -> gallery(sp, true), () -> {}));
+        SHOTS.add(new Shot("w03_machines_dusk", false, sp -> showcase(sp, 13400L), () -> {}));
+        SHOTS.add(new Shot("w04_machines_day", false, sp -> showcase(sp, 6000L), () -> {}));
+        SHOTS.add(new Shot("w05_plates", false, ScreenshotCheck::plates, () -> {}));
         SHOTS.add(new Shot("g17_recipe_card", true, sp -> {
             sp.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(com.xtri6.grimstorage.Registration.RECIPE_CARD.get()));
             Menus.openRecipeCard(sp, InteractionHand.MAIN_HAND);
@@ -290,6 +293,55 @@ public final class ScreenshotCheck {
         } else {
             sp.teleportTo(lvl, o.getX() + 3.5, o.getY() + 1.6, o.getZ() + 10.5, 180f, 8f);
         }
+    }
+
+    /** Every machine in two staggered rows on a dark floor, seen from above at an angle, so their top parts show. */
+    private static void showcase(ServerPlayer sp, long time) {
+        var lvl = sp.serverLevel();
+        lvl.setDayTime(time);
+        BlockPos o = BASE.offset(30, 10, 24);
+        net.minecraft.world.level.block.Block[] front = {com.xtri6.grimstorage.Registration.CONTROLLER.get(),
+                com.xtri6.grimstorage.Registration.DRIVE.get(), com.xtri6.grimstorage.Registration.TERMINAL.get(),
+                com.xtri6.grimstorage.Registration.SOUL_INFUSER.get(), com.xtri6.grimstorage.Registration.ASSEMBLER.get(),
+                com.xtri6.grimstorage.Registration.QUANTUM_LINK.get()};
+        net.minecraft.world.level.block.Block[] back = {com.xtri6.grimstorage.Registration.STOCK_KEEPER.get(),
+                com.xtri6.grimstorage.Registration.REDSTONE_EMITTER.get(), com.xtri6.grimstorage.Registration.PROCESSING_INTERFACE.get(),
+                com.xtri6.grimstorage.Registration.INTERFACE.get(), com.xtri6.grimstorage.Registration.VOID_FILTER.get()};
+        for (int x = -3; x <= 14; x++) {
+            for (int z = -5; z <= 4; z++) {
+                lvl.setBlockAndUpdate(o.offset(x, -1, z), net.minecraft.world.level.block.Blocks.POLISHED_DEEPSLATE.defaultBlockState());
+                for (int y = 0; y <= 2; y++) {
+                    lvl.removeBlock(o.offset(x, y, z), false);
+                }
+            }
+        }
+        for (int i = 0; i < front.length; i++) {
+            lvl.setBlockAndUpdate(o.offset(i * 2, 0, 0), facingSouth(front[i]));
+        }
+        for (int i = 0; i < back.length; i++) {
+            lvl.setBlockAndUpdate(o.offset(i * 2 + 1, 0, -2), facingSouth(back[i]));
+        }
+        sp.teleportTo(lvl, o.getX() + 5.5, o.getY() + 3.4, o.getZ() + 6.0, 180f, 30f);
+    }
+
+    /** The bus plates and the Chest Link side by side, facing the camera. */
+    private static void plates(ServerPlayer sp) {
+        var lvl = sp.serverLevel();
+        lvl.setDayTime(6000);
+        BlockPos o = BASE.offset(30, 10, 44);
+        net.minecraft.world.level.block.Block[] row = {com.xtri6.grimstorage.Registration.IMPORT_BUS.get(),
+                com.xtri6.grimstorage.Registration.EXPORT_BUS.get(), com.xtri6.grimstorage.Registration.MACHINE_BUS.get(),
+                com.xtri6.grimstorage.Registration.CHEST_LINK.get(), com.xtri6.grimstorage.Registration.WIRELESS_MACHINE_BUS.get()};
+        for (int x = -2; x <= 10; x++) {
+            for (int z = -2; z <= 3; z++) {
+                lvl.setBlockAndUpdate(o.offset(x, -1, z), net.minecraft.world.level.block.Blocks.POLISHED_DEEPSLATE.defaultBlockState());
+                lvl.removeBlock(o.offset(x, 0, z), false);
+            }
+        }
+        for (int i = 0; i < row.length; i++) {
+            lvl.setBlockAndUpdate(o.offset(i * 2, 0, 0), facingSouth(row[i]));
+        }
+        sp.teleportTo(lvl, o.getX() + 4.5, o.getY() + 1.6, o.getZ() + 4.5, 180f, 18f);
     }
 
     private static void pipes(ServerPlayer sp) {
