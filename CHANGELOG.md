@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.17.11
+- Creative Energy Battery: a creative-tab-only energy cell with endless FE. It has no recipe, so it can't be crafted
+  in survival. It always gives energy and takes any you send, and reads as "Creative Energy Battery (infinite FE)".
+- Cell cards redrawn at 32x32: each tier has its own band and rim colour, and four LEDs show its capacity step
+  (copper 1, gold 2, diamond 3, netherite 4). Diamond, netherite and singularity cells pulse.
+- Bus screens: when the title and status won't fit on one line (for example "Wireless Machine Bus" with "Needs a
+  range card"), the status drops to its own line under the title.
+- Fixed: swapping an import bus to an export bus (or back) duplicated its range card. The card is now kept once.
+
 ## 1.17.10
 - Text that doesn't fit now ends in "..." instead of being cut off mid-letter:
   - Job queue rows in the Soul Terminal (item name, status line, and each step's machine line).
