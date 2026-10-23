@@ -37,6 +37,7 @@ public final class GrimStorageClient {
             e.register(WIRELESS_KEY);
         });
         NeoForge.EVENT_BUS.addListener(GrimStorageClient::tick);
+        NeoForge.EVENT_BUS.addListener(MachineExport::register);
     }
 
     private static void screens(RegisterMenuScreensEvent e) {
