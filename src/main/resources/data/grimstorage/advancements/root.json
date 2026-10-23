@@ -1,0 +1,37 @@
+{
+  "display": {
+    "icon": {
+      "id": "grimstorage:singularity_core"
+    },
+    "title": {
+      "translate": "advancement.grimstorage.root.title"
+    },
+    "description": {
+      "translate": "advancement.grimstorage.root.description"
+    },
+    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "frame": "task",
+    "show_toast": false,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "soulite": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "grimstorage:soulite_ingot"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "soulite"
+    ]
+  ]
+}

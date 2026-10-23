@@ -1,0 +1,40 @@
+{
+  "parent": "grimstorage:root",
+  "display": {
+    "icon": {
+      "id": "grimstorage:wireless_range_infinite"
+    },
+    "title": {
+      "translate": "advancement.grimstorage.infinite_reach.title"
+    },
+    "description": {
+      "translate": "advancement.grimstorage.infinite_reach.description"
+    },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "obtained": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": [
+              "grimstorage:wireless_range_infinite"
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "requirements": [
+    [
+      "obtained"
+    ]
+  ],
+  "rewards": {
+    "experience": 250
+  }
+}
