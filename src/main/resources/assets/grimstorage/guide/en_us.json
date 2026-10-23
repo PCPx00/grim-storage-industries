@@ -439,19 +439,18 @@
         {
           "title": "Machines at a glance",
           "text": [
-            "Every machine is built on the same Grim Industries frame as Grim Soul Industries: gunmetal corner posts, a glowing line around the base, and a lit core that is always moving.",
-            "Each one has its own core face, colour and part on top, so you can tell them apart from across the room.",
-            "- **Network Controller:** pulsing purple lens, antenna on top.",
-            "- **Soul Drive:** eight bays with blinking lights, two data plugs on top.",
-            "- **Soul Terminal:** scrolling cyan screen, small antenna.",
-            "- **Soul Infuser:** swirling purple core, a crystal on top.",
-            "- **Soul Assembler:** a 3x3 grid lit cell by cell, a fan on top.",
-            "- **Stock Keeper:** amber level meters, a dial on top.",
-            "- **Redstone Emitter:** red pulsing lamp, a red beacon on top.",
-            "- **Processing Interface:** a card slot with green arrows.",
-            "- **Network Interface:** six ports with lime lights, four plugs on top.",
-            "- **Void Filter:** a purple swirl into a black hole, a dark orb on top.",
-            "- **Quantum Link:** a cyan ring with orbiting light, a cyan crystal and two antennas."
+            "Every machine in Grim Storage Industries, what it is for, and where its page is in this guide.",
+            "- **Network Controller:** the heart of a network. Every machine on it joins through here.",
+            "- **Soul Drive:** stores items in cells on the network.",
+            "- **Soul Terminal:** browse, search and craft from the network.",
+            "- **Soul Infuser:** infuses souls into items.",
+            "- **Soul Assembler:** crafts items for the network.",
+            "- **Stock Keeper:** keeps a set amount of an item in the network.",
+            "- **Redstone Emitter:** sends a redstone signal when the network needs something.",
+            "- **Processing Interface:** runs processing recipes for the network.",
+            "- **Network Interface:** connects a second network to this one.",
+            "- **Void Filter:** deletes items that match its filter.",
+            "- **Quantum Link:** a link to a shared network across distances."
           ],
           "items": [
             "grimstorage:network_controller",
@@ -461,6 +460,9 @@
             "grimstorage:soul_assembler",
             "grimstorage:stock_keeper",
             "grimstorage:redstone_emitter",
+            "grimstorage:processing_interface",
+            "grimstorage:network_interface",
+            "grimstorage:void_filter",
             "grimstorage:quantum_link"
           ]
         },
