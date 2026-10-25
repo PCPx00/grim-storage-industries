@@ -27,7 +27,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.phys.BlockHitResult;
 
-public class SoulInfuserBlock extends Block implements EntityBlock {
+public class SoulInfuserBlock extends Block implements EntityBlock, NetworkMember {
     public static final MapCodec<SoulInfuserBlock> CODEC = simpleCodec(SoulInfuserBlock::new);
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
 
