@@ -74,7 +74,8 @@
           "title": "The Soul Infuser",
           "text": [
             "Your first machine. Put in a **Soulite Ingot**, **Soul Sand** (or soul soil) and **Nether Quartz**, in any slots, to make **Infused Soulite**. No fuel needed.",
-            "Pipes and hoppers can feed it from any side and pull the result out."
+            "Pipes and hoppers can feed it from any side and pull the result out.",
+            "Place it touching any network block (a drive, terminal, cable or bus) and it joins that network."
           ],
           "recipe": "grimstorage:soul_infuser"
         },
@@ -331,6 +332,7 @@
           "text": [
             "- **Fluid and chemical cells:** 256, 4,096, 65,536 and about a million buckets.",
             "- **Energy cells:** 16M, 256M, 4B and 64B FE.",
+            "- **Creative Energy Battery** (creative tab only): endless FE, in and out. It has no recipe, so it's for testing.",
             "- **Source cells:** 10k, 100k, 1M and 10M Source.",
             "- **Experience cells:** 100k, 2M, 50M and 2B XP.",
             "They use the same Copper, Gold, Diamond and Netherite tiers as item cells."

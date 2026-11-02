@@ -74,7 +74,8 @@
           "title": "O Infusor das Almas",
           "text": [
             "Sua primeira máquina. Coloque um **Lingote de Soulita**, **Areia das Almas** (ou solo das almas) e **Quartzo do Nether**, em qualquer slot, para fazer **Soulita Infundida**. Não precisa de combustível.",
-            "Canos e funis podem abastecê-lo de qualquer lado e tirar o resultado."
+            "Canos e funis podem abastecê-lo de qualquer lado e tirar o resultado.",
+            "Encoste-o em qualquer bloco da rede (um drive, terminal, cabo ou barramento) e ele entra nessa rede."
           ],
           "recipe": "grimstorage:soul_infuser"
         },
@@ -331,6 +332,7 @@
           "text": [
             "- **Células de fluido e químicas:** 256, 4.096, 65.536 e cerca de um milhão de baldes.",
             "- **Células de energia:** 16M, 256M, 4B e 64B FE.",
+            "- **Bateria de Energia Criativa** (só na aba criativa): FE infinito, entra e sai. Não tem receita, então serve para testes.",
             "- **Células de Fonte:** 10k, 100k, 1M e 10M de Fonte.",
             "- **Células de experiência:** 100k, 2M, 50M e 2B XP.",
             "Elas usam os mesmos níveis de Cobre, Ouro, Diamante e Netherita das células de itens."
